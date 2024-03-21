@@ -1,7 +1,7 @@
 package me.redstoner2019.main.serverstuff;
 
+import me.redstoner2019.main.data.guis.ConnectGUI;
 import me.redstoner2019.main.data.guis.GUI;
-import me.redstoner2019.main.data.guis.LoginPopup;
 import me.redstoner2019.main.data.packets.ClientDataPacket;
 import me.redstoner2019.main.data.packets.JoinPacket;
 import me.redstoner2019.main.data.packets.PlayerHasWonPacket;
@@ -9,8 +9,10 @@ import me.redstoner2019.serverhandling.*;
 
 import javax.swing.*;
 
+import static me.redstoner2019.main.data.guis.GUI.isCurrentTurn;
+
 public class ClientMain extends Client {
-    public static void connect(String ip, String username, LoginPopup pop){
+    public static void connect(String ip, String username){
         System.out.println("Connection");
         setPacketListener(new PacketListener() {
             @Override
@@ -18,11 +20,11 @@ public class ClientMain extends Client {
                 if(packet instanceof ClientDataPacket p){
                     GUI.playerCardStack = p.clientCards;
                     GUI.lastPlaced = p.lastCardPut;
-                    GUI.isCurrentTurn = p.isTurn;
+                    isCurrentTurn = p.isTurn;
                     GUI.currentPlayer = p.currentPlayer;
-                    GUI.unoButton.setEnabled(true);
-                    GUI.drawButton.setEnabled(p.canDraw);
-                    GUI.skipButton.setEnabled(p.canSkip);
+                    GUI.unoButton.setEnabled(isCurrentTurn);
+                    GUI.drawButton.setEnabled(p.canDraw && isCurrentTurn);
+                    GUI.skipButton.setEnabled(p.canSkip && isCurrentTurn);
                     String nextUpString = "";
                     for(String s : p.nextUp){
                         nextUpString += s + "\n\n";
@@ -46,19 +48,24 @@ public class ClientMain extends Client {
             @Override
             public void onConnectionFailedEvent(Exception reason) {
                 System.out.println("Failed");
-                pop.enableConnect(true);
-                pop.setTitle("Connect - Failed to connect - " + reason.getLocalizedMessage());
+                ConnectGUI.connect.setEnabled(true);
+                ConnectGUI.frame.setTitle("Connect - Failed to connect - " + reason.getLocalizedMessage());
             }
         });
         setOnConnectionSuccessEvent(new ConnectionSuccessEvent() {
             @Override
             public void onConnectionSuccess() {
                 System.out.println("Success");
-                pop.dispose();
+                ConnectGUI.frame.dispose();
             }
         });
 
         connect(ip,8008);
+        try {
+            GUI.main(new String[0]);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
         sendObject(new JoinPacket(username));
     }
 }

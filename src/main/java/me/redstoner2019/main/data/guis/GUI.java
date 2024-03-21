@@ -27,7 +27,6 @@ public class GUI<d> {
     public static BufferedImage cards = null;
     public static List<Card> playerCardStack = new ArrayList<>();
     public static Card lastPlaced = null;
-    public static LoginPopup popup = null;
     public static boolean isCurrentTurn = false;
     public static String currentPlayer = "";
     public static JButton drawButton = new JButton("DRAW");
@@ -97,8 +96,8 @@ public class GUI<d> {
 
         nextUp.setBounds(50,90,300,350-90);
         nextUp.setFont(new Font("Arial", Font.PLAIN, 15));
-        nextUp.setEnabled(false);
         nextUp.setEditable(false);
+        nextUp.setForeground(Color.BLACK);
         panel.add(nextUp);
 
         drawButton.setBounds(1000,140,200,40);
@@ -142,7 +141,6 @@ public class GUI<d> {
             }
         });
 
-        popup = new LoginPopup(frame);
         if(!ClientMain.isConnected()) System.exit(0);
 
         frame.setLocation((1920-width)/2,(1080-height)/2);
@@ -237,6 +235,7 @@ public class GUI<d> {
                 int w = 1200 / playerCardStack.size();
 
                 for(Card c : playerCardStack){
+                    if(c.getColor().contains(" - ")) c.setColor("BLACK");
                     Point mouse = label.getMousePosition();
                     if(mouse!=null) {
                         if(mouse.x > xOffset && mouse.x <= xOffset + w){
@@ -333,6 +332,7 @@ public class GUI<d> {
         }
         Color extraColor = null;
         if(c.getColor().startsWith("BLACK - ")){
+            number = 13;
             switch (c.getNum()){
                 case 'D': {
                     color = 4;
@@ -348,28 +348,47 @@ public class GUI<d> {
             }
             switch (c.getColor().substring("BLACK - ".length())){
                 case "RED": {
-                    extraColor = RED;
+                    extraColor = new Color(252, 85, 84);
                     break;
                 }
                 case "GREEN": {
-                    extraColor = new Color(0,128,0);
+                    extraColor = new Color(84, 169, 84);
                     break;
                 }
                 case "BLUE": {
-                    extraColor = BLUE;
+                    extraColor = new Color(83, 84, 251);
                     break;
                 }
                 case "YELLOW": {
-                    extraColor = YELLOW;
+                    extraColor = new Color(253, 169, 1);
                     break;
                 }
             }
         }
         BufferedImage ca = getCard(color,number);
         if(extraColor != null){
+            /*for (int x = 0; x < ca.getWidth(); x++) {
+                for (int y = 0; y < ca.getHeight(); y++) {
+                    if((new Color(ca.getRGB(x,y)).getRed() < 30) && (new Color(ca.getRGB(x,y)).getGreen() < 30) && (new Color(ca.getRGB(x,y)).getBlue() < 30)){
+                        ca.setRGB(x,y,extraColor.getRGB());
+                    }
+                }
+            }*/
             Graphics2D g = ca.createGraphics();
+
+            g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+            g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+            g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+
+
             g.setColor(extraColor);
-            g.fillOval(140,20,20,20);
+            g.fillOval(90,15,20,20);
+            g.fillOval(13,150,20,20);
             g.dispose();
         }
         return ca;

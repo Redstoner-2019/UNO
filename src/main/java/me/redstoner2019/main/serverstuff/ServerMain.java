@@ -89,6 +89,14 @@ public class ServerMain extends Server {
                                         }
                                     }
                                     player.getCards().remove(toRemove);
+                                    if(lastCardPlaced.getColor().startsWith("BLACK - ")) lastCardPlaced.setColor("BLACK");
+
+                                    for(Card c : List.copyOf(deck)) {
+                                        if(c.getColor().contains(" - ")){
+                                            Util.log("Found broken card " + c);
+                                        }
+                                    }
+
                                     lastCardPlaced = cardPlayed;
                                     deck.add(cardPlayed);
                                     if(cardPlayed.getNum() == 'R'){
@@ -97,17 +105,22 @@ public class ServerMain extends Server {
                                     if(cardPlayed.getNum() == 'S'){
                                         skipNextTurn = true;
                                     }
-                                    if(cardPlayed.getNum() == 'D' && !cardPlayed.getColor().equals("BLACK")){
+                                    if(cardPlayed.getNum() == 'D' && !cardPlayed.getColor().startsWith("BLACK")){
                                         Util.log(player.getUsername() + " " + cardPlayed + " Draw 2");
                                         players.get(1).addCard(popTop(deck));
                                         players.get(1).addCard(popTop(deck));
                                     }
-                                    if(cardPlayed.getNum() == 'D' && cardPlayed.getColor().equals("BLACK")){
+                                    if(cardPlayed.getNum() == 'D' && cardPlayed.getColor().startsWith("BLACK")){
                                         Util.log(player.getUsername() + " " + cardPlayed + " Draw 4");
-                                        players.get(1).addCard(popTop(deck));
-                                        players.get(1).addCard(popTop(deck));
-                                        players.get(1).addCard(popTop(deck));
-                                        players.get(1).addCard(popTop(deck));
+                                        try{
+                                            players.get(1).addCard(popTop(deck));
+                                            players.get(1).addCard(popTop(deck));
+                                            players.get(1).addCard(popTop(deck));
+                                            players.get(1).addCard(popTop(deck));
+                                        } catch (Exception e){
+
+                                        }
+
                                     }
                                     if(player.getCards().size() == 1){
                                         if(!player.UNO){
@@ -121,7 +134,7 @@ public class ServerMain extends Server {
                                         player.addCard(popTop(deck));
                                         player.addCard(popTop(deck));
                                     }
-                                    if(cardPlayed.getNum() == 'W' || (cardPlayed.getNum() == 'D' && cardPlayed.getColor().equals("BLACK"))){
+                                    if(cardPlayed.getNum() == 'W' || (cardPlayed.getNum() == 'D' && cardPlayed.getColor().startsWith("BLACK"))){
 
                                     } else {
                                         manageNextPlayer();
@@ -161,6 +174,7 @@ public class ServerMain extends Server {
                     } else if (p instanceof SetColorPacket packet){
                         overridenColor = packet.color;
                         lastCardPlaced.setColor("BLACK - " + overridenColor);
+                        Util.log(lastCardPlaced.getColor());
                         manageNextPlayer();
                     }
                     },h);
@@ -233,7 +247,7 @@ public class ServerMain extends Server {
                                             else nextUp.add(c + ". " + pl.getUsername() + " (" + pl.getCards().size() + " cards left)");
                                             c++;
                                         }
-                                        p.handler.sendObject(new ClientDataPacket(List.copyOf(p.getCards()), lastCardPlaced, players.get(0).equals(p),players.get(0).getUsername(),!p.hasDrawnCardThisRound,p.hasDrawnCardThisRound,List.copyOf(nextUp),p.placement));
+                                        p.handler.sendObject(new ClientDataPacket(List.copyOf(p.getCards()), new Card(lastCardPlaced), players.get(0).equals(p),players.get(0).getUsername(),!p.hasDrawnCardThisRound,p.hasDrawnCardThisRound,List.copyOf(nextUp),p.placement));
                                     } else {
                                         toRemove.add(p);
                                     }

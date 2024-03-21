@@ -45,6 +45,10 @@ public class Card extends Packet {
         color = "RED";
         num = '0';
     }
+    public Card(Card c){
+        this.color = c.getColor();
+        this.num = c.getNum();
+    }
 
     public static List<Card> getDECK() {
         List<Card> DECK = new ArrayList<>();
@@ -87,15 +91,15 @@ public class Card extends Packet {
                 '}';
     }
     public boolean canBePlayed(Card card){
-        if(card.color.equals("BLACK") && color.equals("BLACK")) return false;
+        if(card.color.startsWith("BLACK") && color.startsWith("BLACK")) return false;
         if(card.color.equals(color) || card.num == num){
             return true;
         }
-        if(color.equals("BLACK")){
+        if(color.startsWith("BLACK")){
             if(num == 'W'){
                 return card.color.equals(ServerMain.overridenColor);
             }
             return true;
-        }else return card.color.equals("BLACK");
+        }else return card.color.startsWith("BLACK");
     }
 }
