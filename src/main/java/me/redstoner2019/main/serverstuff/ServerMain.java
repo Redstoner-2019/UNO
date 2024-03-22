@@ -60,6 +60,8 @@ public class ServerMain extends Server {
                 players.add(player);
                 startPacketListener((p, handler) -> {
                     if(p instanceof JoinPacket packet){
+                        Util.log(packet.toString());
+                        if(packet.getUsername().isEmpty()) return;
                         player.setUsername(packet.getUsername());
                         player.setLoginComplete(true);
                         player.getCards().clear();
@@ -165,8 +167,8 @@ public class ServerMain extends Server {
                                     for(Player pl : List.copyOf(players)){
                                         Util.log("Player won to " + pl.getUsername());
                                         pl.handler.sendObject(new PlayerHasWonPacket(player.getUsername() + " has won! \n\nYou had " + pl.getCards().size() + " cards left.\n\n" + placement));
-                                        GAME_RUNNING = false;
                                     }
+                                    GAME_RUNNING = false;
                                 }
                             }
                         }
@@ -301,6 +303,9 @@ public class ServerMain extends Server {
                                 break;
                             }
                             sendClientData();
+                        }
+                        for(Player p : players){
+                            p.handler.disconnect();
                         }
                         players.clear();
                         deck.clear();

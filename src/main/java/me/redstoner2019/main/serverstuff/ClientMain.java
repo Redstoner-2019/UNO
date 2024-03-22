@@ -23,6 +23,9 @@ public class ClientMain extends Client {
         setPacketListener(new PacketListener() {
             @Override
             public void packetRecievedEvent(Object packet, ClientHandler handler) {
+                if(!(packet instanceof ClientDataPacket)){
+                    System.out.println(packet.getClass());
+                }
                 if(packet instanceof ClientDataPacket p){
                     ArrayList<Card> cards = new ArrayList<>(p.clientCards);
                     if(!playerCardStack.isEmpty()) Collections.sort(cards, new Comparator<Card>() {
