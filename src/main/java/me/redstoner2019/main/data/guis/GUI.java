@@ -229,7 +229,6 @@ public class GUI<d> {
 
             @Override
             public void mousePressed(MouseEvent e) {
-                System.out.println("pressed");
                 int xOffset = 0;
 
                 if(playerCardStack.isEmpty()) return;

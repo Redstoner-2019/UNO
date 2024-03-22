@@ -52,7 +52,7 @@ public class Server {
                             throw new RuntimeException(e);
                         }
                     }});t.start();
-                Util.log("A client has connected!");
+                Util.log("A client has connected! " + socket.getInetAddress());
             }catch (Exception ignored){}
         }
     }

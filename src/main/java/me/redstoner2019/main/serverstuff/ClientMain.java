@@ -1,5 +1,6 @@
 package me.redstoner2019.main.serverstuff;
 
+import me.redstoner2019.main.data.Card;
 import me.redstoner2019.main.data.guis.ConnectGUI;
 import me.redstoner2019.main.data.guis.GUI;
 import me.redstoner2019.main.data.packets.ClientDataPacket;
@@ -9,7 +10,12 @@ import me.redstoner2019.serverhandling.*;
 
 import javax.swing.*;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+
 import static me.redstoner2019.main.data.guis.GUI.isCurrentTurn;
+import static me.redstoner2019.main.data.guis.GUI.playerCardStack;
 
 public class ClientMain extends Client {
     public static void connect(String ip, String username){
@@ -18,7 +24,18 @@ public class ClientMain extends Client {
             @Override
             public void packetRecievedEvent(Object packet, ClientHandler handler) {
                 if(packet instanceof ClientDataPacket p){
-                    GUI.playerCardStack = p.clientCards;
+                    ArrayList<Card> cards = new ArrayList<>(p.clientCards);
+                    if(!playerCardStack.isEmpty()) Collections.sort(cards, new Comparator<Card>() {
+                        @Override
+                        public int compare(Card o1, Card o2) {
+                            return (o1.getColorAsINT()- o2.getColorAsINT()) - (o1.getNum()-o2.getNum());
+                        }
+                    });
+
+                    Collections.reverse(cards);
+
+                    GUI.playerCardStack = cards;
+
                     GUI.lastPlaced = p.lastCardPut;
                     isCurrentTurn = p.isTurn;
                     GUI.currentPlayer = p.currentPlayer;
@@ -37,7 +54,6 @@ public class ClientMain extends Client {
                         System.exit(0);
                     }
                 }else if(packet instanceof PlayerHasWonPacket p){
-                    System.out.println(p.message);
                     GUI.frame.setVisible(false);
                     GUI.frame.dispose();
                     JOptionPane.showMessageDialog(null,p.message);

@@ -9,6 +9,24 @@ import java.util.List;
 public class Card extends Packet {
     private String color = null;
     private char num = 0;
+    public int getColorAsINT(){
+        switch (color){
+            case "RED":{
+                return 100;
+            }
+            case "YELLOW":{
+                return 200;
+            }
+            case "GREEN":{
+                return 300;
+            }
+            case "BLUE":{
+                return 400;
+            }
+        }
+        if(color.startsWith("BLACK")) return 500;
+        return 0;
+    }
     private static List<Card> generateColor(String color){
         return List.of(new Card(color, '0'),
                 new Card(color, '1'),

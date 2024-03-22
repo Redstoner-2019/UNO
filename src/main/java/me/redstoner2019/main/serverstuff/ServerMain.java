@@ -342,7 +342,7 @@ public class ServerMain extends Server {
                         else nextUp.add(c + ". " + pl.getUsername() + " (" + pl.getCards().size() + " cards left)");
                         c++;
                     }
-                    if(p.handler.isConnected()) p.handler.sendObject(new ClientDataPacket(List.copyOf(p.getCards()), new Card(lastCardPlaced), players.get(0).equals(p),players.get(0).getUsername(),!p.hasDrawnCardThisRound,p.hasDrawnCardThisRound,List.copyOf(nextUp),p.placement));
+                    if(p.handler.isConnected() && !players.isEmpty()) p.handler.sendObject(new ClientDataPacket(List.copyOf(p.getCards()), new Card(lastCardPlaced), players.get(0).equals(p),players.get(0).getUsername(),!p.hasDrawnCardThisRound,p.hasDrawnCardThisRound,List.copyOf(nextUp),p.placement));
                 } else {
                     for(Player pl : List.copyOf(players)){
                         if(pl.ready)nextUp.add(c + ". " + pl.getUsername() + " (READY)");
