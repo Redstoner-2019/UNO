@@ -36,11 +36,13 @@ public class ClientMain extends Client {
                         handler.disconnect();
                         System.exit(0);
                     }
-                }
-                if(packet instanceof PlayerHasWonPacket p){
+                }else if(packet instanceof PlayerHasWonPacket p){
                     System.out.println(p.message);
+                    GUI.frame.setVisible(false);
                     GUI.frame.dispose();
                     JOptionPane.showMessageDialog(null,p.message);
+                    ConnectGUI.main(new String[0]);
+                    disconnect();
                 }
             }
         });

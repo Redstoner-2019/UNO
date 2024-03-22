@@ -15,6 +15,20 @@ public class Player {
     public String placement = "";
     public boolean UNO = false;
 
+    @Override
+    public String toString() {
+        return "Player{" +
+                "cards=" + cards +
+                ", loginComplete=" + loginComplete +
+                ", username='" + username + '\'' +
+                ", ready=" + ready +
+                ", handler=" + handler +
+                ", hasDrawnCardThisRound=" + hasDrawnCardThisRound +
+                ", placement='" + placement + '\'' +
+                ", UNO=" + UNO +
+                '}';
+    }
+
     public Player(List<Card> cards, boolean loginComplete, String username) {
         this.cards = cards;
         this.loginComplete = loginComplete;

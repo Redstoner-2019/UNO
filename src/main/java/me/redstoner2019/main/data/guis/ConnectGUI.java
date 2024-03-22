@@ -13,6 +13,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class ConnectGUI<d> {
@@ -21,11 +22,13 @@ public class ConnectGUI<d> {
     private int width = 1280;
     private int height = 720;
     public static JButton connect = new JButton("CONNECT");
+    public static List<String> serverList = new ArrayList<>();
 
     /**
      * Launch the application.
      */
     public static void main(String[] args) {
+        connect.setEnabled(true);
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
@@ -107,9 +110,9 @@ public class ConnectGUI<d> {
                 Thread t = new Thread(new Runnable() {
                     @Override
                     public void run() {
-                        List<String> ips = null;
+                        List<String> ips = new ArrayList<>();
                         try {
-                            ips = LocalNetworkScanner.scan();
+                            LocalNetworkScanner.scan(serverList);
                         } catch (IOException ex) {
                             throw new RuntimeException(ex);
                         }
@@ -164,6 +167,21 @@ public class ConnectGUI<d> {
 
             }
         });
+
+        frame.setVisible(true);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (frame.isVisible()){
+                    String[] arr = new String[serverList.size()];
+                    for (int i = 0; i < arr.length; i++) {
+                        arr[i] = serverList.get(i);
+                    }
+                    list.setListData(arr);
+                }
+            }
+        });
+        t.start();
     }
 }
 

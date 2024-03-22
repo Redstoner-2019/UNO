@@ -13,7 +13,7 @@ import java.util.Date;
 public class Util {
     public static void log(String message){
         System.out.println(new Date(System.currentTimeMillis()).toGMTString() + ": " + message);
-        ConsoleGUI.area.setText(ConsoleGUI.area.getText() + new Date(System.currentTimeMillis()).toGMTString() + ": " + message + "\n");
+        ConsoleGUI.area.setText(new Date(System.currentTimeMillis()).toGMTString() + ": " + message + "\n" + ConsoleGUI.area.getText());
     }
 
     public static void writeStringToFile(String str, File file) throws IOException {

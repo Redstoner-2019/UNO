@@ -8,4 +8,11 @@ public class PlayerHasWonPacket extends Packet {
     public PlayerHasWonPacket(String message) {
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+        return "PlayerHasWonPacket{" +
+                "message='" + message + '\'' +
+                '}';
+    }
 }

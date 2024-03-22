@@ -8,12 +8,10 @@ import me.redstoner2019.serverhandling.Server;
 import me.redstoner2019.serverhandling.Util;
 import org.json.JSONObject;
 
+import java.io.Console;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class ServerMain extends Server {
     public static List<Player> players = new ArrayList<>();
@@ -25,13 +23,16 @@ public class ServerMain extends Server {
     public static boolean skipNextTurn = false;
     public static String overridenColor = "RED";
     public static List<Card> deck = new ArrayList<>();
+    private static final int COUNTDOWN = 10;
+    private static int startingIn = COUNTDOWN;
+    private static boolean CANCEL_COUNTDOWN = false;
 
     public static void main(String[] args) {
         JSONObject object = new JSONObject();
         if(!new File("server.properties").exists()){
             try {
                 new File("server.properties").createNewFile();
-                object.put("cards",8);
+                object.put("cards",CARDS_PLAYER);
                 Util.writeStringToFile(Util.prettyJSON(object.toString()),new File("server.properties"));
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -64,6 +65,9 @@ public class ServerMain extends Server {
                         player.getCards().clear();
                         player.handler = handler;
                         Util.log("Player " + packet.getUsername() + " joined successfully");
+                        startingIn = COUNTDOWN;
+                        CANCEL_COUNTDOWN = true;
+                        Util.log("Cancelling Countdown: Player joined");
                         if(GAME_RUNNING){
                             if(deck.size() < 50){
                                 deck.addAll(shuffleList(Card.getDECK()));
@@ -142,8 +146,22 @@ public class ServerMain extends Server {
                                     player.UNO = false;
                                 }
                                 if(player.getCards().isEmpty()) {
+                                    List<Player> playerCards = new ArrayList<>(List.copyOf(players));
+                                    Collections.sort(playerCards, new Comparator<Player>() {
+                                        @Override
+                                        public int compare(Player o1, Player o2) {
+                                            return o1.getCards().size() - o2.getCards().size();
+                                        }
+                                    });
+                                    String placement = "Placement: \n\n";
+                                    int place = 1;
+                                    for(Player pl : playerCards){
+                                        placement+=place + "." + pl.getUsername() + ", " + pl.getCards().size() + " Cards left\n";
+                                    }
+                                    System.out.println(placement);
                                     for(Player pl : players){
-                                        pl.handler.sendObject(new PlayerHasWonPacket(player.getUsername() + " has won! You had " + pl.getCards().size() + " cards left."));
+                                        Util.log("Player won to " + pl.getUsername());
+                                        pl.handler.sendObject(new PlayerHasWonPacket(player.getUsername() + " has won! \n\nYou had " + pl.getCards().size() + " cards left.\n\n" + placement));
                                         GAME_RUNNING = false;
                                     }
                                 }
@@ -183,10 +201,33 @@ public class ServerMain extends Server {
         Thread gameThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                final Object LOCK = new Object();
+                Thread waiter = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        while (true){
+                            synchronized (LOCK){
+                                try {
+                                    LOCK.wait(1000);
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                            synchronized (LOCK){
+                                LOCK.notify();
+                            }
+                        }
+                    }
+                });
+                waiter.start();
+
                     while (true){
                         boolean allAgreed = true;
                         synchronized (this){
-                            if(players.size() < MIN_PLAYERS) continue;
+                            if(players.size() < MIN_PLAYERS) {
+                                startingIn = COUNTDOWN;
+                                continue;
+                            }
                             for (Player p: List.copyOf(players)) {
                                 if(!p.ready) {
                                     allAgreed = false;
@@ -196,7 +237,27 @@ public class ServerMain extends Server {
                         }
 
                         if(!allAgreed) continue;
+                        CANCEL_COUNTDOWN = false;
 
+                        Util.log("Starting a game in " + startingIn);
+                        synchronized (LOCK) {
+                            while (startingIn > 0) {
+                                if(CANCEL_COUNTDOWN) {
+                                    break;
+                                }
+                                try {
+                                    LOCK.wait();
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
+                                startingIn--;
+                                Util.log("Starting a game in " + startingIn);
+                            }
+                        }
+                        if(CANCEL_COUNTDOWN) {
+                            CANCEL_COUNTDOWN = false;
+                            break;
+                        }
                         Util.log("Starting a game");
 
                         int decks = players.size()/4;
@@ -236,29 +297,7 @@ public class ServerMain extends Server {
                                 GAME_RUNNING = false;
                                 break;
                             }
-                            try{
-                                List<Player> toRemove = new ArrayList<>();
-                                for(Player p : List.copyOf(players)){
-                                    if(!p.handler.getSocket().isClosed()) {
-                                        List<String> nextUp = new ArrayList<>();
-                                        int c = 1;
-                                        for(Player pl : List.copyOf(players)){
-                                            if(pl.UNO)nextUp.add(c + ". " + pl.getUsername() + " (" + pl.getCards().size() + " cards left) UNO!");
-                                            else nextUp.add(c + ". " + pl.getUsername() + " (" + pl.getCards().size() + " cards left)");
-                                            c++;
-                                        }
-                                        p.handler.sendObject(new ClientDataPacket(List.copyOf(p.getCards()), new Card(lastCardPlaced), players.get(0).equals(p),players.get(0).getUsername(),!p.hasDrawnCardThisRound,p.hasDrawnCardThisRound,List.copyOf(nextUp),p.placement));
-                                    } else {
-                                        toRemove.add(p);
-                                    }
-                                }
-                                for(Player p : toRemove){
-                                    Util.log(p.getUsername() + " has left");
-                                    players.remove(p);
-                                }
-                            }catch (Exception ignored){
-
-                            }
+                            sendClientData();
                         }
                         players.clear();
                         Util.log("Reset Server");
@@ -267,8 +306,54 @@ public class ServerMain extends Server {
             }
         });
         gameThread.start();
+        Thread networkThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                synchronized (this){
+                    while (true){
+                        if(!GAME_RUNNING)sendClientData();
+                        try {
+                            Thread.sleep(10);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+            }
+        });
+        networkThread.start();
 
         start();
+    }
+
+    public static void sendClientData(){
+        List<Player> toRemove = new ArrayList<>();
+        for(Player p : List.copyOf(players)){
+            if(p.handler != null && !p.handler.getSocket().isClosed()) {
+                List<String> nextUp = new ArrayList<>();
+                int c = 1;
+
+                if(startingIn == 0){
+                    for(Player pl : List.copyOf(players)){
+                        if(pl.UNO)nextUp.add(c + ". " + pl.getUsername() + " (" + pl.getCards().size() + " cards left) UNO!");
+                        else nextUp.add(c + ". " + pl.getUsername() + " (" + pl.getCards().size() + " cards left)");
+                        c++;
+                    }
+                    if(p.handler.isConnected()) p.handler.sendObject(new ClientDataPacket(List.copyOf(p.getCards()), new Card(lastCardPlaced), players.get(0).equals(p),players.get(0).getUsername(),!p.hasDrawnCardThisRound,p.hasDrawnCardThisRound,List.copyOf(nextUp),p.placement));
+                } else {
+                    for(Player pl : List.copyOf(players)){
+                        if(pl.ready)nextUp.add(c + ". " + pl.getUsername() + " (READY)");
+                        else nextUp.add(c + ". " + pl.getUsername());
+                        c++;
+                    }
+                    nextUp.add("Starting in " + startingIn + " seconds");
+                    if(p.handler.isConnected()) p.handler.sendObject(new ClientDataPacket(List.copyOf(p.getCards()), new Card(lastCardPlaced), false,players.get(0).getUsername(),false,false,List.copyOf(nextUp),p.placement));
+                }
+            } else if(p.handler != null) {
+                toRemove.add(p);
+            }
+            players.removeAll(toRemove);
+        }
     }
 
     public static List<Card> shuffleList(List<Card> list) {
@@ -309,7 +394,4 @@ public class ServerMain extends Server {
             manageNextPlayer();
         }
     }
-
-
-
 }

@@ -1,5 +1,7 @@
 package me.redstoner2019.serverhandling;
 
+import me.redstoner2019.main.data.guis.ConnectGUI;
+
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -12,42 +14,47 @@ public class LocalNetworkScanner {
     private static final int TIMEOUT = 100;
     private static final Object LOCK = new Object();
 
-    public static List<String> scan() throws IOException {
-        List<String> serverList = new ArrayList<>();
+    public static void scan(List<String> serverList) throws IOException {
+        //List<String> serverList = new ArrayList<>();
+        serverList.clear();
         System.out.println(InetAddress.getLocalHost().getHostAddress().replace(".", "-"));
         String[] ipArr = InetAddress.getLocalHost().getHostAddress().replace(".", "-").split("-");
 
         final int[] ipsScanned = {0};
+        final int[] threadsStarted = {0};
 
-        for (int i = 1; i <= 255; i++) {
-            int finalI = i;
-            Thread t = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    String ip = ipArr[0] + "." + ipArr[1] + "." + ipArr[2] + "." + finalI;
-                    System.out.println("Scanning " + ip);
-                    if (isReachable(ip) && isOpen(ip, PORT)) {
-                        serverList.add(ip);
-                    }
-                    ipsScanned[0]++;
-                    System.out.println(ipsScanned[0]);
-                    if (ipsScanned[0] >= 253) {
+        for (int i = 0; i <= 255; i++) {
+                int finalI = i;
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        threadsStarted[0]++;
+                        String ip = ipArr[0] + "." + ipArr[1] + "." + ipArr[2] + "." + finalI;
+                        //System.out.println("Scanning " + ip);
+                        if (isReachable(ip) && isOpen(ip, PORT)) {
+                            serverList.add(ip);
+                        }
+                        ipsScanned[0]++;
+                    /*if (ipsScanned[0] >= threadsStarted[0]) {
                         synchronized (LOCK) {
                             LOCK.notify();
                         }
+                    }*/
                     }
-                }
-            });
-            t.start();
+                });
+                t.start();
+
         }
-        synchronized (LOCK) {
+        /*synchronized (LOCK) {
             try {
                 LOCK.wait();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             }
         }
-        return serverList;
+        ConnectGUI.serverList = List.copyOf(serverList);*/
+        System.out.println(serverList.size());
+        //return serverList;
     }
     private static boolean isReachable(String ip) {
         try {

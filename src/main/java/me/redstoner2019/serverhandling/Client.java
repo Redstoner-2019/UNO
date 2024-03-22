@@ -3,6 +3,7 @@ package me.redstoner2019.serverhandling;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
@@ -42,6 +43,10 @@ public class Client {
                             listener.packetRecievedEvent(in.readObject(), new ClientHandler(in,out,socket,""));
                         } catch (ClassNotFoundException ignored){
                             System.err.println("Class not found");
+                        } catch (StreamCorruptedException ignored){
+
+                        } catch (SocketException ignored){
+                            break;
                         } catch (Exception e) {
                             System.err.println(e.getLocalizedMessage());
                             e.printStackTrace();
@@ -82,5 +87,14 @@ public class Client {
     }
     public static void setOnConnectionSuccessEvent(ConnectionSuccessEvent listener){
         connectionSuccessEvent = listener;
+    }
+    public static void disconnect(){
+        try {
+            socket.close();
+            in.close();
+            out.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

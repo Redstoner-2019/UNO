@@ -46,8 +46,13 @@ public class Card extends Packet {
         num = '0';
     }
     public Card(Card c){
-        this.color = c.getColor();
-        this.num = c.getNum();
+        if(c!=null){
+            this.color = c.getColor();
+            this.num = c.getNum();
+        } else {
+            this.color = null;
+            this.num = 0;
+        }
     }
 
     public static List<Card> getDECK() {

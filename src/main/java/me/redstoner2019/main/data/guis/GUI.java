@@ -145,10 +145,12 @@ public class GUI<d> {
 
         frame.setLocation((1920-width)/2,(1080-height)/2);
 
+        frame.setVisible(true);
+
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
-                while (true){
+                while (frame.isVisible()){
                     if(isCurrentTurn){
                         turn.setText("Current Turn: " + "you");
                     } else {
