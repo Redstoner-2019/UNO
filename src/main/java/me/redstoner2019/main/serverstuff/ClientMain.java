@@ -13,9 +13,9 @@ import javax.swing.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Stack;
 
-import static me.redstoner2019.main.data.guis.GUI.isCurrentTurn;
-import static me.redstoner2019.main.data.guis.GUI.playerCardStack;
+import static me.redstoner2019.main.data.guis.GUI.*;
 
 public class ClientMain extends Client {
     public static void connect(String ip, String username){
@@ -56,6 +56,9 @@ public class ClientMain extends Client {
                 }else if(packet instanceof PlayerHasWonPacket p){
                     GUI.frame.setVisible(false);
                     GUI.frame.dispose();
+                    playerCardStack.clear();
+                    currentPlayer = "";
+                    lastPlaced = null;
                     JOptionPane.showMessageDialog(null,p.message);
                     ConnectGUI.main(new String[0]);
                     disconnect();

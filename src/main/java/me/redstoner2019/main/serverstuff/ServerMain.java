@@ -147,7 +147,7 @@ public class ServerMain extends Server {
                                 }
                                 if(player.getCards().isEmpty()) {
                                     List<Player> playerCards = new ArrayList<>(List.copyOf(players));
-                                    Collections.sort(playerCards, new Comparator<Player>() {
+                                    playerCards.sort(new Comparator<Player>() {
                                         @Override
                                         public int compare(Player o1, Player o2) {
                                             return o1.getCards().size() - o2.getCards().size();
@@ -162,7 +162,7 @@ public class ServerMain extends Server {
                                         place++;
                                     }
                                     placement = "Placement: " + finishPlace + ". Platz\n\n" + placement;
-                                    for(Player pl : players){
+                                    for(Player pl : List.copyOf(players)){
                                         Util.log("Player won to " + pl.getUsername());
                                         pl.handler.sendObject(new PlayerHasWonPacket(player.getUsername() + " has won! \n\nYou had " + pl.getCards().size() + " cards left.\n\n" + placement));
                                         GAME_RUNNING = false;
@@ -303,6 +303,7 @@ public class ServerMain extends Server {
                             sendClientData();
                         }
                         players.clear();
+                        deck.clear();
                         Util.log("Reset Server");
                     }
 
@@ -350,7 +351,7 @@ public class ServerMain extends Server {
                         c++;
                     }
                     nextUp.add("Starting in " + startingIn + " seconds");
-                    if(p.handler.isConnected()) p.handler.sendObject(new ClientDataPacket(List.copyOf(p.getCards()), new Card(lastCardPlaced), false,players.get(0).getUsername(),false,false,List.copyOf(nextUp),p.placement));
+                    if(p.handler.isConnected() && !players.isEmpty()) p.handler.sendObject(new ClientDataPacket(new ArrayList<>(), null, false,players.get(0).getUsername(),false,false,List.copyOf(nextUp),p.placement));
                 }
             } else if(p.handler != null) {
                 toRemove.add(p);

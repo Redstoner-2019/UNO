@@ -211,7 +211,7 @@ public class GUI<d> {
                         BufferedImage lastCard = new BufferedImage(lastPlacedCard.getWidth(),lastPlacedCard.getHeight(),1);
 
                         g = lastCard.createGraphics();
-                        g.drawImage(getCard(lastPlaced),0,0,null);
+                        if(lastPlaced!=null) g.drawImage(getCard(lastPlaced),0,0,null);
                         g.dispose();
 
                         lastPlacedCard.setIcon(new ImageIcon(lastCard));
