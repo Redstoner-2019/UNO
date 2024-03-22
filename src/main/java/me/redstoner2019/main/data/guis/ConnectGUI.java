@@ -157,7 +157,9 @@ public class ConnectGUI<d> {
         list.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                ipAddress.setText(list.getSelectedValue());
+                if(list.getSelectedIndex() < 0) return;
+                String ip = serverList.get(list.getSelectedIndex());
+                ipAddress.setText(ip);
             }
         });
 

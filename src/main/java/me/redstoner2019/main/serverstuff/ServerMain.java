@@ -153,12 +153,15 @@ public class ServerMain extends Server {
                                             return o1.getCards().size() - o2.getCards().size();
                                         }
                                     });
-                                    String placement = "Placement: \n\n";
+                                    String placement = "";
                                     int place = 1;
+                                    int finishPlace = 0;
                                     for(Player pl : playerCards){
-                                        placement+=place + "." + pl.getUsername() + ", " + pl.getCards().size() + " Cards left\n";
+                                        placement+=place + ". " + pl.getUsername() + ", " + pl.getCards().size() + " Cards left\n";
+                                        if(pl.equals(player)) finishPlace = place;
+                                        place++;
                                     }
-                                    System.out.println(placement);
+                                    placement = "Placement: " + finishPlace + ". Platz\n\n" + placement;
                                     for(Player pl : players){
                                         Util.log("Player won to " + pl.getUsername());
                                         pl.handler.sendObject(new PlayerHasWonPacket(player.getUsername() + " has won! \n\nYou had " + pl.getCards().size() + " cards left.\n\n" + placement));
