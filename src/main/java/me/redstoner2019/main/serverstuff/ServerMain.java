@@ -15,7 +15,7 @@ import java.util.*;
 
 public class ServerMain extends Server {
     public static List<Player> players = new ArrayList<>();
-    public static final int MIN_PLAYERS = 2;
+    public static final int MIN_PLAYERS = 1;
     public static int CARDS_PLAYER = 8;
     public static Card lastCardPlaced = null;
     public static boolean DIRECTION = false;
@@ -293,11 +293,6 @@ public class ServerMain extends Server {
                         lastCardPlaced = deck.get(0); //TODO: first card might be broken
 
                         while (GAME_RUNNING){
-                            try {
-                                Thread.sleep(100);
-                            } catch (InterruptedException e) {
-                                throw new RuntimeException(e);
-                            }
                             if(players.isEmpty()){
                                 GAME_RUNNING = false;
                                 break;
@@ -320,11 +315,16 @@ public class ServerMain extends Server {
             public void run() {
                 synchronized (this){
                     while (true){
-                        if(!GAME_RUNNING)sendClientData();
-                        try {
-                            Thread.sleep(10);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
+                        if(!GAME_RUNNING){
+                            for(Player p : List.copyOf(players)){
+                                if(p.handler != null && !p.handler.getSocket().isClosed()) {
+                                    HashMap<String,Boolean> prePlayers = new HashMap<>();
+                                    for(Player pl : List.copyOf(players)){
+                                        prePlayers.put(pl.getUsername(),pl.ready);
+                                    }
+                                    p.handler.sendObject(new PreGamePacket(prePlayers,startingIn,MIN_PLAYERS,CARDS_PLAYER));
+                                }
+                            }
                         }
                     }
                 }

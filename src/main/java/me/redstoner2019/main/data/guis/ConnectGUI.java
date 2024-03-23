@@ -139,6 +139,7 @@ public class ConnectGUI<d> {
                     @Override
                     public void run() {
                         connect.setEnabled(false);
+                        connect.setText("CONNECTING...");
                         finalObject.put("ip",ipAddress.getText());
                         finalObject.put("username",username.getText());
                         try {

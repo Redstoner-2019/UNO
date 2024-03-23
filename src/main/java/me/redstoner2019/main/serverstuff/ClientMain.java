@@ -6,6 +6,7 @@ import me.redstoner2019.main.data.guis.GUI;
 import me.redstoner2019.main.data.packets.ClientDataPacket;
 import me.redstoner2019.main.data.packets.JoinPacket;
 import me.redstoner2019.main.data.packets.PlayerHasWonPacket;
+import me.redstoner2019.main.data.packets.PreGamePacket;
 import me.redstoner2019.serverhandling.*;
 
 import javax.swing.*;
@@ -26,7 +27,15 @@ public class ClientMain extends Client {
                 if(!(packet instanceof ClientDataPacket)){
                     System.out.println(packet.getClass());
                 }
+                if((packet instanceof PreGamePacket p)){
+                    preGame = true;
+                    prePlayers = p.getPlayers();
+                    minPlayers = p.getMinPlayers();
+                    countdown = p.getCountdown();
+                    cardsPerPlayer = p.getCardsPerPlayer();
+                }
                 if(packet instanceof ClientDataPacket p){
+                    preGame = false;
                     ArrayList<Card> cards = new ArrayList<>(p.clientCards);
                     if(!playerCardStack.isEmpty()) Collections.sort(cards, new Comparator<Card>() {
                         @Override
@@ -50,7 +59,6 @@ public class ClientMain extends Client {
                         nextUpString += s + "\n\n";
                     }
                     GUI.nextUp.setText(nextUpString);
-                    GUI.placementLabel.setText(p.platzierung);
                     if(!p.platzierung.isEmpty()){
                         JOptionPane.showMessageDialog(null,"You placed " + p.platzierung + "!");
                         handler.disconnect();
@@ -73,6 +81,7 @@ public class ClientMain extends Client {
             public void onConnectionFailedEvent(Exception reason) {
                 System.out.println("Failed");
                 ConnectGUI.connect.setEnabled(true);
+                ConnectGUI.connect.setText("CONNECT");
                 ConnectGUI.frame.setTitle("Connect - Failed to connect - " + reason.getLocalizedMessage());
             }
         });
@@ -80,16 +89,17 @@ public class ClientMain extends Client {
             @Override
             public void onConnectionSuccess() {
                 System.out.println("Success");
+                try {
+                    GUI.main(new String[0]);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+                while (frame == null || !frame.isVisible()){}
                 ConnectGUI.frame.dispose();
             }
         });
 
         connect(ip,8008);
-        try {
-            GUI.main(new String[0]);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
-        sendObject(new JoinPacket(username));
+        if(isConnected()) sendObject(new JoinPacket(username)); else {ConnectGUI.connect.setEnabled(true);}
     }
 }

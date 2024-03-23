@@ -33,9 +33,13 @@ public class GUI<d> {
     public static JButton skipButton = new JButton("SKIP");
     public static JButton unoButton = new JButton("UNO");
     public static JTextArea nextUp = new JTextArea();
-    public static JLabel placementLabel = new JLabel("Placement: ");
     public static HashMap<Integer,Integer> lift = new HashMap<>();
     public static HashMap<Integer,Integer> modifier = new HashMap<>();
+    public static boolean preGame = true;
+    public static HashMap<String,Boolean> prePlayers = new HashMap<>();
+    public static int countdown = 0;
+    public static int minPlayers = 0;
+    public static int cardsPerPlayer = 0;
 
     /**
      * Launch the application.
@@ -89,10 +93,6 @@ public class GUI<d> {
         turn.setBounds(40,40,1000,20);
         turn.setFont(new Font("Arial", Font.PLAIN, 20));
         panel.add(turn);
-
-        placementLabel.setBounds(40,70,200,20);
-        placementLabel.setFont(new Font("Arial", Font.PLAIN, 20));
-        //panel.add(placementLabel);
 
         nextUp.setBounds(50,90,300,350-90);
         nextUp.setFont(new Font("Arial", Font.PLAIN, 15));
@@ -170,35 +170,38 @@ public class GUI<d> {
 
                         int index = 0;
 
+                        int defaultModifier = 13;
+
                         for(Card c : playerCardStack){
-                            int yOffset = 0;
                             Point mouse = label.getMousePosition();
-                            boolean mouseIsHovering = false;
+                            lift.put(index,lift.getOrDefault(index,0));
+                            modifier.put(index,modifier.getOrDefault(index,defaultModifier));
                             if(mouse!=null) {
                                 if(mouse.x > xOffset && mouse.x <= xOffset + w) {
-                                    yOffset = -100;
-                                    mouseIsHovering = true;
+                                    lift.put(index,lift.get(index) - modifier.get(index));
+                                    lift.put(index,-100);
+                                   if(modifier.get(index) > 0) {
+                                       modifier.put(index, modifier.get(index) - 1);
+                                   }
+                                } else {
+                                    if(lift.get(index) < 0){
+                                        lift.put(index,lift.get(index) + 5);
+                                    }
+                                    modifier.put(index, defaultModifier);
                                 }
-                            }
-
-                            if(!modifier.containsKey(index)){
-                                modifier.put(index,-15);
-                            }
-                            if(!lift.containsKey(index)){
-                                lift.put(index,0);
-                            }
-                            if(mouseIsHovering){
-                                /*lift.put(index,lift.get(index)+modifier.get(index));
-                                if(modifier.get(index) < 0){
-                                    modifier.put(index,modifier.get(index+1));
-                                }*/
-                                modifier.put(index,0);
-                                lift.put(index,-100);
                             } else {
-                                modifier.put(index,-15);
-                                lift.put(index,0);
+                                if(lift.get(index) < 0){
+                                    lift.put(index,lift.get(index) + 5);
+                                }
+                                modifier.put(index,defaultModifier);
                             }
 
+                            BufferedImage cardImage = getCard(c);
+
+                            Graphics2D g2 = cardImage.createGraphics();
+                            g2.setColor(BLACK);
+                            g2.drawString((lift.get(index)+100) + " ", 10,10);
+                            g2.dispose();
 
                             g.drawImage(getCard(c),xOffset,lift.get(index)+100,null);
                             xOffset+=w;
@@ -400,7 +403,14 @@ public class GUI<d> {
         int y0 = 25;
         int cWidth = 125;
         int cHeight = 187;
-        if(cards == null) return new BufferedImage(1,1,1);
-        return cards.getSubimage(x0 + (cWidth * number),y0 + (cHeight * color),cWidth,cHeight);
+        if(cards == null) return new BufferedImage(cWidth,cHeight,1);
+        BufferedImage subImage = new BufferedImage(cWidth,cHeight,1);
+        for (int x = 0; x < cWidth; x++) {
+            for (int y = 0; y < cHeight; y++) {
+                subImage.setRGB(x,y,cards.getRGB(x0 + (cWidth * number) + x,y0 + (cHeight * color) + y));
+            }
+        }
+        return subImage;
+        //return cards.getSubimage(x0 + (cWidth * number),y0 + (cHeight * color),cWidth,cHeight);
     }
 }
