@@ -75,12 +75,16 @@ public class GUI<d> {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setBounds(0, 0, width, height);
-        frame.setTitle("me.lukaspaepke.main.data.guis");
+        frame.setTitle("UNO");
 
         JPanel panel = new JPanel();
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         panel.setLayout(null);
 
+
+        /**
+         * ingame visuals
+         */
         JLabel label = new JLabel();
         label.setBounds(50,350,width,287);
         panel.add(label);
@@ -131,7 +135,6 @@ public class GUI<d> {
         });
 
         JButton readyButton = new JButton("Ready");
-        readyButton.setBounds(1000,40,200,40);
         panel.add(readyButton);
         readyButton.addActionListener(new ActionListener() {
             @Override
@@ -147,10 +150,79 @@ public class GUI<d> {
 
         frame.setVisible(true);
 
+        /**
+         * pregame visuals
+         */
+
+        JTextArea playerList = new JTextArea();
+        playerList.setBounds(30,150,width-500,height-270);
+        playerList.setEditable(false);
+        playerList.setFont(new Font("Arial",Font.PLAIN,30));
+        panel.add(playerList);
+
+        JLabel countdownLabel = new JLabel("Test");
+        countdownLabel.setBounds(50,20,width-100,100);
+        countdownLabel.setFont(new Font("Arial",Font.PLAIN,50));
+        panel.add(countdownLabel);
+
+        JTextArea info = new JTextArea();
+        info.setBounds(width-400,150,350,height-270);
+        info.setEditable(false);
+        info.setFont(new Font("Arial",Font.PLAIN,20));
+        panel.add(info);
+
+        readyButton.setBounds(30,height-100,width-80,50);
+
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (frame.isVisible()){
+                    if(preGame){
+                        playerList.setVisible(true);
+                        countdownLabel.setVisible(true);
+                        info.setVisible(true);
+                        readyButton.setVisible(true);
+
+                        unoButton.setVisible(false);
+                        drawButton.setVisible(false);
+                        skipButton.setVisible(false);
+                        nextUp.setVisible(false);
+                        turn.setVisible(false);
+                        lastPlacedCard.setVisible(false);
+                        label.setVisible(false);
+                    } else {
+                        playerList.setVisible(false);
+                        countdownLabel.setVisible(false);
+                        info.setVisible(false);
+                        readyButton.setVisible(false);
+
+                        unoButton.setVisible(true);
+                        drawButton.setVisible(true);
+                        skipButton.setVisible(true);
+                        nextUp.setVisible(true);
+                        turn.setVisible(true);
+                        lastPlacedCard.setVisible(true);
+                        label.setVisible(true);
+                    }
+
+                    int i = 1;
+                    String string = "";
+                    for(String s : prePlayers.keySet()){
+                        string+=i + ". " + s;
+                        if(prePlayers.get(s)) string+="(READY)\n"; else string+="\n";
+                        i++;
+                    }
+                    playerList.setText(string);
+
+                    if(countdown == 10) {
+                        if(prePlayers.size() >= minPlayers) countdownLabel.setText("Game Starting... Waiting for players to be ready"); else countdownLabel.setText("Game Starting... Waiting for players to join");
+                    }else countdownLabel.setText("Game Starting... " + countdown + " Seconds");
+
+                    String infoString = "Settings\n\nMinimum players: " + minPlayers + "\nCards/Player: " + cardsPerPlayer;
+                    info.setText(infoString);
+
+
+
                     if(isCurrentTurn){
                         turn.setText("Current Turn: " + "you");
                     } else {
@@ -185,13 +257,13 @@ public class GUI<d> {
                                    }
                                 } else {
                                     if(lift.get(index) < 0){
-                                        lift.put(index,lift.get(index) + 5);
+                                        lift.put(index,lift.get(index) + 10);
                                     }
                                     modifier.put(index, defaultModifier);
                                 }
                             } else {
                                 if(lift.get(index) < 0){
-                                    lift.put(index,lift.get(index) + 5);
+                                    lift.put(index,lift.get(index) + 10);
                                 }
                                 modifier.put(index,defaultModifier);
                             }
@@ -414,3 +486,41 @@ public class GUI<d> {
         //return cards.getSubimage(x0 + (cWidth * number),y0 + (cHeight * color),cWidth,cHeight);
     }
 }
+
+//TODO: switch to LWJGL
+/*
+
+TextureAtlas textureAtlas = new TextureAtlas();
+textureAtlas.loadFromStream(new FileInputStream("path/to/your/font.tga"), "TGA");
+
+TextureAtlasBuilder from the org.newdawn.slick.imageout
+
+String text = "Hello, LWJGL!";
+fontHeight = 12;
+
+        float x = 100;
+        float y = 100;
+
+        float spaceWidth = 3;
+
+        for (int i = 0; i < text.length(); i++) {
+        char c = text.charAt(i);
+        int offset = (c - 32) * 16;
+
+        // position
+        GL11.glVertex2f(x, y);
+        GL11.glVertex2f(x + 16, y);
+        GL11.glVertex2f(x + 16, y + 16);
+        GL11.glVertex2f(x, y + 16);
+
+        // texture
+        GL11.glTexCoord2f(offset % 128 / 256.0f, offset / 128 / 256.0f);
+        GL11.glTexCoord2f((offset + 16) % 128 / 256.0f, offset / 128 / 256.0f);
+        GL11.glTexCoord2f((offset + 16) % 128 / 256.0f, (offset + 16) / 128 / 256.0f);
+        GL11.glTexCoord2f(offset % 128 / 256.0f, (offset + 16) / 128 / 256.0f);
+
+        x += 16 + spaceWidth;
+        }
+
+// reset OpenGL state
+        GL11.glColor4f(1, 1, 1, 1);*/

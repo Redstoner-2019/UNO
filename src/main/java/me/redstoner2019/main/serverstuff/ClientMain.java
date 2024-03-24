@@ -24,17 +24,13 @@ public class ClientMain extends Client {
         setPacketListener(new PacketListener() {
             @Override
             public void packetRecievedEvent(Object packet, ClientHandler handler) {
-                if(!(packet instanceof ClientDataPacket)){
-                    System.out.println(packet.getClass());
-                }
                 if((packet instanceof PreGamePacket p)){
                     preGame = true;
                     prePlayers = p.getPlayers();
                     minPlayers = p.getMinPlayers();
                     countdown = p.getCountdown();
                     cardsPerPlayer = p.getCardsPerPlayer();
-                }
-                if(packet instanceof ClientDataPacket p){
+                }else if(packet instanceof ClientDataPacket p){
                     preGame = false;
                     ArrayList<Card> cards = new ArrayList<>(p.clientCards);
                     if(!playerCardStack.isEmpty()) Collections.sort(cards, new Comparator<Card>() {
@@ -73,6 +69,8 @@ public class ClientMain extends Client {
                     JOptionPane.showMessageDialog(null,p.message);
                     ConnectGUI.main(new String[0]);
                     disconnect();
+                } else {
+                    System.out.println(packet.getClass());
                 }
             }
         });
@@ -94,7 +92,14 @@ public class ClientMain extends Client {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
-                while (frame == null || !frame.isVisible()){}
+                while (frame == null || !frame.isVisible()){
+                    try {
+                        Thread.sleep(0);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                    System.out.println("waiting");
+                }
                 ConnectGUI.frame.dispose();
             }
         });

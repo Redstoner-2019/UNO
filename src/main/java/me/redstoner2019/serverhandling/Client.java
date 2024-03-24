@@ -22,6 +22,7 @@ public class Client {
     public static void connect(String address, int port){
         try {
             socket = new Socket(address,port);
+            socket.setSoTimeout(500);
             in = new ObjectInputStream(socket.getInputStream());
             out = new ObjectOutputStream(socket.getOutputStream());
             isConnected = true;
@@ -44,17 +45,18 @@ public class Client {
                         } catch (ClassNotFoundException ignored){
                             System.err.println("Class not found");
                         } catch (StreamCorruptedException ignored){
-
+                            System.err.println("Stream corrupted");
                         } catch (SocketException ignored){
+                            System.err.println("Socket not connected");
+                            System.err.println(ignored.getLocalizedMessage());
                             break;
                         } catch (Exception e) {
+                            System.err.println("Lukas du hurensohn was hast du getan dass dies ausgegeben wird");
                             System.err.println(e.getLocalizedMessage());
                             e.printStackTrace();
                             try {
                                 out.flush();
-                            } catch (IOException ex) {
-                                throw new RuntimeException(ex);
-                            }
+                            } catch (IOException ex) {}
                         }
                     }
                 }

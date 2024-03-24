@@ -15,7 +15,7 @@ import java.util.*;
 
 public class ServerMain extends Server {
     public static List<Player> players = new ArrayList<>();
-    public static final int MIN_PLAYERS = 1;
+    public static final int MIN_PLAYERS = 2;
     public static int CARDS_PLAYER = 8;
     public static Card lastCardPlaced = null;
     public static boolean DIRECTION = false;

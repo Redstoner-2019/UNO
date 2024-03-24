@@ -75,7 +75,7 @@ public class ConnectGUI<d> {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setBounds(0, 0, width, height);
-        frame.setTitle("me.redstoner2019.main.data.guis");
+        frame.setTitle("Server Selector");
 
         JPanel panel = new JPanel();
         frame.getContentPane().add(panel, BorderLayout.CENTER);
