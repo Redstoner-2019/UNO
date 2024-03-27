@@ -28,6 +28,7 @@ public class ConnectGUI<d> {
     public static List<String> serverList = new ArrayList<>();
     public static String setUsername = null;
     public static JLabel loginResult = new JLabel();
+    public static JTextField customTexture = new JTextField();
 
     /**
      * Launch the application.
@@ -66,6 +67,7 @@ public class ConnectGUI<d> {
                 object.put("ip","172.20.150.24");
                 object.put("username","lukas");
                 object.put("password","test");
+                object.put("custom-texture","");
                 Util.writeStringToFile(Util.prettyJSON(object.toString()),new File("client.properties"));
             } catch (IOException e) {
                 throw new RuntimeException(e);
@@ -74,11 +76,13 @@ public class ConnectGUI<d> {
 
         try {
             object = new JSONObject(Util.readFile(new File("client.properties")));
+            customTexture.setText(object.getString("custom-texture"));
         } catch (Exception e) {
             System.out.println("fixing");
             object.put("ip","172.20.150.24");
             object.put("username","lukas");
             object.put("password","test");
+            object.put("custom-texture","");
             System.out.println(new File("client.properties").delete());
             try {
                 new File("client.properties").createNewFile();
@@ -91,9 +95,9 @@ public class ConnectGUI<d> {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setBounds(0, 0, width, height);
+        System.out.println(Main.VERSION);
         frame.setTitle("Server Selector" + " - " + Main.VERSION);
         frame.setLocationRelativeTo(null);
-        System.out.println(Main.VERSION);
 
         JPanel panel = new JPanel();
         frame.getContentPane().add(panel, BorderLayout.CENTER);
@@ -125,6 +129,12 @@ public class ConnectGUI<d> {
         JLabel usernameLabel = new JLabel("Username");
         JLabel displayNameLabel = new JLabel("Nickname");
         JLabel passwordLabel = new JLabel("Password");
+        JLabel customTextureLabel = new JLabel("Custom Texture");
+
+        JLabel usernameLabelOrig = new JLabel("Username");
+        JLabel displayNameLabelOrig = new JLabel("Nickname (optional)");
+        JLabel passwordLabelOrig = new JLabel("Password");
+        JLabel ipLabelOrig = new JLabel("IP");
 
         if(object.has("username")) username.setText(object.getString("username"));
         if(object.has("password")) passwordField.setText(object.getString("password"));
@@ -132,18 +142,26 @@ public class ConnectGUI<d> {
         if(object.has("ip")) ipAddress.setText(object.getString("ip"));
         if(setUsername != null) username.setText(setUsername);
 
-        username.setBounds(680,140,200,20);
-        passwordField.setBounds(680,180,200,20);
-        displayNameField.setBounds(680,220,200,20);
-        ipAddress.setBounds(680,260,200,20);
-        loginResult.setBounds(680,300,200,20);
+        username.setBounds(890,140,190,20);
+        passwordField.setBounds(890,180,190,20);
+        displayNameField.setBounds(890,220,190,20);
+        ipAddress.setBounds(890,260,190,20);
 
-        createChangeLabel.setBounds(930,360,200,20);
-        accountUsername.setBounds(930,400,200,20);
-        displayname.setBounds(930,440,200,20);
-        password.setBounds(930,480,200,20);
-        createAccountButton.setBounds(930,520,90,20);
-        changeDisplayNameButton.setBounds(1040,520,90,20);
+        usernameLabelOrig.setBounds(680,140,190,20);
+        displayNameLabelOrig.setBounds(680,220,190,20);
+        passwordLabelOrig.setBounds(680,180,190,20);
+        ipLabelOrig.setBounds(680,260,190,20);
+
+        loginResult.setBounds(680,300,400,40);
+
+        createChangeLabel.setBounds(890,360,200,20);
+        accountUsername.setBounds(890,400,200,20);
+        displayname.setBounds(890,440,200,20);
+        password.setBounds(890,480,200,20);
+        createAccountButton.setBounds(890,520,90,20);
+        changeDisplayNameButton.setBounds(1000,520,90,20);
+        customTexture.setBounds(680,620,420,20);
+        customTextureLabel.setBounds(680,600,400,20);
 
         usernameLabel.setBounds(680,400,80,20);
         displayNameLabel.setBounds(680,440,80,20);
@@ -153,12 +171,15 @@ public class ConnectGUI<d> {
         passwordField.setToolTipText("Password");
         displayNameField.setToolTipText("Displayname");
         ipAddress.setToolTipText("IP Address");
+        customTexture.setToolTipText("File path to custom texture");
 
         panel.add(username);
         panel.add(passwordField);
         panel.add(displayNameField);
         panel.add(ipAddress);
         panel.add(loginResult);
+        panel.add(customTexture);
+        panel.add(customTextureLabel);
 
         panel.add(usernameLabel);
         panel.add(displayNameLabel);
@@ -170,6 +191,11 @@ public class ConnectGUI<d> {
         panel.add(displayname);
         panel.add(changeDisplayNameButton);
         panel.add(createAccountButton);
+
+        panel.add(usernameLabelOrig);
+        panel.add(displayNameLabelOrig);
+        panel.add(passwordLabelOrig);
+        panel.add(ipLabelOrig);
 
         JList<String> list = new JList<String>();
         list.setCellRenderer(new LabelListCellRenderer());
@@ -205,7 +231,7 @@ public class ConnectGUI<d> {
         });
 
         JButton button = new JButton("SCAN");
-        button.setBounds(680,20,200,40);
+        button.setBounds(680,20,400,40);
         panel.add(button);
         button.addActionListener(new ActionListener() {
             @Override
@@ -234,7 +260,7 @@ public class ConnectGUI<d> {
             }
         });
 
-        connect.setBounds(680,80,200,40);
+        connect.setBounds(680,80,400,40);
         panel.add(connect);
         JSONObject finalObject = object;
         connect.addActionListener(new ActionListener() {
@@ -249,6 +275,7 @@ public class ConnectGUI<d> {
                         finalObject.put("username",username.getText());
                         finalObject.put("password",passwordField.getText());
                         finalObject.put("displayName",displayNameField.getText());
+                        finalObject.put("custom-texture",customTexture.getText());
                         try {
                             Util.writeStringToFile(Util.prettyJSON(finalObject.toString()),new File("client.properties"));
                         } catch (IOException ex) {

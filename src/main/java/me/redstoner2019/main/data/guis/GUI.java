@@ -14,6 +14,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -49,6 +50,12 @@ public class GUI<d> {
     public static void main(String[] args) throws Exception {
         System.out.println(Main.class.getResource("/cards.png"));
         cards = ImageIO.read(GUI.class.getResource("/cards.png"));
+        try{
+            if(!ConnectGUI.customTexture.getText().isEmpty()) cards = ImageIO.read(new File(ConnectGUI.customTexture.getText()));
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(ConnectGUI.frame,"Couldnt read custom Texture. Defaulting.");
+            cards = ImageIO.read(GUI.class.getResource("/cards.png"));
+        }
         EventQueue.invokeLater(new Runnable() {
             public void run() {
                 try {
