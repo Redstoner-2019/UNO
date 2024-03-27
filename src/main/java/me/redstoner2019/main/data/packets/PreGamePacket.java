@@ -1,5 +1,6 @@
 package me.redstoner2019.main.data.packets;
 
+import me.redstoner2019.main.data.data.Userdata;
 import me.redstoner2019.serverhandling.Packet;
 
 import java.util.HashMap;
@@ -9,12 +10,22 @@ public class PreGamePacket extends Packet {
     private int countdown = 0;
     private int minPlayers = 0;
     private int cardsPerPlayer = 0;
+    private Userdata data;
 
-    public PreGamePacket(HashMap<String, Boolean> players, int countdown, int minPlayers, int cardsPerPlayer) {
+    public PreGamePacket(HashMap<String, Boolean> players, int countdown, int minPlayers, int cardsPerPlayer, Userdata data) {
         this.players = players;
         this.countdown = countdown;
         this.minPlayers = minPlayers;
         this.cardsPerPlayer = cardsPerPlayer;
+        this.data = data;
+    }
+
+    public Userdata getData() {
+        return data;
+    }
+
+    public void setData(Userdata data) {
+        this.data = data;
     }
 
     public HashMap<String, Boolean> getPlayers() {
@@ -51,11 +62,14 @@ public class PreGamePacket extends Packet {
 
     @Override
     public String toString() {
-        return "PreGamePacket{" +
-                "players=" + players +
-                ", countdown=" + countdown +
+        String str = "PreGamePacket{";
+        for(String s : players.keySet()){
+            str+=s+ " -> " +s.isEmpty() + ", ";
+        }
+        str+=", countdown=" + countdown +
                 ", minPlayers=" + minPlayers +
                 ", cardsPerPlayer=" + cardsPerPlayer +
                 '}';
+        return str;
     }
 }

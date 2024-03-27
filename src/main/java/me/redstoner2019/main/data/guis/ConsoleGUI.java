@@ -3,10 +3,14 @@ package me.redstoner2019.main.data.guis;
 import javax.swing.*;
 import java.awt.*;
 
+import com.sun.management.OperatingSystemMXBean;
+import com.sun.management.ThreadMXBean;
+import java.lang.management.ManagementFactory;
+
 public class ConsoleGUI<d> {
     private JFrame frame;
-    private int width = 700;
-    private int height = 700;
+    private final int width = 700;
+    private final int height = 700;
     public static JTextArea area = new JTextArea();
 
     public static void main(String[] args) {
@@ -47,5 +51,36 @@ public class ConsoleGUI<d> {
         area.setFont(new Font("Consolas",Font.PLAIN,15));
 
         sp.setAutoscrolls(true);
+        frame.setVisible(true);
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (frame.isVisible()){
+                    double threadCpuTime = 0;
+
+                    ThreadMXBean threadMXBean = (ThreadMXBean) ManagementFactory.getThreadMXBean();
+                    //threadCpuTime = threadMXBean.getThreadCpuTime(Thread.currentThread().getId());
+
+
+                    OperatingSystemMXBean operatingSystemMXBean = (OperatingSystemMXBean) ManagementFactory.getOperatingSystemMXBean();
+
+                    double systemCpuTime = operatingSystemMXBean.getSystemCpuLoad()*1000000000000d;
+
+                    for(long l : threadMXBean.getAllThreadIds()) threadCpuTime+=threadMXBean.getThreadCpuTime(l);
+
+                    Runtime runtime = Runtime.getRuntime();
+
+                    double cpuUsage = threadCpuTime / systemCpuTime * 100.0;
+
+                    frame.setTitle("CPU " + String.format("%.2f",cpuUsage) + "%    RAM " + ((runtime.totalMemory() - runtime.freeMemory()) / 1024 / 1024) + "MB used");
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        });
+        t.start();
     }
 }

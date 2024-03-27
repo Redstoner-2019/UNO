@@ -1,12 +1,14 @@
 package me.redstoner2019.main.data;
 
+import me.redstoner2019.main.Main;
 import me.redstoner2019.main.serverstuff.ServerMain;
 import me.redstoner2019.serverhandling.Packet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
-public class Card extends Packet {
+public class Card extends Packet implements Comparable<Card>{
     private String color = null;
     private char num = 0;
     public int getColorAsINT(){
@@ -114,6 +116,7 @@ public class Card extends Packet {
                 '}';
     }
     public boolean canBePlayed(Card card){
+        if(Main.TEST_MODE) return true;
         if(card.color.startsWith("BLACK") && color.startsWith("BLACK")) return false;
         if(card.color.equals(color) || card.num == num){
             return true;
@@ -124,5 +127,24 @@ public class Card extends Packet {
             }
             return true;
         }else return card.color.startsWith("BLACK");
+    }
+
+    @Override
+    public int compareTo(Card o) {
+        HashMap<String,Integer> colors = new HashMap<>();
+        colors.put("RED",1);
+        colors.put("GREEN",2);
+        colors.put("YELLOW",3);
+        colors.put("BLUE",4);
+        colors.put("BLACK",5);
+        if(colors.get(o.color) - colors.get(this.color) == 0){
+            if(o.getNum()-this.getNum() == 0){
+                return 1;
+            } else {
+                return o.getNum()-this.getNum();
+            }
+        } else {
+            return colors.get(o.color) - colors.get(this.color);
+        }
     }
 }

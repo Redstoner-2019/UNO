@@ -2,6 +2,7 @@ package me.redstoner2019.main.data.guis;
 
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
+import me.redstoner2019.main.data.data.Userdata;
 import me.redstoner2019.main.data.packets.*;
 import me.redstoner2019.main.serverstuff.ClientMain;
 
@@ -22,8 +23,8 @@ import static java.awt.Color.*;
 public class GUI<d> {
 
     public static JFrame frame;
-    private int width = 1280;
-    private int height = 720;
+    private final int width = 1280;
+    private final int height = 720;
     public static BufferedImage cards = null;
     public static List<Card> playerCardStack = new ArrayList<>();
     public static Card lastPlaced = null;
@@ -37,6 +38,7 @@ public class GUI<d> {
     public static HashMap<Integer,Integer> modifier = new HashMap<>();
     public static boolean preGame = true;
     public static HashMap<String,Boolean> prePlayers = new HashMap<>();
+    public static Userdata data = null;
     public static int countdown = 0;
     public static int minPlayers = 0;
     public static int cardsPerPlayer = 0;
@@ -51,7 +53,7 @@ public class GUI<d> {
             public void run() {
                 try {
                     GUI window = new GUI();
-                    window.frame.setVisible(true);
+                    frame.setVisible(true);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -75,7 +77,7 @@ public class GUI<d> {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setBounds(0, 0, width, height);
-        frame.setTitle("UNO");
+        frame.setTitle("UNO - " + Main.VERSION);
 
         JPanel panel = new JPanel();
         frame.getContentPane().add(panel, BorderLayout.CENTER);
@@ -147,6 +149,7 @@ public class GUI<d> {
         if(!ClientMain.isConnected()) System.exit(0);
 
         frame.setLocation((1920-width)/2,(1080-height)/2);
+        frame.setLocation(ConnectGUI.frame.getLocation());
 
         frame.setVisible(true);
 
@@ -176,6 +179,7 @@ public class GUI<d> {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
+                long lastUpdate = System.currentTimeMillis();
                 while (frame.isVisible()){
                     if(preGame){
                         playerList.setVisible(true);
@@ -218,7 +222,7 @@ public class GUI<d> {
                         if(prePlayers.size() >= minPlayers) countdownLabel.setText("Game Starting... Waiting for players to be ready"); else countdownLabel.setText("Game Starting... Waiting for players to join");
                     }else countdownLabel.setText("Game Starting... " + countdown + " Seconds");
 
-                    String infoString = "Settings\n\nMinimum players: " + minPlayers + "\nCards/Player: " + cardsPerPlayer;
+                    String infoString = "Settings\n\nMinimum players: " + minPlayers + "\nCards/Player: " + cardsPerPlayer + "\n\n\nUser Stats:\n\nGames Played: "  + data.getGamesPlayed() + "\nGames Won: " + data.getGamesWon() + "\n +4 Cards placed: " + data.getPlus4Placed();
                     info.setText(infoString);
 
 
@@ -244,7 +248,10 @@ public class GUI<d> {
 
                         int defaultModifier = 13;
 
-                        for(Card c : playerCardStack){
+                        double mod = (System.currentTimeMillis()-lastUpdate)/-100.0;
+                        lastUpdate = System.currentTimeMillis();
+
+                        for(Card c : List.copyOf(playerCardStack)){
                             Point mouse = label.getMousePosition();
                             lift.put(index,lift.getOrDefault(index,0));
                             modifier.put(index,modifier.getOrDefault(index,defaultModifier));
@@ -257,14 +264,16 @@ public class GUI<d> {
                                    }
                                 } else {
                                     if(lift.get(index) < 0){
-                                        lift.put(index,lift.get(index) + 10);
+                                        lift.put(index, (int) (lift.get(index) + (mod * lift.get(index))));
                                     }
+                                    if(lift.get(index) > 0) lift.put(index,0);
                                     modifier.put(index, defaultModifier);
                                 }
                             } else {
                                 if(lift.get(index) < 0){
-                                    lift.put(index,lift.get(index) + 10);
+                                    lift.put(index, (int) (lift.get(index) + (mod * lift.get(index))));
                                 }
+                                if(lift.get(index) > 0) lift.put(index,0);
                                 modifier.put(index,defaultModifier);
                             }
 
@@ -302,9 +311,13 @@ public class GUI<d> {
 
             }
 
+            boolean disableClick = false;
+
             @Override
             public void mousePressed(MouseEvent e) {
                 int xOffset = 0;
+
+                if(disableClick) return;
 
                 if(playerCardStack.isEmpty()) return;
 
@@ -317,10 +330,18 @@ public class GUI<d> {
                         if(mouse.x > xOffset && mouse.x <= xOffset + w){
                             ClientMain.sendObject(new PutCardPacket(c));
                             if(c.getNum() == 'W' && !lastPlaced.getColor().equals("BLACK")){
+                                disableClick = true;
+                                System.out.println("disable click");
                                 new ChooseColorPopup(frame);
+                                disableClick = false;
+                                System.out.println("enable click");
                             }
                             if(c.getNum() == 'D' && c.getColor().equals("BLACK") && !lastPlaced.getColor().equals("BLACK")){
+                                disableClick = true;
+                                System.out.println("disable click");
                                 new ChooseColorPopup(frame);
+                                disableClick = false;
+                                System.out.println("enable click");
                             }
                             break;
                         }

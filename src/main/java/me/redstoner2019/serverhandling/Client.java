@@ -16,13 +16,18 @@ public class Client {
     public static boolean isConnected = false;
     public static ConnectionFailedEvent connectionFailEvent = null;
     public static ConnectionSuccessEvent connectionSuccessEvent = null;
+    public static ConnectionLostEvent connectionLostEvent = null;
+
+    public static void setConnectionLostEvent(ConnectionLostEvent connectionLostEvent) {
+        Client.connectionLostEvent = connectionLostEvent;
+    }
+
     public static boolean isConnected(){
         return isConnected;
     }
     public static void connect(String address, int port){
         try {
             socket = new Socket(address,port);
-            socket.setSoTimeout(500);
             in = new ObjectInputStream(socket.getInputStream());
             out = new ObjectOutputStream(socket.getOutputStream());
             isConnected = true;
@@ -46,19 +51,23 @@ public class Client {
                             System.err.println("Class not found");
                         } catch (StreamCorruptedException ignored){
                             System.err.println("Stream corrupted");
+                            break;
                         } catch (SocketException ignored){
                             System.err.println("Socket not connected");
                             System.err.println(ignored.getLocalizedMessage());
+                            connectionLostEvent.onConnectionLostEvent();
                             break;
                         } catch (Exception e) {
                             System.err.println("Lukas du hurensohn was hast du getan dass dies ausgegeben wird");
                             System.err.println(e.getLocalizedMessage());
-                            e.printStackTrace();
+                            if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent();
                             try {
                                 out.flush();
                             } catch (IOException ex) {}
+                            break;
                         }
                     }
+                    disconnect();
                 }
             });
             t.start();
@@ -78,7 +87,7 @@ public class Client {
             out.writeObject(o);
             out.flush();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+
         }
     }
     public static void setPacketListener(PacketListener packetListener){

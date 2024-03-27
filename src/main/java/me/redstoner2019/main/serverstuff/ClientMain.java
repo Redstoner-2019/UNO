@@ -1,26 +1,40 @@
 package me.redstoner2019.main.serverstuff;
 
+import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
 import me.redstoner2019.main.data.guis.ConnectGUI;
 import me.redstoner2019.main.data.guis.GUI;
-import me.redstoner2019.main.data.packets.ClientDataPacket;
-import me.redstoner2019.main.data.packets.JoinPacket;
-import me.redstoner2019.main.data.packets.PlayerHasWonPacket;
-import me.redstoner2019.main.data.packets.PreGamePacket;
+import me.redstoner2019.main.data.packets.*;
 import me.redstoner2019.serverhandling.*;
 
 import javax.swing.*;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Stack;
+import java.awt.*;
+import java.util.*;
 
 import static me.redstoner2019.main.data.guis.GUI.*;
 
 public class ClientMain extends Client {
-    public static void connect(String ip, String username){
+    public static void connect(String ip, String username, String password, String displayName){
         System.out.println("Connection");
+        setConnectionLostEvent(new ConnectionLostEvent() {
+            @Override
+            public void onConnectionLostEvent() {
+                if(frame == null) return;
+                GUI.frame.setVisible(false);
+                GUI.frame.dispose();
+                playerCardStack.clear();
+                currentPlayer = "";
+                lastPlaced = null;
+                JOptionPane.showMessageDialog(null,"Connection Lost");
+                ConnectGUI.frame.setVisible(true);
+                ConnectGUI.connect.setText("CONNECT");
+                ConnectGUI.connect.setEnabled(true);
+                preGame = true;
+                countdown = 10;
+                prePlayers = new HashMap<>();
+            }
+        });
         setPacketListener(new PacketListener() {
             @Override
             public void packetRecievedEvent(Object packet, ClientHandler handler) {
@@ -30,15 +44,12 @@ public class ClientMain extends Client {
                     minPlayers = p.getMinPlayers();
                     countdown = p.getCountdown();
                     cardsPerPlayer = p.getCardsPerPlayer();
+                    data = p.getData();
+                    //System.out.println(p);
                 }else if(packet instanceof ClientDataPacket p){
                     preGame = false;
                     ArrayList<Card> cards = new ArrayList<>(p.clientCards);
-                    if(!playerCardStack.isEmpty()) Collections.sort(cards, new Comparator<Card>() {
-                        @Override
-                        public int compare(Card o1, Card o2) {
-                            return (o1.getColorAsINT()- o2.getColorAsINT()) - (o1.getNum()-o2.getNum());
-                        }
-                    });
+                    if(!playerCardStack.isEmpty()) Collections.sort(cards);
 
                     Collections.reverse(cards);
 
@@ -66,9 +77,56 @@ public class ClientMain extends Client {
                     playerCardStack.clear();
                     currentPlayer = "";
                     lastPlaced = null;
-                    JOptionPane.showMessageDialog(null,p.message);
-                    ConnectGUI.main(new String[0]);
-                    disconnect();
+                    JOptionPane.showMessageDialog(frame,p.message);
+                    ConnectGUI.frame.setVisible(true);
+                    ConnectGUI.connect.setText("CONNECT");
+                    ConnectGUI.connect.setEnabled(true);
+                    preGame = true;
+                    countdown = 10;
+                    prePlayers = new HashMap<>();
+                    //disconnect();
+                } else if(packet instanceof DisconnectPacket p) {
+                    if(frame == null) {
+                        JOptionPane.showMessageDialog(ConnectGUI.frame,p.getReason());
+                        ConnectGUI.frame.setVisible(true);
+                        ConnectGUI.connect.setText("CONNECT");
+                        ConnectGUI.connect.setEnabled(true);
+                        return;
+                    }
+                    String reason = p.getReason();
+                    GUI.frame.setVisible(false);
+                    GUI.frame.dispose();
+                    playerCardStack.clear();
+                    currentPlayer = "";
+                    lastPlaced = null;
+                    JOptionPane.showMessageDialog(frame,reason);
+                    ConnectGUI.frame.setVisible(true);
+                    ConnectGUI.connect.setText("CONNECT");
+                    ConnectGUI.connect.setEnabled(true);
+                    preGame = true;
+                    countdown = 10;
+                    prePlayers = new HashMap<>();
+                } else if(packet instanceof ConnectionResultPacket p){
+                    System.out.println(p);
+                    if(p.getStatus() == 100){
+                        System.out.println("Success");
+                        try {
+                            GUI.main(new String[0]);
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                        ConnectGUI.frame.setVisible(false);
+                    } else if(p.getStatus() == 405) {
+                        ConnectGUI.loginResult.setText(p.getMessage());
+                        ConnectGUI.loginResult.setForeground(Color.RED);
+                        ConnectGUI.connect.setText("CONNECT");
+                        ConnectGUI.connect.setEnabled(true);
+                    } else {
+                        ConnectGUI.loginResult.setText(p.getStatus() + " " + p.getMessage());
+                        ConnectGUI.loginResult.setForeground(Color.RED);
+                        ConnectGUI.connect.setText("CONNECT");
+                        ConnectGUI.connect.setEnabled(true);
+                    }
                 } else {
                     System.out.println(packet.getClass());
                 }
@@ -80,31 +138,17 @@ public class ClientMain extends Client {
                 System.out.println("Failed");
                 ConnectGUI.connect.setEnabled(true);
                 ConnectGUI.connect.setText("CONNECT");
-                ConnectGUI.frame.setTitle("Connect - Failed to connect - " + reason.getLocalizedMessage());
+                ConnectGUI.frame.setTitle("Connect - Failed to connect - " + reason.getLocalizedMessage() + " - " + Main.VERSION);
             }
         });
         setOnConnectionSuccessEvent(new ConnectionSuccessEvent() {
             @Override
             public void onConnectionSuccess() {
-                System.out.println("Success");
-                try {
-                    GUI.main(new String[0]);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
-                }
-                while (frame == null || !frame.isVisible()){
-                    try {
-                        Thread.sleep(0);
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                    System.out.println("waiting");
-                }
-                ConnectGUI.frame.dispose();
+
             }
         });
 
         connect(ip,8008);
-        if(isConnected()) sendObject(new JoinPacket(username)); else {ConnectGUI.connect.setEnabled(true);}
+        if(isConnected()) sendObject(new JoinPacket(Main.VERSION,username, password, displayName)); else {ConnectGUI.connect.setEnabled(true);}
     }
 }

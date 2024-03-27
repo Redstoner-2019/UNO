@@ -43,8 +43,7 @@ public class ChooseColorPopup extends JDialog {
             public Component getListCellRendererComponent(JList list, Object value, int index,
                                                           boolean isSelected, boolean cellHasFocus) {
                 Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof ColorName) {
-                    ColorName colorName = (ColorName) value;
+                if (value instanceof ColorName colorName) {
                     setText(colorName.colorName);
                     setForeground(colorName.color);
                     if (isSelected) {

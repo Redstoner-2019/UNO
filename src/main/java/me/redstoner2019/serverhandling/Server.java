@@ -13,7 +13,7 @@ import java.util.List;
 public class Server {
     private static int PORT = 3030;
     private static ClientConnectEvent clientConnectEvent;
-    private static List<ClientHandler> clients = new ArrayList<>();
+    private static final List<ClientHandler> clients = new ArrayList<>();
 
     public static java.util.List<ClientHandler> getClients() {
         return clients;
