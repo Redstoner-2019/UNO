@@ -16,6 +16,7 @@ public class Player {
     public String placement = "";
     public boolean UNO = false;
     public Userdata userdata;
+    public String displayName;
 
     @Override
     public String toString() {
@@ -67,13 +68,17 @@ public class Player {
         return username;
     }
     public String getDisplayName(){
-        if(userdata == null) return "unavailable";
-        return userdata.getDisplayName();
+        return displayName;
+    }
+    public void setDisplayName(String name){
+        this.displayName = name;
     }
 
     public void setUsername(String username) {
         this.username = username;
         this.userdata = Userdata.read(username);
+        if(userdata == null) this.displayName =  "unavailable";
+        this.displayName = userdata.getDisplayName();
     }
 
     public List<Card> getCards() {

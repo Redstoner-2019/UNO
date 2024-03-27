@@ -127,6 +127,7 @@ public class ServerMain extends Server {
                     startingIn = COUNTDOWN;
                     CANCEL_COUNTDOWN = true;
                     Util.log("Cancelling Countdown: Player joined");
+
                     if (GAME_RUNNING) {
                         if (deck.size() < 50) {
                             deck.addAll(shuffleList(Card.getDECK()));
@@ -134,8 +135,9 @@ public class ServerMain extends Server {
                         for (int i = 0; i < 10; i++) {
                             player.addCard(popTop(deck));
                         }
-
                     }
+
+                    if(!packet.getDisplayName().isEmpty()) player.setDisplayName(packet.getDisplayName());
                 } else if (p instanceof ReadyPacket) {
                     player.ready = true;
                     Util.log("Player " + player.getUsername() + " is now ready");

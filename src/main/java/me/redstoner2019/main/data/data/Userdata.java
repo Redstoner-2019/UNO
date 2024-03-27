@@ -43,7 +43,7 @@ public class Userdata extends Packet {
         if(!dataFile.exists()){
             try {
                 dataFile.createNewFile();
-                Util.writeStringToFile("{ }",dataFile);
+                Util.writeStringToFile(new JSONObject().toString(),dataFile);
             } catch (Exception e) {
                 return null;
             }
@@ -65,14 +65,16 @@ public class Userdata extends Packet {
     }
     public static void write(Userdata data){
         try {
-            JSONObject object =new JSONObject(Util.readFile(new File("playerdata.json")));
+            JSONObject object = new JSONObject(Util.readFile(new File("playerdata.json")));
             File dataFile = new File("playerdata.json");
 
             object.put(data.username,data.toJSON());
 
+            System.out.println(object.toString());
+
             Util.writeStringToFile(Util.prettyJSON(object.toString()),dataFile);
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            System.out.println("Error writing ");
         }
     }
 
