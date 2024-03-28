@@ -3,16 +3,32 @@
     "password" : "test",
     "displayname" : "Halil",
     "plus-4-placed" : 0,
+    "games-played" : 2,
+    "games-won" : 2,
+    "username" : "halil"
+  },
+  "nico" : {
+    "password" : "nico",
+    "displayname" : "Nico",
+    "plus-4-placed" : 0,
+    "games-played" : 1,
+    "games-won" : 0,
+    "username" : "nico"
+  },
+  "test" : {
+    "password" : "test",
+    "displayname" : "Test",
+    "plus-4-placed" : 0,
     "games-played" : 0,
     "games-won" : 0,
-    "username" : "halil"
+    "username" : "test"
   },
   "lukas" : {
     "password" : "test",
     "displayname" : "Lukas",
     "plus-4-placed" : 0,
-    "games-played" : 0,
-    "games-won" : 0,
+    "games-played" : 2,
+    "games-won" : 7,
     "username" : "lukas"
   }
 }

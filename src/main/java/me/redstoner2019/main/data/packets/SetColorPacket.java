@@ -8,4 +8,11 @@ public class SetColorPacket extends Packet {
     public SetColorPacket(String color) {
         this.color = color;
     }
+
+    @Override
+    public String toString() {
+        return "SetColorPacket{" +
+                "color='" + color + '\'' +
+                '}';
+    }
 }

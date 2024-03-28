@@ -1,5 +1,6 @@
 package me.redstoner2019.main.serverstuff;
 
+import me.redstoner2019.main.LoggerDump;
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
 import me.redstoner2019.main.data.data.Userdata;
@@ -31,6 +32,10 @@ public class ServerMain extends Server {
     public static boolean SERVER_GUI = true;
 
     public static void main(String[] args) throws Exception {
+        LoggerDump.initialize();
+        /**
+         * TODO: Fix UNO!
+         */
         if (!new File("playerdata.json").exists()) {
             new File("playerdata.json").createNewFile();
         }
@@ -89,6 +94,7 @@ public class ServerMain extends Server {
             }
             Player player = new Player();
             startPacketListener((p, handler) -> {
+                System.out.println(p.getClass() + " -> " + p.toString());
                 if (p instanceof JoinPacket packet) {
                     for (Player pl : players) {
                         if (pl.getUsername().equals(packet.getUsername())) {
@@ -267,16 +273,19 @@ public class ServerMain extends Server {
                         userdata = new Userdata(0, 0, 0, packet.getUsername(), packet.getDisplayName(), packet.getPassword());
                         Userdata.write(userdata);
                         Util.log("Successfully created account " + userdata.getUsername());
+                        handler.sendObject(new ConnectionResultPacket(100,"Successfully created account " + userdata.getUsername()));
                         handler.disconnect();
                     } else {
                         Util.log("Changing nickname of " + packet.getUsername() + " to " + packet.getDisplayName());
                         if (!userdata.getPassword().equals(packet.getPassword())) {
                             Util.log("Incorrect Password");
+                            handler.sendObject(new ConnectionResultPacket(405,"Incorrect Password"));
                             handler.disconnect();
                         } else {
                             userdata.setDisplayName(packet.getDisplayName());
                             Userdata.write(userdata);
                             Util.log("Successfully changed account nickname of " + userdata.getUsername());
+                            handler.sendObject(new ConnectionResultPacket(100,"Successfully changed account nickname of " + userdata.getUsername()));
                             handler.disconnect();
                         }
                     }

@@ -9,4 +9,11 @@ public class PutCardPacket extends Packet {
     public PutCardPacket(Card card) {
         this.card = card;
     }
+
+    @Override
+    public String toString() {
+        return "PutCardPacket{" +
+                "card=" + card +
+                '}';
+    }
 }

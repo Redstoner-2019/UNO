@@ -1,0 +1,10 @@
+März 28, 2024 7:56:03 AM me.redstoner2019.main.Main main
+INFORMATION: Starting the program...
+Exception in thread "main" java.lang.UnsatisfiedLinkError: 'void me.redstoner2019.main.Main.core()'
+	at me.redstoner2019.main.Main.core(Native Method)
+	at me.redstoner2019.main.Main.main(Main.java:48)
+März 28, 2024 7:56:26 AM me.redstoner2019.main.Main main
+INFORMATION: Starting the program...
+Exception in thread "main" java.lang.UnsatisfiedLinkError: 'void me.redstoner2019.main.Main.core()'
+	at me.redstoner2019.main.Main.core(Native Method)
+	at me.redstoner2019.main.Main.main(Main.java:48)

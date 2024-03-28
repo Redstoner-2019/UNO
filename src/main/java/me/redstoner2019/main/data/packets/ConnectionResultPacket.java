@@ -26,4 +26,12 @@ public class ConnectionResultPacket extends Packet{
     public void setMessage(String message) {
         this.message = message;
     }
+
+    @Override
+    public String toString() {
+        return "ConnectionResultPacket{" +
+                "status=" + status +
+                ", message='" + message + '\'' +
+                '}';
+    }
 }

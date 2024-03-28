@@ -38,7 +38,7 @@ public class Client {
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
+                        e.printStackTrace();
                     }
                     while (socket.isConnected()){
                         if(in == null) continue;
@@ -49,17 +49,21 @@ public class Client {
                             listener.packetRecievedEvent(in.readObject(), new ClientHandler(in,out,socket,""));
                         } catch (ClassNotFoundException ignored){
                             System.err.println("Class not found");
+                            ignored.printStackTrace();
                         } catch (StreamCorruptedException ignored){
                             System.err.println("Stream corrupted");
+                            ignored.printStackTrace();
                             break;
                         } catch (SocketException ignored){
                             System.err.println("Socket not connected");
                             System.err.println(ignored.getLocalizedMessage());
+                            ignored.printStackTrace();
                             connectionLostEvent.onConnectionLostEvent();
                             break;
                         } catch (Exception e) {
                             System.err.println("Lukas du hurensohn was hast du getan dass dies ausgegeben wird");
-                            System.err.println(e.getLocalizedMessage());
+                            System.err.println("Localized message: " + e.getLocalizedMessage());
+                            e.printStackTrace();
                             if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent();
                             try {
                                 out.flush();
@@ -74,20 +78,23 @@ public class Client {
         } catch (SocketException e) {
             if(connectionFailEvent != null) connectionFailEvent.onConnectionFailedEvent(e);
             System.err.println("Couldnt connect, socket exception!");
+            e.printStackTrace();
         } catch (UnknownHostException e) {
             if(connectionFailEvent != null) connectionFailEvent.onConnectionFailedEvent(e);
             System.err.println("Unknown Host");
+            e.printStackTrace();
         } catch (IOException e) {
             if(connectionFailEvent != null) connectionFailEvent.onConnectionFailedEvent(e);
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
     public static void sendObject(Object o){
         try {
+            System.out.println(o.getClass() + " -> " + o.toString());
             out.writeObject(o);
             out.flush();
         } catch (IOException e) {
-
+            e.printStackTrace();
         }
     }
     public static void setPacketListener(PacketListener packetListener){
@@ -105,7 +112,7 @@ public class Client {
             in.close();
             out.close();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 }

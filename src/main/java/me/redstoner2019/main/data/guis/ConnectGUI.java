@@ -1,5 +1,6 @@
 package me.redstoner2019.main.data.guis;
 
+import me.redstoner2019.main.LoggerDump;
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.packets.CreateAccountPacket;
 import me.redstoner2019.main.serverstuff.ClientMain;
@@ -14,6 +15,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,7 +35,8 @@ public class ConnectGUI<d> {
     /**
      * Launch the application.
      */
-    public static void main(String[] args) {
+    public static void main(String[] args) throws Exception {
+        LoggerDump.initialize();
         if(args.length == 1) setUsername = args[0];
         connect.setEnabled(true);
         EventQueue.invokeLater(new Runnable() {
@@ -70,7 +73,7 @@ public class ConnectGUI<d> {
                 object.put("custom-texture","");
                 Util.writeStringToFile(Util.prettyJSON(object.toString()),new File("client.properties"));
             } catch (IOException e) {
-                throw new RuntimeException(e);
+                e.printStackTrace();
             }
         }
 
@@ -87,7 +90,7 @@ public class ConnectGUI<d> {
             try {
                 new File("client.properties").createNewFile();
             } catch (IOException ex) {
-                throw new RuntimeException(ex);
+                e.printStackTrace();
             }
         }
 
@@ -245,7 +248,7 @@ public class ConnectGUI<d> {
                         try {
                             LocalNetworkScanner.scan(serverList);
                         } catch (IOException ex) {
-                            throw new RuntimeException(ex);
+                            ex.printStackTrace();
                         }
                         String[] arr = new String[ips.size()];
                         for (int i = 0; i < arr.length; i++) {
@@ -279,7 +282,7 @@ public class ConnectGUI<d> {
                         try {
                             Util.writeStringToFile(Util.prettyJSON(finalObject.toString()),new File("client.properties"));
                         } catch (IOException ex) {
-                            throw new RuntimeException(ex);
+                            ex.printStackTrace();
                         }
                         ClientMain.connect(ipAddress.getText(),username.getText(), passwordField.getText(),displayNameField.getText());
                         System.out.println("Connection Complete");

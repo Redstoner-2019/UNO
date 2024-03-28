@@ -12,7 +12,7 @@ import java.util.Date;
 
 public class Util {
     public static void log(String message){
-        System.out.println(new Date(System.currentTimeMillis()).toGMTString() + ": " + message);
+        System.out.println(message);
         ConsoleGUI.area.setText(new Date(System.currentTimeMillis()).toGMTString() + ": " + message + "\n" + ConsoleGUI.area.getText());
     }
 

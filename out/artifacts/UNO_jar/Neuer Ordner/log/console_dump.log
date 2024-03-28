@@ -1,0 +1,20 @@
+28 Mar 2024 10:53:10 GMT [INFO]  Starting Server on Port 172.20.150.24:8008
+28 Mar 2024 10:53:10 GMT [INFO]  Waiting for connection...
+28 Mar 2024 10:53:25 GMT [INFO]  A client has connected! /127.0.0.1
+28 Mar 2024 10:53:25 GMT [INFO]  Started Packet Listener
+28 Mar 2024 10:53:25 GMT [INFO]  Waiting for connection...
+28 Mar 2024 10:53:25 GMT [INFO]  class me.redstoner2019.main.data.packets.CreateAccountPacket -> CreateAccountPacket{username='test', displayName='Test', password='test'}
+28 Mar 2024 10:53:25 GMT [INFO]  Account Packet test
+28 Mar 2024 10:53:25 GMT [INFO]  Creating account test
+28 Mar 2024 10:53:25 GMT [INFO]  {"test":{"password":"test","displayname":"Test","plus-4-placed":0,"games-played":0,"games-won":0,"username":"test"}}
+28 Mar 2024 10:53:25 GMT [INFO]  Successfully created account test
+28 Mar 2024 10:53:25 GMT [INFO]  Client disconnected
+28 Mar 2024 10:53:30 GMT [INFO]  A client has connected! /127.0.0.1
+28 Mar 2024 10:53:30 GMT [INFO]  Started Packet Listener
+28 Mar 2024 10:53:30 GMT [INFO]  Waiting for connection...
+28 Mar 2024 10:53:30 GMT [INFO]  class me.redstoner2019.main.data.packets.JoinPacket -> JoinPacket{username='test'}
+28 Mar 2024 10:53:30 GMT [INFO]  JoinPacket{username='test'}
+28 Mar 2024 10:53:30 GMT [INFO]  Player test joined successfully v1.3.0-alpha.8
+28 Mar 2024 10:53:30 GMT [INFO]  Cancelling Countdown: Player joined
+28 Mar 2024 10:53:40 GMT [INFO]  Client disconnected
+28 Mar 2024 10:53:40 GMT [INFO]  Error sending Object.

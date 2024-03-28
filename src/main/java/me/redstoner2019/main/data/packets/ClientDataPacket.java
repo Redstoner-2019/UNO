@@ -26,4 +26,18 @@ public class ClientDataPacket extends Packet {
         this.nextUp = nextUp;
         this.platzierung = platzierung;
     }
+
+    @Override
+    public String toString() {
+        return "ClientDataPacket{" +
+                "clientCards=" + clientCards +
+                ", lastCardPut=" + lastCardPut +
+                ", isTurn=" + isTurn +
+                ", currentPlayer='" + currentPlayer + '\'' +
+                ", canDraw=" + canDraw +
+                ", canSkip=" + canSkip +
+                ", nextUp=" + nextUp +
+                ", platzierung='" + platzierung + '\'' +
+                '}';
+    }
 }

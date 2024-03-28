@@ -36,4 +36,13 @@ public class CreateAccountPacket extends Packet {
     public void setPassword(String password) {
         this.password = password;
     }
+
+    @Override
+    public String toString() {
+        return "CreateAccountPacket{" +
+                "username='" + username + '\'' +
+                ", displayName='" + displayName + '\'' +
+                ", password='" + password + '\'' +
+                '}';
+    }
 }

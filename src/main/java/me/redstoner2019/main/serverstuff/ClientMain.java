@@ -38,6 +38,9 @@ public class ClientMain extends Client {
         setPacketListener(new PacketListener() {
             @Override
             public void packetRecievedEvent(Object packet, ClientHandler handler) {
+                if(!(packet instanceof PreGamePacket) && !(packet instanceof ClientDataPacket)){
+                    System.out.println(packet.getClass() + " -> " + packet.toString());
+                }
                 if((packet instanceof PreGamePacket p)){
                     preGame = true;
                     prePlayers = p.getPlayers();
@@ -109,11 +112,12 @@ public class ClientMain extends Client {
                 } else if(packet instanceof ConnectionResultPacket p){
                     System.out.println(p);
                     if(p.getStatus() == 100){
-                        System.out.println("Success");
+                        ConnectGUI.loginResult.setText(p.getMessage());
+                        ConnectGUI.loginResult.setForeground(Color.GREEN);
                         try {
                             GUI.main(new String[0]);
                         } catch (Exception e) {
-                            throw new RuntimeException(e);
+                            e.printStackTrace();
                         }
                         ConnectGUI.frame.setVisible(false);
                     } else if(p.getStatus() == 405) {
