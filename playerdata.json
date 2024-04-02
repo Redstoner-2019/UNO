@@ -42,17 +42,17 @@
   "lukas" : {
     "password" : "test",
     "displayname" : "Lukas",
-    "plus-4-placed" : 0,
-    "games-played" : 5,
-    "games-won" : 10,
+    "plus-4-placed" : 2,
+    "games-played" : 8,
+    "games-won" : 12,
     "username" : "lukas"
   },
   "Marcel" : {
     "password" : "1234",
     "displayname" : "Marcel",
-    "plus-4-placed" : 0,
-    "games-played" : 1,
-    "games-won" : 0,
+    "plus-4-placed" : 1,
+    "games-played" : 4,
+    "games-won" : 1,
     "username" : "Marcel"
   }
 }

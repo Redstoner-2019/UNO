@@ -17,6 +17,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.*;
 
+import static me.redstoner2019.main.data.CardColor.RED;
 import static me.redstoner2019.main.data.CardColor.SPECIAL;
 
 public class ServerMain extends Server {
@@ -204,6 +205,12 @@ public class ServerMain extends Server {
                                     Util.log(player.getUsername() + " " + cardPlayed + " Draw 2 - Uno with too many Cards");
                                     player.addCard(popTop(deck));
                                     player.addCard(popTop(deck));
+                                }
+                                if(cardPlayed.getColor().equals(SPECIAL)){
+                                    System.out.println("Color placed " + cardPlayed.getOverrideColor());
+                                    if(cardPlayed.getOverrideColor() == null){
+                                        cardPlayed.setOverrideColor(RED);
+                                    }
                                 }
                                 manageNextPlayer();
                                 player.UNO = false;
