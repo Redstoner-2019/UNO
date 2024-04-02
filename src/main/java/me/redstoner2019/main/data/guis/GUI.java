@@ -2,6 +2,8 @@ package me.redstoner2019.main.data.guis;
 
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
+import me.redstoner2019.main.data.CardColor;
+import me.redstoner2019.main.data.CardType;
 import me.redstoner2019.main.data.data.Userdata;
 import me.redstoner2019.main.data.packets.*;
 import me.redstoner2019.main.serverstuff.ClientMain;
@@ -20,6 +22,11 @@ import java.util.HashMap;
 import java.util.List;
 
 import static java.awt.Color.*;
+import static me.redstoner2019.main.data.CardColor.*;
+import static me.redstoner2019.main.data.CardColor.BLUE;
+import static me.redstoner2019.main.data.CardColor.GREEN;
+import static me.redstoner2019.main.data.CardColor.RED;
+import static me.redstoner2019.main.data.CardColor.YELLOW;
 
 public class GUI<d> {
 
@@ -43,6 +50,7 @@ public class GUI<d> {
     public static int countdown = 0;
     public static int minPlayers = 0;
     public static int cardsPerPlayer = 0;
+    public static final Object LOCK = new Object();
 
     /**
      * Launch the application.
@@ -84,7 +92,7 @@ public class GUI<d> {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setBounds(0, 0, width, height);
-        frame.setTitle("UNO - " + Main.VERSION);
+        frame.setTitle("UNO - " + Main.getVersion());
 
         JPanel panel = new JPanel();
         frame.getContentPane().add(panel, BorderLayout.CENTER);
@@ -134,7 +142,6 @@ public class GUI<d> {
         });
 
         unoButton.setBounds(1000,90,200,40);
-        unoButton.setEnabled(false);
         panel.add(unoButton);
         unoButton.addActionListener(new ActionListener() {
             @Override
@@ -187,6 +194,9 @@ public class GUI<d> {
             @Override
             public void run() {
                 long lastUpdate = System.currentTimeMillis();
+
+                boolean isNewTurn = false;
+
                 while (frame.isVisible()){
                     if(preGame){
                         playerList.setVisible(true);
@@ -331,25 +341,33 @@ public class GUI<d> {
                 int w = 1200 / playerCardStack.size();
 
                 for(Card c : playerCardStack){
-                    if(c.getColor().contains(" - ")) c.setColor("BLACK");
                     Point mouse = label.getMousePosition();
                     if(mouse!=null) {
                         if(mouse.x > xOffset && mouse.x <= xOffset + w){
+                            if(lastPlaced.getColor() != SPECIAL && c.getColor() == SPECIAL){
+                                c.setOverrideColor(null);
+                                while(c.getOverrideColor() == null) {
+                                    System.out.println("Invalid color");
+                                    disableClick = true;
+                                    System.out.println("disable click");
+                                    ChooseColorPopup pop = new ChooseColorPopup(frame);
+                                    System.out.println("Done");
+                                    /*try {
+                                        synchronized (LOCK) {
+                                            System.out.println("Waiting");
+                                            LOCK.wait();
+                                            System.out.println("Recieved notify");
+                                        }
+                                    } catch (InterruptedException ex) {
+                                        ex.printStackTrace();
+                                    }*/
+                                    c.setOverrideColor(pop.selectedColor);
+                                    disableClick = false;
+                                    System.out.println("enable click");
+                                }
+
+                            }
                             ClientMain.sendObject(new PutCardPacket(c));
-                            if(c.getNum() == 'W' && !lastPlaced.getColor().equals("BLACK")){
-                                disableClick = true;
-                                System.out.println("disable click");
-                                new ChooseColorPopup(frame);
-                                disableClick = false;
-                                System.out.println("enable click");
-                            }
-                            if(c.getNum() == 'D' && c.getColor().equals("BLACK") && !lastPlaced.getColor().equals("BLACK")){
-                                disableClick = true;
-                                System.out.println("disable click");
-                                new ChooseColorPopup(frame);
-                                disableClick = false;
-                                System.out.println("enable click");
-                            }
                             break;
                         }
                     }
@@ -377,107 +395,37 @@ public class GUI<d> {
     public static BufferedImage getCard(Card c){
         int color = 0;
         int number = 0;
+        HashMap<CardColor,Integer> colors = new HashMap<>();
+        colors.put(RED,0);
+        colors.put(GREEN,2);
+        colors.put(YELLOW,1);
+        colors.put(BLUE,3);
+        colors.put(SPECIAL,4);
+
+        HashMap<CardType,Integer> types = new HashMap<>();
+        int i = 0;
+        for(CardType t : CardType.values()){
+            types.put(t,i);
+            i++;
+        }
+
+        color = colors.get(c.getColor());
+        number = types.get(c.getNum());
+
         if(c == null) return new BufferedImage(1,1,1);
-        switch (c.getNum()){
-            case 'S':{
-                number = 10;
-                break;
-            }
-            case 'R':{
-                number = 11;
-                break;
-            }
-            case 'D':{
-                number = 12;
-                break;
-            }
-            case 'W':{
-                break;
-            }
-            default: {
-                number = Integer.parseInt(c.getNum() + "");
-            }
-        }
 
-        switch (c.getColor()){
-            case "RED": {
+        if(c.getColor() == SPECIAL){
+            number = 13;
+            if(c.getNum() == CardType.CHANGE_COLOR){
                 color = 0;
-                break;
             }
-            case "YELLOW": {
-                color = 1;
-                break;
-            }
-            case "GREEN": {
-                color = 2;
-                break;
-            }
-            case "BLUE": {
-                color = 3;
-                break;
+            if(c.getNum() == CardType.PLUS_4){
+                color = 4;
             }
         }
 
-        if(c.getColor().equals("BLACK")){
-            number = 13;
-            switch (c.getNum()){
-                case 'D': {
-                    color = 4;
-                    break;
-                }
-                case 'W': {
-                    color = 0;
-                    break;
-                }
-                default: {
-                    return new BufferedImage(1,1,1);
-                }
-            }
-        }
-        Color extraColor = null;
-        if(c.getColor().startsWith("BLACK - ")){
-            number = 13;
-            switch (c.getNum()){
-                case 'D': {
-                    color = 4;
-                    break;
-                }
-                case 'W': {
-                    color = 0;
-                    break;
-                }
-                default: {
-                    return new BufferedImage(1,1,1);
-                }
-            }
-            switch (c.getColor().substring("BLACK - ".length())){
-                case "RED": {
-                    extraColor = new Color(252, 85, 84);
-                    break;
-                }
-                case "GREEN": {
-                    extraColor = new Color(84, 169, 84);
-                    break;
-                }
-                case "BLUE": {
-                    extraColor = new Color(83, 84, 251);
-                    break;
-                }
-                case "YELLOW": {
-                    extraColor = new Color(253, 169, 1);
-                    break;
-                }
-            }
-        }
         BufferedImage ca = getCard(color,number);
-        if(extraColor != null){
-            /*for (int x = 0; x < ca.getWidth(); x++) {
-                for (int y = 0; y < ca.getHeight(); y++) {
-                    if((new Color(ca.getRGB(x,y)).getRed() < 30) && (new Color(ca.getRGB(x,y)).getGreen() < 30) && (new Color(ca.getRGB(x,y)).getBlue() < 30)){
-                        ca.setRGB(x,y,extraColor.getRGB());
-                    }
-                }
-            }*/
+        if(c.getOverrideColor() != null){
             Graphics2D g = ca.createGraphics();
 
             g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
@@ -489,8 +437,27 @@ public class GUI<d> {
             g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
             g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
 
-
-            g.setColor(extraColor);
+            switch(c.getOverrideColor()){
+                case RED: {
+                    g.setColor(Color.RED);
+                    break;
+                }
+                case GREEN: {
+                    g.setColor(Color.GREEN);
+                    break;
+                }
+                case BLUE: {
+                    g.setColor(Color.BLUE);
+                    break;
+                }
+                case YELLOW: {
+                    g.setColor(Color.ORANGE);
+                    break;
+                }
+                default: {
+                    return new BufferedImage(1,1,1);
+                }
+            }
             g.fillOval(90,15,20,20);
             g.fillOval(13,150,20,20);
             g.dispose();

@@ -98,8 +98,9 @@ public class ConnectGUI<d> {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setBounds(0, 0, width, height);
-        System.out.println(Main.VERSION);
-        frame.setTitle("Server Selector" + " - " + Main.VERSION);
+        System.out.println(Main.getVersion());
+        frame.setTitle("Server Selector" + " - " + Main.getVersion());
+        System.out.println(frame.getTitle());
         frame.setLocationRelativeTo(null);
 
         JPanel panel = new JPanel();

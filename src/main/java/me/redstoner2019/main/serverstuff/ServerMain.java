@@ -3,6 +3,7 @@ package me.redstoner2019.main.serverstuff;
 import me.redstoner2019.main.LoggerDump;
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
+import me.redstoner2019.main.data.CardType;
 import me.redstoner2019.main.data.data.Userdata;
 import me.redstoner2019.main.data.guis.ConsoleGUI;
 import me.redstoner2019.main.data.packets.*;
@@ -15,6 +16,8 @@ import java.io.Console;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static me.redstoner2019.main.data.CardColor.SPECIAL;
 
 public class ServerMain extends Server {
     public static List<Player> players = new ArrayList<>();
@@ -103,9 +106,9 @@ public class ServerMain extends Server {
                             return;
                         }
                     }
-                    if (!packet.getVersion().equals(Main.VERSION)) {
-                        Util.log("Warning Client " + packet.getUsername() + " joined on wrong Version " + packet.getVersion() + " Server is on " + Main.VERSION);
-                        h.sendObject(new DisconnectPacket("You joined with Version '" + packet.getVersion() + "', Server running version " + Main.VERSION));
+                    if (!packet.getVersion().equals(Main.getVersion())) {
+                        Util.log("Warning Client " + packet.getUsername() + " joined on wrong Version " + packet.getVersion() + " Server is on " + Main.getVersion());
+                        h.sendObject(new DisconnectPacket("You joined with Version '" + packet.getVersion() + "', Server running version " + Main.getVersion()));
                         h.disconnect();
                         return;
                     }
@@ -128,7 +131,7 @@ public class ServerMain extends Server {
                     player.setLoginComplete(true);
                     player.getCards().clear();
                     player.handler = handler;
-                    Util.log("Player " + packet.getUsername() + " joined successfully " + Main.VERSION);
+                    Util.log("Player " + packet.getUsername() + " joined successfully " + Main.getVersion());
                     players.add(player);
                     startingIn = COUNTDOWN;
                     CANCEL_COUNTDOWN = true;
@@ -149,44 +152,46 @@ public class ServerMain extends Server {
                     Util.log("Player " + player.getUsername() + " is now ready");
                 } else if (p instanceof PutCardPacket packet) {
                     Card cardPlayed = packet.card;
+                    System.out.println("Card to be played = " + cardPlayed);
                     if (GAME_RUNNING) {
                         if (players.get(0).equals(player)) {
                             if (lastCardPlaced.canBePlayed(cardPlayed)) {
                                 Card toRemove = null;
                                 for (Card c : player.getCards()) {
-                                    if (c.getColor().equals(cardPlayed.getColor()) && c.getNum() == cardPlayed.getNum()) {
+                                    if (c.equals(cardPlayed)) {
                                         toRemove = c;
                                         break;
                                     }
                                 }
+                                System.out.println("Pre Cards" + player.getCards());
                                 player.getCards().remove(toRemove);
+                                System.out.println("Post Cards" + player.getCards());
 
                                 lastCardPlaced = cardPlayed;
                                 deck.add(cardPlayed);
-                                if (cardPlayed.getNum() == 'R') {
+                                if (cardPlayed.getNum() == CardType.REVERSE) {
                                     DIRECTION = true;
                                 }
-                                if (cardPlayed.getNum() == 'S') {
+                                if (cardPlayed.getNum() == CardType.SKIP) {
                                     skipNextTurn = true;
                                 }
-                                if (cardPlayed.getNum() == 'D' && !cardPlayed.getColor().startsWith("BLACK")) {
+                                if (cardPlayed.getNum() == CardType.DRAW) {
                                     Util.log(player.getUsername() + " " + cardPlayed + " Draw 2");
                                     players.get(1).addCard(popTop(deck));
                                     players.get(1).addCard(popTop(deck));
                                 }
-                                if (cardPlayed.getNum() == 'D' && cardPlayed.getColor().startsWith("BLACK")) {
+                                if (cardPlayed.getNum() == CardType.PLUS_4) {
                                     Util.log(player.getUsername() + " " + cardPlayed + " Draw 4");
                                     try {
                                         players.get(1).addCard(popTop(deck));
                                         players.get(1).addCard(popTop(deck));
                                         players.get(1).addCard(popTop(deck));
                                         players.get(1).addCard(popTop(deck));
-                                            /*player.incrementPlus4Placed();
-                                            player.save();*/
+                                        player.incrementPlus4Placed();
+                                        player.save();
                                     } catch (Exception e) {
-
+                                        e.printStackTrace();
                                     }
-
                                 }
                                 if (player.getCards().size() == 1) {
                                     if (!player.UNO) {
@@ -200,11 +205,7 @@ public class ServerMain extends Server {
                                     player.addCard(popTop(deck));
                                     player.addCard(popTop(deck));
                                 }
-                                if (cardPlayed.getNum() == 'W' || (cardPlayed.getNum() == 'D' && cardPlayed.getColor().startsWith("BLACK"))) {
-
-                                } else {
-                                    manageNextPlayer();
-                                }
+                                manageNextPlayer();
                                 player.UNO = false;
                             }
                             if (player.getCards().isEmpty()) {
@@ -217,7 +218,7 @@ public class ServerMain extends Server {
                                 });
                                 player.incrementGamesWon();
                                 String placement = "";
-                                for (Player pla : List.copyOf(players)) {
+                                for (Player pla : players) {
                                     pla.incrementGamesPlayed();
                                     pla.save();
                                     placement = "";
@@ -260,11 +261,6 @@ public class ServerMain extends Server {
                 } else if (p instanceof UNOPacket) {
                     Util.log(player.getUsername() + " UNO!");
                     player.UNO = true;
-                } else if (p instanceof SetColorPacket packet) {
-                    overridenColor = packet.color;
-                    lastCardPlaced.setColor("BLACK - " + overridenColor);
-                    Util.log(lastCardPlaced.getColor());
-                    manageNextPlayer();
                 } else if (p instanceof CreateAccountPacket packet) {
                     Util.log("Account Packet " + packet.getUsername());
                     Userdata userdata = Userdata.read(packet.getUsername());

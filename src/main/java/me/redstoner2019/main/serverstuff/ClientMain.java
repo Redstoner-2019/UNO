@@ -61,7 +61,7 @@ public class ClientMain extends Client {
                     GUI.lastPlaced = p.lastCardPut;
                     isCurrentTurn = p.isTurn;
                     GUI.currentPlayer = p.currentPlayer;
-                    GUI.unoButton.setEnabled(isCurrentTurn);
+                    //GUI.unoButton.setEnabled(isCurrentTurn);
                     GUI.drawButton.setEnabled(p.canDraw && isCurrentTurn);
                     GUI.skipButton.setEnabled(p.canSkip && isCurrentTurn);
                     String nextUpString = "";
@@ -142,7 +142,7 @@ public class ClientMain extends Client {
                 System.out.println("Failed");
                 ConnectGUI.connect.setEnabled(true);
                 ConnectGUI.connect.setText("CONNECT");
-                ConnectGUI.frame.setTitle("Connect - Failed to connect - " + reason.getLocalizedMessage() + " - " + Main.VERSION);
+                ConnectGUI.frame.setTitle("Connect - Failed to connect - " + reason.getLocalizedMessage() + " - " + Main.getVersion());
             }
         });
         setOnConnectionSuccessEvent(new ConnectionSuccessEvent() {
@@ -153,6 +153,6 @@ public class ClientMain extends Client {
         });
 
         connect(ip,8008);
-        if(isConnected()) sendObject(new JoinPacket(Main.VERSION,username, password, displayName)); else {ConnectGUI.connect.setEnabled(true);}
+        if(isConnected()) sendObject(new JoinPacket(Main.getVersion(),username, password, displayName)); else {ConnectGUI.connect.setEnabled(true);}
     }
 }

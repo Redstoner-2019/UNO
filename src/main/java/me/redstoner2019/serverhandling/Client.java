@@ -88,8 +88,15 @@ public class Client {
             e.printStackTrace();
         }
     }
+    public static String lastObjectSendName = "";
+    public static long lastSent = 0;
     public static void sendObject(Object o){
+        if(o.getClass().toString().equals(lastObjectSendName) && (System.currentTimeMillis()-lastSent) < 100){
+            return;
+        }
+        lastSent = System.currentTimeMillis();
         try {
+            lastObjectSendName = o.getClass().toString();
             System.out.println(o.getClass() + " -> " + o.toString());
             out.writeObject(o);
             out.flush();

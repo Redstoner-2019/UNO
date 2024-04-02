@@ -9,6 +9,7 @@ public class LoggerDump {
     public static File errorFile = new File("log/error_dump.log");
     public static File consoleFile = new File("log/console_dump.log");
     public static void initialize() throws Exception{
+        if(true) return;
         if(!new File("log/").exists()) new File("log/").mkdirs();
 
         if(errorFile.exists()) errorFile.delete();
@@ -88,6 +89,7 @@ class DoubleWriteStream extends PrintStream {
     public DoubleWriteStream(File file, Charset charset) throws IOException {
         super(file, charset);
     }
+    public static String lastMessage = "";
 
     @Override
     public void println(int x) {
@@ -129,10 +131,12 @@ class DoubleWriteStream extends PrintStream {
         if(timePrefix){
             p1.println(new Date().toGMTString() + " " + prefix + " " + x);
             p2.println(new Date().toGMTString() + " " + prefix + " " + x);
+            //if(!lastMessage.equals(x))
         } else {
             p1.println(x);
             p2.println(x);
         }
+        lastMessage = x;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package me.redstoner2019.main.data.guis;
 
+import me.redstoner2019.main.data.CardColor;
 import me.redstoner2019.main.data.packets.SetColorPacket;
 import me.redstoner2019.main.serverstuff.ClientMain;
 
@@ -20,18 +21,19 @@ class ColorName{
 }
 
 public class ChooseColorPopup extends JDialog {
+    public CardColor selectedColor = null;
     public static void main(String[] args) {
         new ChooseColorPopup(null);
     }
     public ChooseColorPopup(JFrame parent) {
         super(parent,"Choose Color",true);
+        selectedColor = null;
 
-        // Create text fields
         JList list = new JList(new Vector<ColorName>() {
             {
                 add(new ColorName("RED", Color.RED));
                 add(new ColorName("GREEN", Color.GREEN));
-                add(new ColorName("ORANGE", Color.ORANGE));
+                add(new ColorName("YELLOW", Color.ORANGE));
                 add(new ColorName("BLUE", Color.BLUE));
             }
         });
@@ -64,7 +66,11 @@ public class ChooseColorPopup extends JDialog {
         list.addListSelectionListener(new ListSelectionListener() {
             @Override
             public void valueChanged(ListSelectionEvent e) {
-                ClientMain.sendObject(new SetColorPacket(((ColorName)list.getSelectedValue()).colorName));
+                selectedColor = CardColor.valueOf(((ColorName)list.getSelectedValue()).colorName);
+                synchronized (GUI.LOCK) {
+                    GUI.LOCK.notifyAll();
+                    System.out.println("Sent notify");
+                }
                 dispose();
             }
         });
