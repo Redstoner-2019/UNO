@@ -8,41 +8,123 @@ import java.util.List;
 
 public class Player {
     private List<Card> cards = new ArrayList<>();
-    private boolean loginComplete = false;
     private String username = "";
-    public boolean ready = false;
-    public ClientHandler handler = null;
-    public boolean hasDrawnCardThisRound = false;
-    public String placement = "";
-    public boolean UNO = false;
-    public Userdata userdata;
-    public String displayName;
+    private boolean loggedIn = false;
+    private boolean canDraw = false;
+    private boolean canSkip = false;
+    private boolean canUNO = false;
+    private boolean UNO = false;
+    private Userdata userdata;
+    private String displayName;
+    private String gameID = "";
+    private ClientHandler handler;
+
+    public ClientHandler getHandler() {
+        return handler;
+    }
+
+    public void setHandler(ClientHandler handler) {
+        this.handler = handler;
+    }
+
+    public boolean isLoggedIn() {
+        return loggedIn;
+    }
+
+    public void setLoggedIn(boolean loggedIn) {
+        this.loggedIn = loggedIn;
+    }
+
+    public String getGameID() {
+        return gameID;
+    }
+
+    public void setGameID(String gameID) {
+        this.gameID = gameID;
+    }
 
     @Override
     public String toString() {
         return "Player{" +
                 "cards=" + cards +
-                ", loginComplete=" + loginComplete +
                 ", username='" + username + '\'' +
-                ", ready=" + ready +
-                ", handler=" + handler +
-                ", hasDrawnCardThisRound=" + hasDrawnCardThisRound +
-                ", placement='" + placement + '\'' +
                 ", UNO=" + UNO +
                 '}';
     }
 
-    public Player(List<Card> cards, boolean loginComplete, String username) {
+    public Player(List<Card> cards, String username) {
         this.cards = cards;
-        this.loginComplete = loginComplete;
         this.username = username;
         this.userdata = Userdata.read(username);
         System.out.println(Userdata.read(username));
     }
-
     public Player(){
 
     }
+
+    public Player(List<Card> cards, String username, boolean canDraw, boolean canSkip, boolean canUNO, boolean UNO, Userdata userdata, String displayName) {
+        this.cards = cards;
+        this.username = username;
+        this.canDraw = canDraw;
+        this.canSkip = canSkip;
+        this.canUNO = canUNO;
+        this.UNO = UNO;
+        this.userdata = userdata;
+        this.displayName = displayName;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public boolean isCanDraw() {
+        return canDraw;
+    }
+
+    public void setCanDraw(boolean canDraw) {
+        this.canDraw = canDraw;
+    }
+
+    public boolean isCanSkip() {
+        return canSkip;
+    }
+
+    public void setCanSkip(boolean canSkip) {
+        this.canSkip = canSkip;
+    }
+
+    public boolean isCanUNO() {
+        return canUNO;
+    }
+
+    public void setCanUNO(boolean canUNO) {
+        this.canUNO = canUNO;
+    }
+
+    public boolean isUNO() {
+        return UNO;
+    }
+
+    public void setUNO(boolean UNO) {
+        this.UNO = UNO;
+    }
+
+    public Userdata getUserdata() {
+        return userdata;
+    }
+
+    public void setUserdata(Userdata userdata) {
+        this.userdata = userdata;
+    }
+
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
     public void save(){
         Userdata.write(userdata);
     }
@@ -54,24 +136,6 @@ public class Player {
     }
     public void incrementPlus4Placed(){
         userdata.setPlus4Placed(userdata.getPlus4Placed()+1);
-    }
-
-    public boolean isLoginComplete() {
-        return loginComplete;
-    }
-
-    public void setLoginComplete(boolean loginComplete) {
-        this.loginComplete = loginComplete;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-    public String getDisplayName(){
-        return displayName;
-    }
-    public void setDisplayName(String name){
-        this.displayName = name;
     }
 
     public void setUsername(String username) {
@@ -90,6 +154,9 @@ public class Player {
     }
     public void addCard(Card c){
         cards.add(c);
+    }
+    public void removeCard(Card c){
+        cards.remove(c);
     }
     public void addCards(List<Card> cards){
         this.cards.addAll(cards);

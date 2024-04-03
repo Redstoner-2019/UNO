@@ -52,35 +52,13 @@ public class Server {
                             throw new RuntimeException(e);
                         }
                     }});t.start();
-                Util.log("A client has connected! " + socket.getInetAddress());
+                //Util.log("A client has connected! " + socket.getInetAddress());
             }catch (Exception ignored){}
         }
     }
 
     public static void setClientConnectEvent(ClientConnectEvent e){
         clientConnectEvent = e;
-    }
-    public static void startPacketListener(final PacketListener listener, final ClientHandler handler){
-        System.out.println("Started Packet Listener");
-        Thread t = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                boolean run = true;
-                while (run){
-                    Object o = null;
-                    try {
-                        o = handler.getIn().readObject();
-                    } catch (IOException | ClassNotFoundException e) {
-                        clients.remove(handler);
-                        Util.log("Client disconnected"); //8008135
-                        run = false;
-                        break;
-                    }
-                    listener.packetRecievedEvent(o, handler);
-                }
-            }
-        });
-        t.start();
     }
     public static void sendObject(Object packet, ObjectOutputStream out, Socket socket){
         if(!socket.isConnected()){

@@ -1,12 +1,9 @@
 package me.redstoner2019.serverhandling;
 
-import me.redstoner2019.main.data.guis.ConnectGUI;
-
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.List;
 
 public class LocalNetworkScanner {

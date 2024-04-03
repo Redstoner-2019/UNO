@@ -1,7 +1,6 @@
 package me.redstoner2019.serverhandling;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import me.redstoner2019.main.data.guis.ConsoleGUI;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -13,7 +12,6 @@ import java.util.Date;
 public class Util {
     public static void log(String message){
         System.out.println(message);
-        ConsoleGUI.area.setText(new Date(System.currentTimeMillis()).toGMTString() + ": " + message + "\n" + ConsoleGUI.area.getText());
     }
 
     public static void writeStringToFile(String str, File file) throws IOException {

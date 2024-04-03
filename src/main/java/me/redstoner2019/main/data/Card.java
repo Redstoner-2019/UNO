@@ -1,7 +1,6 @@
 package me.redstoner2019.main.data;
 
 import me.redstoner2019.main.Main;
-import me.redstoner2019.main.serverstuff.ServerMain;
 import me.redstoner2019.serverhandling.Packet;
 
 import java.util.ArrayList;

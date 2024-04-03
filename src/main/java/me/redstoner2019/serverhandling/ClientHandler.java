@@ -61,6 +61,29 @@ public class ClientHandler {
         }
     }
 
+    public void startPacketListener(final PacketListener listener){
+        System.out.println("Started Packet Listener");
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                boolean run = true;
+                while (run){
+                    Object o = null;
+                    try {
+                        o = getIn().readObject();
+                    } catch (IOException | ClassNotFoundException e) {
+                        Server.getClients().remove(this);
+                        Util.log("Client disconnected"); //8008135
+                        run = false;
+                        break;
+                    }
+                    listener.packetRecievedEvent((Packet) o);
+                }
+            }
+        });
+        t.start();
+    }
+
     public void sendObject(Object packet){
         if(socket.isClosed()){
             //Util.log("Not Connected, can't send Object.");

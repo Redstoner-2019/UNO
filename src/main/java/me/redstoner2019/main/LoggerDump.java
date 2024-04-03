@@ -9,7 +9,6 @@ public class LoggerDump {
     public static File errorFile = new File("log/error_dump.log");
     public static File consoleFile = new File("log/console_dump.log");
     public static void initialize() throws Exception{
-        if(true) return;
         if(!new File("log/").exists()) new File("log/").mkdirs();
 
         if(errorFile.exists()) errorFile.delete();
@@ -28,13 +27,15 @@ public class LoggerDump {
             FileOutputStream errorOutStream = new FileOutputStream(consoleFile);
             PrintStream errorPs = new PrintStream(errorOutStream);
 
-            System.setErr(new DoubleWriteStream(   new DoubleWriteStream(logPs,errorPs,logOutStream,"",false)    ,errorOut,errorOutStream,"[ERROR]",true));
+            System.setErr(new DoubleWriteStream(errorPs,errorOut,errorOutStream,"[ERROR]",true));
 
-            System.setOut(new DoubleWriteStream(errorPs,consoleOut,logOutStream,"[INFO] ",true));
+            System.setOut(new DoubleWriteStream(logPs,consoleOut,logOutStream,"[INFO] ",true));
         }catch (Exception e){
             e.printStackTrace();
+            System.out.println("Error init");
             System.exit(0);
         }
+        System.out.println("Init complete");
     }
 }
 
@@ -123,7 +124,7 @@ class DoubleWriteStream extends PrintStream {
 
     @Override
     public void println(Object x) {
-        println(x + "\n");
+        println(x + "");
     }
 
     @Override

@@ -1,12 +1,4 @@
 {
-  "" : {
-    "password" : "",
-    "displayname" : "",
-    "plus-4-placed" : 0,
-    "games-played" : 0,
-    "games-won" : 0,
-    "username" : ""
-  },
   "halil" : {
     "password" : "test",
     "displayname" : "Halil",

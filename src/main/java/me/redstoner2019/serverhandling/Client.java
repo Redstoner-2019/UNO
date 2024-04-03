@@ -1,5 +1,7 @@
 package me.redstoner2019.serverhandling;
 
+import me.redstoner2019.main.Main;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
@@ -46,7 +48,7 @@ public class Client {
                             continue;
                         }
                         try {
-                            listener.packetRecievedEvent(in.readObject(), new ClientHandler(in,out,socket,""));
+                            listener.packetRecievedEvent((Packet) in.readObject());
                         } catch (ClassNotFoundException ignored){
                             System.err.println("Class not found");
                             ignored.printStackTrace();
@@ -95,9 +97,12 @@ public class Client {
             return;
         }
         lastSent = System.currentTimeMillis();
+        Packet p = (Packet) o;
+        p.setVersion(Main.getVersion());
+        o = p;
         try {
             lastObjectSendName = o.getClass().toString();
-            System.out.println(o.getClass() + " -> " + o.toString());
+            //System.out.println(o.getClass() + " -> " + o.toString());
             out.writeObject(o);
             out.flush();
         } catch (IOException e) {
