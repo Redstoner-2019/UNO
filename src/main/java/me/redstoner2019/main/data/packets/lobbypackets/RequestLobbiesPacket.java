@@ -2,7 +2,7 @@ package me.redstoner2019.main.data.packets.lobbypackets;
 
 import me.redstoner2019.serverhandling.Packet;
 
-public class RequestLobbyPacket extends Packet {
+public class RequestLobbiesPacket extends Packet {
     private String ID;
 
     public String getID() {
@@ -13,7 +13,7 @@ public class RequestLobbyPacket extends Packet {
         this.ID = ID;
     }
 
-    public RequestLobbyPacket(String ID) {
+    public RequestLobbiesPacket(String ID) {
         this.ID = ID;
     }
 }

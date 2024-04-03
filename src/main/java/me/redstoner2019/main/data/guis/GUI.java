@@ -233,6 +233,8 @@ public class GUI extends Client {
         JLabel joinResult = new JLabel();
         JButton createLobby = new JButton("CREATE LOBBY");
         JButton serverMainDisconnectButton = new JButton("DISCONNECT");
+        JList<String> lobbies = new JList<>();
+        JScrollPane lobbiesScrollPane = new JScrollPane(lobbies);
 
         serverConnectedTo.setBounds(0,0,frame.getWidth(),50);
         joinLobby.setBounds((frame.getWidth()-400) / 2, 200, 400,40);
@@ -240,6 +242,7 @@ public class GUI extends Client {
         joinResult.setBounds((frame.getWidth()-400) / 2, 320, 400,40);
         createLobby.setBounds((frame.getWidth()-400) / 2, 380, 400,40);
         serverMainDisconnectButton.setBounds((frame.getWidth()-400) / 2, 440, 400,40);
+        lobbiesScrollPane.setBounds(0,0,200,frame.getHeight()-100);
 
         serverConnectedTo.setFont(new Font("Arial", Font.BOLD,40));
         joinLobby.setFont(new Font("Arial", Font.BOLD,30));
@@ -285,7 +288,10 @@ public class GUI extends Client {
         joinLobby.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(codeField.getText().length() == 4) sendObject(new JoinLobbyPacket(codeField.getText()));
+                if(codeField.getText().length() == 4) {
+                    sendObject(new JoinLobbyPacket(codeField.getText()));
+                    sendObject(new Ping(System.currentTimeMillis()));
+                }
                 gui = "game-lobby";
             }
         });
@@ -432,10 +438,17 @@ public class GUI extends Client {
                             break;
                         }
                         case "server-main": {
-                            List<Component> components = List.of(serverConnectedTo,joinLobby,joinResult,createLobby,codeField,serverMainDisconnectButton);
+                            List<Component> components = List.of(serverConnectedTo,joinLobby,joinResult,createLobby,codeField,serverMainDisconnectButton,lobbiesScrollPane);
                             serverConnectedTo.setText("Server connected to: " + serversJList.getSelectedValue());
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
+                            }
+                            if(codeField.getText().length() == 4){
+                                joinLobby.setEnabled(true);
+                                createLobby.setEnabled(false);
+                            } else {
+                                joinLobby.setEnabled(false);
+                                createLobby.setEnabled(true);
                             }
                             break;
                         }
@@ -486,8 +499,8 @@ public class GUI extends Client {
                     lobbyPlayers.setListData(players);
                     lobbyStart.setEnabled(p.isOwner());
 
-                    lobbyCardsPerPlayer.setEnabled(p.isOwner());
-                    lobbyDecks.setEnabled(p.isOwner());
+                    lobbyCardsPerPlayer.setEditable(p.isOwner());
+                    lobbyDecks.setEditable(p.isOwner());
                     lobbyStacking.setEnabled(p.isOwner());
                     lobbySevenSwap.setEnabled(p.isOwner());
                     lobbyJumpIn.setEnabled(p.isOwner());

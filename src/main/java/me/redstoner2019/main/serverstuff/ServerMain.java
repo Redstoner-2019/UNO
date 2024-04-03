@@ -15,6 +15,7 @@ import me.redstoner2019.serverhandling.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 
 public class ServerMain extends Server {
@@ -74,19 +75,39 @@ public class ServerMain extends Server {
                             //handler.sendObject(new LoginSuccessPacket());
                             handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
                         }
-                        if(packet instanceof UpdateLobbyPacket p){
-                            Game game = games.get(player.getGameID());
-                            game.setCardsPerPlayer(p.getCardsPerPlayer());
-                            game.setDecks(p.getDecks());
-                            game.setStacking(p.isStacking());
-                            game.setSevenSwap(p.isSevenSwap());
-                            game.setJumpIn(p.isJumpIn());
+                        if(packet instanceof JoinLobbyPacket p){
+                            Game game = games.getOrDefault(p.getID(),null);
+                            if(game == null) {
+                                return;
+                            }
+                            player.setGameID(game.getGameCode());
+                            game.addPlayer(player);
                             handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
                         }
-                        if(packet instanceof RequestLobbyPacket){
+                        if(packet instanceof UpdateLobbyPacket p){
+                            Game game = games.getOrDefault(player.getGameID(),null);
+                            if(game.getOwner().equals(player)){
+                                game.setCardsPerPlayer(p.getCardsPerPlayer());
+                                game.setDecks(p.getDecks());
+                                game.setStacking(p.isStacking());
+                                game.setSevenSwap(p.isSevenSwap());
+                                game.setJumpIn(p.isJumpIn());
+                            }
+                            System.out.println("Recieved");
+                            handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
+                        }
+                        if(packet instanceof RequestLobbiesPacket){
                             Game game = games.getOrDefault(player.getGameID(), null);
                             if(game == null) return;
-                            handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
+                            String[] lobbies = new String[games.keySet().size()];
+                            Iterator<String> it = games.keySet().iterator();
+                            int i = 0;
+                            while (it.hasNext()){
+                                String s = it.next();
+                                lobbies[i] = s;
+                                i++;
+                            }
+                            handler.sendObject(new LobbiesPacket(lobbies));
                         }
                         if(packet instanceof Ping){
                             handler.sendObject(packet);
@@ -107,6 +128,23 @@ public class ServerMain extends Server {
             }
         });
         setup(8008);
+        Thread serverThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    Iterator<String> it = games.keySet().iterator();
+                    while (it.hasNext()){
+                        String s = it.next();
+                        Game game = games.get(s);
+                        if(game.getPlayers().isEmpty()){
+                            games.remove(s);
+                        }
+                    }
+                }
+
+            }
+        });
+        serverThread.start();
         start();
     }
 }
