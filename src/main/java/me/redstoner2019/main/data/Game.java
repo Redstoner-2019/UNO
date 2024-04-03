@@ -17,6 +17,16 @@ public class Game {
     private boolean sevenSwap = false;
     private boolean jumpIn = false;
     private Player owner = null;
+    private boolean running = false;
+
+    public boolean isRunning() {
+        return running;
+    }
+
+    public void setRunning(boolean running) {
+        this.running = running;
+    }
+
     public HashMap<String, String> getPlayerHashMap(){
         HashMap<String, String> players = new HashMap<>();
         for(Player p : getPlayers()){
@@ -109,14 +119,19 @@ public class Game {
             @Override
             public void run() {
                 System.out.println("Game Start");
+                running = true;
                 for(Player p : players){
                     p.getHandler().sendObject(new GameStartPacket());
+                    System.out.println("Send Game Start");
                 }
+                /**
+                 * Game running
+                 */
                 System.out.println("Game end");
                 for(Player p : players){
                     p.getHandler().sendObject(new GameEndPacket());
                 }
-                players.clear();
+                running = false;
             }
         });
         t.start();

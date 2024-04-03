@@ -34,9 +34,9 @@ public class ServerMain extends Server {
                 String lobbyCreated = "";*/
                 handler.startPacketListener(new PacketListener() {
                     @Override
-                    public void packetRecievedEvent(Packet packet) {
-                        if(!packet.getVersion().equals(Main.getVersion())){
-                            System.out.println("Wrong Version " + packet.getVersion());
+                    public void packetRecievedEvent(Object packet) {
+                        if(!((Packet)packet).getVersion().equals(Main.getVersion())){
+                            System.out.println("Wrong Version " + ((Packet)packet).getVersion());
                             handler.disconnect();
                         }
                         if(packet instanceof LoginPacket p){
@@ -94,7 +94,7 @@ public class ServerMain extends Server {
                                 game.setJumpIn(p.isJumpIn());
                             }else {
                             }
-                            handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
+                            if(!game.isRunning()) handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
                         }
                         if(packet instanceof RequestLobbiesPacket){
                             String[] lobbies = new String[games.keySet().size()];
@@ -142,7 +142,7 @@ public class ServerMain extends Server {
 
             }
         });
-        serverThread.start();
+        //serverThread.start();
         start();
     }
 }

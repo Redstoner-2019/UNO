@@ -69,13 +69,20 @@ public class ClientHandler {
                 boolean run = true;
                 while (run){
                     Object o = null;
-                    try {
-                        o = getIn().readObject();
-                    } catch (IOException | ClassNotFoundException e) {
+                    if(socket.isClosed()){
                         Server.getClients().remove(this);
                         Util.log("Client disconnected"); //8008135
                         run = false;
-                        break;
+                    }
+                    try {
+                        o = getIn().readObject();
+                    } catch (ClassNotFoundException ignored) {
+                        System.out.println("ClassNotFoundExeption");
+                    } catch (IOException e){
+                        /*Server.getClients().remove(this);
+                        Util.log("Client disconnected"); //8008135
+                        run = false;
+                        break;*/
                     }
                     listener.packetRecievedEvent((Packet) o);
                 }

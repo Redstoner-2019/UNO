@@ -1,6 +1,7 @@
 package me.redstoner2019.main.data.guis;
 
 import me.redstoner2019.main.Main;
+import me.redstoner2019.main.data.packets.gamepackets.GameEndPacket;
 import me.redstoner2019.main.data.packets.gamepackets.GameStartPacket;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.DisconnectPacket;
@@ -460,7 +461,7 @@ public class GUI extends Client {
                             break;
                         }
                         case "game-main": {
-                            List<Component> components = List.of(mainMenuTitleLabel,mainMenuPlayButton,mainMenuSettingsButton,mainMenuSubTitleLabel);
+                            List<Component> components = List.of();
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
@@ -478,7 +479,10 @@ public class GUI extends Client {
         final long[] lastPingUpdate = {System.currentTimeMillis()};
         setPacketListener(new PacketListener() {
             @Override
-            public void packetRecievedEvent(Packet packet) {
+            public void packetRecievedEvent(Object packet) {
+                if(!(packet instanceof Ping) && !(packet instanceof LobbyInfoPacket)){
+                    System.out.println(packet.getClass());
+                }
                 if(packet instanceof DisconnectPacket p){
                     scheduled_disconnect[0] = true;
                     serverConnectionInfo.setForeground(Color.RED);
@@ -532,6 +536,14 @@ public class GUI extends Client {
                     lobbies.setListData(p.getLobbies());
                     System.out.println(Arrays.toString(p.getLobbies()));
                     sendObject(new RequestLobbiesPacket());
+                }
+                if(packet instanceof GameStartPacket p){
+                    System.out.println("Game start");
+                    gui = "game-main";
+                }
+                if(packet instanceof GameEndPacket p){
+                    System.out.println("Game end");
+                    gui = "game-lobby";
                 }
             }
         });
