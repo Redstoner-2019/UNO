@@ -505,8 +505,8 @@ public class GUI extends Client {
                     lobbySevenSwap.setEnabled(p.isOwner());
                     lobbyJumpIn.setEnabled(p.isOwner());
 
-                    if(lobbyCardsPerPlayer.getText().isEmpty()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
-                    if(lobbyDecks.getText().isEmpty()) lobbyDecks.setText(p.getDecks() + "");
+                    if(!p.isOwner()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
+                    if(!p.isOwner()) lobbyDecks.setText(p.getDecks() + "");
                     if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
                     if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
                     if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
