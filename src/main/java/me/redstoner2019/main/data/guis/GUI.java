@@ -1,6 +1,9 @@
 package me.redstoner2019.main.data.guis;
 
 import me.redstoner2019.main.Main;
+import me.redstoner2019.main.data.Card;
+import me.redstoner2019.main.data.CardColor;
+import me.redstoner2019.main.data.CardType;
 import me.redstoner2019.main.data.packets.gamepackets.GameEndPacket;
 import me.redstoner2019.main.data.packets.gamepackets.GameStartPacket;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
@@ -11,6 +14,7 @@ import me.redstoner2019.main.data.packets.loginpackets.Ping;
 import me.redstoner2019.serverhandling.*;
 import org.json.JSONArray;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -23,22 +27,42 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
+import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
 
+import static me.redstoner2019.main.data.CardColor.*;
+import static me.redstoner2019.main.data.CardType.*;
+
 public class GUI extends Client {
     public static JFrame frame;
     private final int width = 1280;
     private final int height = 720;
-    public static String gui = "main-menu";
+    public static String gui = "game-main";
     public static JSONArray serverList = new JSONArray();
     public static boolean forceUpdate = false;
-    public GUI() {
+    public static BufferedImage cards = null;
+    public static Card lastCardPut = new Card(CardColor.BLUE, CardType.ZERO);
+    public static List<Card> deck = new ArrayList<>();
+    public GUI() throws Exception {
         initialize();
     }
-    private void initialize() {
+    private void initialize() throws Exception {
+        String customTexture = "";
+
+
+        System.out.println(Main.class.getResource("/textures/texture.png"));
+        cards = ImageIO.read(GUI.class.getResource("/textures/texture.png"));
+        try{
+            if(!customTexture.isEmpty()) cards = ImageIO.read(new File(customTexture));
+        }catch (Exception e){
+            JOptionPane.showMessageDialog(null,"Couldnt read custom Texture. Defaulting.");
+            cards = ImageIO.read(GUI.class.getResource("/cards.png"));
+        }
+
         frame = new JFrame();
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -53,6 +77,14 @@ public class GUI extends Client {
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         panel.setLayout(null);
 
+        BufferedImage image = null;
+        try {
+            image = ImageIO.read(new File("C:\\Users\\andre\\Downloads/IMG-20200812-WA0006_v2_enhanced (1).jpg"));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+
         serverList.put("localhost");
         serverList.put("cruw-community.de");
 
@@ -62,7 +94,7 @@ public class GUI extends Client {
         JLabel mainMenuTitleLabel = new JLabel("UNO");
         JLabel mainMenuSubTitleLabel = new JLabel("Version " + Main.getVersion());
         JButton mainMenuPlayButton = new JButton("PLAY");
-        JButton mainMenuSettingsButton = new JButton("SETTINGS");
+        JButton mainMenuSettingsButton = new JButton("SETTINGS");frame.setIconImage(new ImageIcon(image).getImage());
 
         mainMenuTitleLabel.setBounds((frame.getWidth()-400)/2,30,400,80);
         mainMenuSubTitleLabel.setBounds((frame.getWidth()-300)/2,100,300,50);
@@ -290,7 +322,7 @@ public class GUI extends Client {
             public void actionPerformed(ActionEvent e) {
                 if(codeField.getText().length() == 4) {
                     sendObject(new JoinLobbyPacket(codeField.getText()));
-                    sendObject(new Ping(System.currentTimeMillis()));
+                    //sendObject(new Ping(System.currentTimeMillis()));
                 }
                 gui = "game-lobby";
             }
@@ -392,6 +424,21 @@ public class GUI extends Client {
          * game-main
          */
 
+        JLabel draw = new JLabel();
+
+        draw.setBounds(0,0,frame.getWidth(),frame.getHeight());
+
+        panel.add(draw);
+
+        draw.setIcon(new ImageIcon(Util.resize(image,frame.getWidth(),frame.getHeight())));
+
+        deck.add(new Card(RED, CardType.ZERO));
+        deck.add(new Card(CardColor.GREEN, CardType.ZERO));
+        deck.add(new Card(CardColor.BLUE, CardType.ZERO));
+        deck.add(new Card(CardColor.YELLOW, CardType.ZERO));
+        deck.add(new Card(CardColor.SPECIAL, CardType.DRAW));
+
+        BufferedImage finalImage = image;
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -461,10 +508,35 @@ public class GUI extends Client {
                             break;
                         }
                         case "game-main": {
-                            List<Component> components = List.of();
+                            List<Component> components = List.of(draw);
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
+                            BufferedImage image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
+
+                            Graphics2D g = image2.createGraphics();
+
+                            BufferedImage card = getCard(lastCardPut);
+
+                            g.drawImage(Util.resize(finalImage,image2.getWidth(),image2.getHeight()),null,0,0);
+
+                            g.drawImage(card,null,(frame.getWidth() - card.getWidth())/2,(frame.getHeight() - card.getHeight())/2 - 200);
+
+                            if(deck.size() > 1){
+                                int spacing = (frame.getWidth() - 200) / deck.size();
+                                int x = 0;
+                                int i = 0;
+                                while (x < (frame.getWidth() - 200)){
+                                    card = getCard(deck.get(i));
+                                    g.drawImage(card,null,x+100,(frame.getHeight() - 300));
+                                    i++;
+                                    x+=spacing;
+                                }
+                            }
+
+                            g.dispose();
+
+                            draw.setIcon(new ImageIcon(image2));
                             break;
                         }
                         default: {
@@ -515,6 +587,8 @@ public class GUI extends Client {
                         if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
                         if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
                         if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
+
+                        Thread.sleep(100);
 
                         if(p.isOwner()){
                             sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
@@ -575,4 +649,98 @@ public class GUI extends Client {
             }
         });
     }
+
+    /*public static BufferedImage getCard(Card c){
+        int color = 0;
+        int number = 0;
+        HashMap<CardColor,Integer> colors = new HashMap<>();
+        colors.put(RED,0);
+        colors.put(GREEN,2);
+        colors.put(YELLOW,1);
+        colors.put(BLUE,3);
+        colors.put(SPECIAL,4);
+
+        HashMap<CardType,Integer> types = new HashMap<>();
+        int i = 0;
+        for(CardType t : CardType.values()){
+            types.put(t,i);
+            i++;
+        }
+
+        color = colors.get(c.getColor());
+        number = types.get(c.getNum());
+
+        if(c == null) return new BufferedImage(1,1,1);
+
+        if(c.getColor() == SPECIAL){
+            number = 13;
+            if(c.getNum() == CardType.CHANGE_COLOR){
+                color = 0;
+            }
+            if(c.getNum() == CardType.PLUS_4){
+                color = 4;
+            }
+        }
+
+        BufferedImage ca = getCard(color,number);
+        if(c.getOverrideColor() != null){
+            Graphics2D g = ca.createGraphics();
+
+            g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
+            g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
+            g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+            g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
+
+            switch(c.getOverrideColor()){
+                case RED: {
+                    g.setColor(Color.RED);
+                    break;
+                }
+                case GREEN: {
+                    g.setColor(Color.GREEN);
+                    break;
+                }
+                case BLUE: {
+                    g.setColor(Color.BLUE);
+                    break;
+                }
+                case YELLOW: {
+                    g.setColor(Color.ORANGE);
+                    break;
+                }
+                default: {
+                    return new BufferedImage(1,1,1);
+                }
+            }
+            g.fillOval(90,15,20,20);
+            g.fillOval(13,150,20,20);
+            g.dispose();
+        }
+        return ca;
+    }*/
+
+    public static BufferedImage getCard(Card c){
+        BufferedImage b = cards.getSubimage(0,0,128,192);
+        return b;
+    }
+
+    /*public static BufferedImage getCard(int color, int number){
+        int x0 = 125;
+        int y0 = 25;
+        int cWidth = 125;
+        int cHeight = 187;
+        if(cards == null) return new BufferedImage(cWidth,cHeight,1);
+        BufferedImage subImage = new BufferedImage(cWidth,cHeight,1);
+        for (int x = 0; x < cWidth; x++) {
+            for (int y = 0; y < cHeight; y++) {
+                subImage.setRGB(x,y,cards.getRGB(x0 + (cWidth * number) + x,y0 + (cHeight * color) + y));
+            }
+        }
+        return Util.resize(subImage,128,192);
+        //return cards.getSubimage(x0 + (cWidth * number),y0 + (cHeight * color),cWidth,cHeight);
+    }*/
 }

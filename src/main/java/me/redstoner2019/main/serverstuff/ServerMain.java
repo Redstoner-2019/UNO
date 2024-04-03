@@ -35,6 +35,7 @@ public class ServerMain extends Server {
                 handler.startPacketListener(new PacketListener() {
                     @Override
                     public void packetRecievedEvent(Object packet) {
+                        if(packet == null) return;
                         if(!((Packet)packet).getVersion().equals(Main.getVersion())){
                             System.out.println("Wrong Version " + ((Packet)packet).getVersion());
                             handler.disconnect();

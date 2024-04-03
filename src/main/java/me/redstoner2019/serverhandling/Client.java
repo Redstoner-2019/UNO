@@ -39,13 +39,14 @@ public class Client {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                    while (socket.isConnected()){
+                    while (!socket.isClosed()){
                         if(in == null) continue;
                         if(listener == null){
                             continue;
                         }
                         try {
-                            listener.packetRecievedEvent(in.readObject());
+                            Object o = in.readObject();
+                            listener.packetRecievedEvent(o);
                         } catch (ClassNotFoundException ignored){
                             System.err.println("Class not found");
                             ignored.printStackTrace();
@@ -61,6 +62,11 @@ public class Client {
                             break;
                         } catch (EOFException ignored){
                             System.err.println("EOFException");
+                            try {
+                                in.reset();
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }catch (Exception e) {
                             System.err.println("Lukas du hurensohn was hast du getan dass dies ausgegeben wird");
                             System.err.println("Localized message: " + e.getLocalizedMessage());
@@ -92,6 +98,7 @@ public class Client {
     public static String lastObjectSendName = "";
     public static long lastSent = 0;
     public static void sendObject(Object o){
+        if(socket.isClosed()) return;
         if(o.getClass().toString().equals(lastObjectSendName) && (System.currentTimeMillis()-lastSent) < 100){
             return;
         }
