@@ -319,6 +319,7 @@ public class GUI extends Client {
         panel.add(createLobby);
         panel.add(codeField);
         panel.add(serverMainDisconnectButton);
+        panel.add(lobbiesScrollPane);
 
         /**
          * game-lobby
@@ -519,6 +520,10 @@ public class GUI extends Client {
                         lastPingUpdate[0] = System.currentTimeMillis();
                     }
                     sendObject(new Ping(System.currentTimeMillis()));
+                }
+                if(packet instanceof LobbiesPacket p){
+                    lobbies.setListData(p.getLobbies());
+                    sendObject(new RequestLobbiesPacket());
                 }
             }
         });
