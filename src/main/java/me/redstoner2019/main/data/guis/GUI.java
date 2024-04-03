@@ -328,8 +328,8 @@ public class GUI extends Client {
         JScrollPane lobbyPlayersScrollPane = new JScrollPane(lobbyPlayers);
         JButton lobbyStart = new JButton("START GAME");
         JLabel lobbySettingsLabel = new JLabel("Settings");
-        JTextField lobbyCardsPerPlayer = new JTextField();
-        JTextField lobbyDecks = new JTextField();
+        JTextField lobbyCardsPerPlayer = new JTextField("7");
+        JTextField lobbyDecks = new JTextField("2");
         JCheckBox lobbyStacking = new JCheckBox("Stacking");
         JCheckBox lobbySevenSwap = new JCheckBox("Seven Swap");
         JCheckBox lobbyJumpIn = new JCheckBox("Jump-In");
@@ -488,30 +488,38 @@ public class GUI extends Client {
                     gui = "server-main";
                 }
                 if(packet instanceof LobbyInfoPacket p){
-                    gui = "game-lobby";
-                    lobbyCode.setText("Lobby: " + p.getCode());
-                    String[] players = new String[p.getPlayers().size()];
-                    int i = 0;
-                    for(String s : p.getPlayers().keySet()){
-                        players[i] = p.getPlayers().get(s);
-                        i++;
+                    try{
+                        gui = "game-lobby";
+                        lobbyCode.setText("Lobby: " + p.getCode());
+                        String[] players = new String[p.getPlayers().size()];
+                        int i = 0;
+                        for(String s : p.getPlayers().keySet()){
+                            players[i] = p.getPlayers().get(s);
+                            i++;
+                        }
+                        lobbyPlayers.setListData(players);
+                        lobbyStart.setEnabled(p.isOwner());
+
+                        lobbyCardsPerPlayer.setEditable(p.isOwner());
+                        lobbyDecks.setEditable(p.isOwner());
+                        lobbyStacking.setEnabled(p.isOwner());
+                        lobbySevenSwap.setEnabled(p.isOwner());
+                        lobbyJumpIn.setEnabled(p.isOwner());
+
+                        if(!p.isOwner()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
+                        if(!p.isOwner()) lobbyDecks.setText(p.getDecks() + "");
+                        if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
+                        if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
+                        if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
+
+                        if(p.isOwner()){
+                            sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
+                        } else sendObject(new UpdateLobbyPacket(0,0, lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
+                    }catch (Exception e){
+                        sendObject(new UpdateLobbyPacket(7,2, false, false, false));
                     }
-                    lobbyPlayers.setListData(players);
-                    lobbyStart.setEnabled(p.isOwner());
 
-                    lobbyCardsPerPlayer.setEditable(p.isOwner());
-                    lobbyDecks.setEditable(p.isOwner());
-                    lobbyStacking.setEnabled(p.isOwner());
-                    lobbySevenSwap.setEnabled(p.isOwner());
-                    lobbyJumpIn.setEnabled(p.isOwner());
 
-                    if(!p.isOwner()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
-                    if(!p.isOwner()) lobbyDecks.setText(p.getDecks() + "");
-                    if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
-                    if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
-                    if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
-
-                    sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
                 }
                 if(packet instanceof Ping p){
                     if(System.currentTimeMillis() - lastPingUpdate[0] > 1000) {
