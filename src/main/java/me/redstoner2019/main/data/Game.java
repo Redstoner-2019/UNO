@@ -2,11 +2,10 @@ package me.redstoner2019.main.data;
 
 import me.redstoner2019.main.data.packets.gamepackets.GameEndPacket;
 import me.redstoner2019.main.data.packets.gamepackets.GameStartPacket;
+import me.redstoner2019.main.data.packets.loginpackets.Ping;
+import me.redstoner2019.serverhandling.Packet;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 public class Game {
     private String gameCode;
@@ -18,6 +17,7 @@ public class Game {
     private boolean jumpIn = false;
     private Player owner = null;
     private boolean running = false;
+    public Queue<Packet> queue = new ArrayDeque<>();
 
     public boolean isRunning() {
         return running;
@@ -124,6 +124,15 @@ public class Game {
                     p.getHandler().sendObject(new GameStartPacket());
                     System.out.println("Send Game Start");
                 }
+                queue.offer(new Ping(-1));
+                queue.offer(new Ping(0));
+                queue.offer(new Ping(1));
+                while (!queue.isEmpty()){
+                    Ping p = (Ping) queue.poll();
+                    System.out.println(p.getTime());
+                }
+
+
                 /**
                  * Game running
                  */
