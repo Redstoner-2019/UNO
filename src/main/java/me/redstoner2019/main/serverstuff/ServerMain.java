@@ -92,13 +92,14 @@ public class ServerMain extends Server {
                                 game.setStacking(p.isStacking());
                                 game.setSevenSwap(p.isSevenSwap());
                                 game.setJumpIn(p.isJumpIn());
+                                System.out.println("Updated" + p);
+                            }else {
+                                System.out.println("Ping from non owner");
                             }
-                            System.out.println("Recieved");
                             handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
                         }
                         if(packet instanceof RequestLobbiesPacket){
-                            Game game = games.getOrDefault(player.getGameID(), null);
-                            if(game == null) return;
+                            System.out.println("Requested Games");
                             String[] lobbies = new String[games.keySet().size()];
                             Iterator<String> it = games.keySet().iterator();
                             int i = 0;
@@ -137,7 +138,7 @@ public class ServerMain extends Server {
                         String s = it.next();
                         Game game = games.get(s);
                         if(game.getPlayers().isEmpty()){
-                            games.remove(s);
+                            //games.remove(s);
                         }
                     }
                 }

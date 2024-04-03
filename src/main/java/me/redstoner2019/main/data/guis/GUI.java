@@ -24,10 +24,8 @@ import java.awt.event.KeyListener;
 import java.awt.font.TextAttribute;
 import java.io.IOException;
 import java.text.NumberFormat;
-import java.util.ArrayList;
-import java.util.Iterator;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 public class GUI extends Client {
     public static JFrame frame;
@@ -186,6 +184,7 @@ public class GUI extends Client {
                 connect(serversJList.getSelectedValue(),8008);
                 LoginPacket o = new LoginPacket(usernameField.getText(),passwordField.getText(),null);
                 sendObject(o);
+                sendObject(new RequestLobbiesPacket());
             }
         });
 
@@ -523,6 +522,7 @@ public class GUI extends Client {
                 }
                 if(packet instanceof LobbiesPacket p){
                     lobbies.setListData(p.getLobbies());
+                    System.out.println(Arrays.toString(p.getLobbies()));
                     sendObject(new RequestLobbiesPacket());
                 }
             }
