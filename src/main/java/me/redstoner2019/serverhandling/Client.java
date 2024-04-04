@@ -65,7 +65,7 @@ public class Client {
                             try {
                                 in.reset();
                             } catch (IOException e) {
-                                throw new RuntimeException(e);
+
                             }
                         }catch (Exception e) {
                             System.err.println("Lukas du hurensohn was hast du getan dass dies ausgegeben wird");

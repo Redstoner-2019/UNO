@@ -93,7 +93,7 @@ public class ClientHandler {
 
     public void sendObject(Object packet){
         if(socket.isClosed()){
-            System.out.println("Not Connected, can't send Object.");
+            disconnect();
             return;
         }
         try {

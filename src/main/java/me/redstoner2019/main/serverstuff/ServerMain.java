@@ -5,7 +5,7 @@ import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Game;
 import me.redstoner2019.main.data.Player;
 import me.redstoner2019.main.data.data.Userdata;
-import me.redstoner2019.main.data.packets.gamepackets.GameStartPacket;
+import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.DisconnectPacket;
 import me.redstoner2019.main.data.packets.loginpackets.LoginPacket;
@@ -115,6 +115,18 @@ public class ServerMain extends Server {
                             System.out.println("Starting gmae");
                             Game game = games.get(player.getGameID());
                             game.start();
+                        }
+                        if(packet instanceof DrawCardPacket p){
+                            games.get(player.getGameID()).queue.add(new GamePacket(player,p));
+                        }
+                        if(packet instanceof SkipTurnPacket p){
+                            games.get(player.getGameID()).queue.add(new GamePacket(player,p));
+                        }
+                        if(packet instanceof UNOPacket p){
+                            games.get(player.getGameID()).queue.add(new GamePacket(player,p));
+                        }
+                        if(packet instanceof PlaceCardPacket p){
+                            games.get(player.getGameID()).queue.add(new GamePacket(player,p));
                         }
                     }
                 });

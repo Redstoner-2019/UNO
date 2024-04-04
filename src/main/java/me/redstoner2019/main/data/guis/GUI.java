@@ -5,8 +5,7 @@ import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
 import me.redstoner2019.main.data.CardColor;
 import me.redstoner2019.main.data.CardType;
-import me.redstoner2019.main.data.packets.gamepackets.GameEndPacket;
-import me.redstoner2019.main.data.packets.gamepackets.GameStartPacket;
+import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.DisconnectPacket;
 import me.redstoner2019.main.data.packets.loginpackets.LoginPacket;
@@ -41,13 +40,16 @@ public class GUI extends Client {
     public static JFrame frame;
     private final int width = 1280;
     private final int height = 720;
-    public static String gui = "game-main";
+    public static String gui = "main-menu";
     public static JSONArray serverList = new JSONArray();
     public static boolean forceUpdate = false;
     public static BufferedImage cards = null;
     public static Card lastCardPut = new Card(SPECIAL, PLUS_4, RED);
     public static List<Card> deck = new ArrayList<>();
     public static int indexSelected = -1;
+    public static boolean canDraw = false;
+    public static boolean canSkip = false;
+    public static boolean canUNO = false;
     public GUI() throws Exception {
         initialize();
     }
@@ -78,12 +80,18 @@ public class GUI extends Client {
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         panel.setLayout(null);
 
-        BufferedImage image = null;
+        BufferedImage image = new BufferedImage(1920, 1080, 1);
+
         try {
-            image = ImageIO.read(GUI.class.getResource("/textures/background.png"));
+            System.out.println("Loading texture");
+            image = ImageIO.read(GUI.class.getResource("/background.png"));
+            System.out.println("Loaded texture");
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+
+        System.out.println("Textures loaded");
 
 
         serverList.put("localhost");
@@ -449,6 +457,25 @@ public class GUI extends Client {
         nextUpLabel.setForeground(Color.WHITE);
         nextUpLabel.setFont(new Font("Arial",Font.BOLD,30));
 
+        drawButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendObject(new DrawCardPacket());
+            }
+        });
+        skipButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendObject(new SkipTurnPacket());
+            }
+        });
+        unoButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendObject(new UNOPacket());
+            }
+        });
+
         draw.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -498,7 +525,7 @@ public class GUI extends Client {
             //deck.add(cards1.get(j));
         }
 
-        BufferedImage finalImage = Util.resize(image,frame.getWidth(),frame.getHeight());
+        BufferedImage finalImage = image;
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -576,6 +603,11 @@ public class GUI extends Client {
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
+
+                            drawButton.setEnabled(canDraw);
+                            skipButton.setEnabled(canSkip);
+                            unoButton.setEnabled(canUNO);
+
                             image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
 
                             Graphics2D g = image2.createGraphics();
@@ -584,7 +616,7 @@ public class GUI extends Client {
 
                             g.drawImage(finalImage,null,0,0);
 
-                            g.drawImage(card,null,(frame.getWidth() - card.getWidth())/2,(frame.getHeight() - card.getHeight())/2 - 200);
+                            g.drawImage(card,null,((frame.getWidth() - card.getWidth())/2) - 100,(frame.getHeight() - card.getHeight())/2 - 200);
 
                             if(deck.size() > 1){
                                 int spacing = (frame.getWidth() - 200) / deck.size();
@@ -710,6 +742,31 @@ public class GUI extends Client {
                 if(packet instanceof GameEndPacket p){
                     System.out.println("Game end");
                     gui = "game-lobby";
+                }
+                if(packet instanceof GameDataPacket p){
+                    canSkip = p.isCanSkip();
+                    canDraw = p.isCanDraw();
+                    canUNO = p.isCanUNO();
+
+                    lastCardPut = p.getLastPlaced();
+                    deck = p.getOwnDeck();
+
+                    int spot = 1;
+
+                    String nextPlayersString = "<html>Current turn: ";
+                    if(p.isTurn()){
+                        nextPlayersString+="YOU<br>";
+                    } else {
+                        nextPlayersString+=p.getNextPlayers().get(0)+"<br>";
+                    }
+
+                    for(String s : p.getNextPlayers()){
+                        nextPlayersString+=spot + ". " +s+"<br>";
+                        spot++;
+                    }
+                    nextPlayersString+="</html>";
+
+                    nextUpLabel.setText(nextPlayersString);
                 }
             }
         });

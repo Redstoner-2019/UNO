@@ -1,7 +1,6 @@
 package me.redstoner2019.main.data;
 
-import me.redstoner2019.main.data.packets.gamepackets.GameEndPacket;
-import me.redstoner2019.main.data.packets.gamepackets.GameStartPacket;
+import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.Ping;
 import me.redstoner2019.serverhandling.Packet;
 
@@ -17,7 +16,7 @@ public class Game {
     private boolean jumpIn = false;
     private Player owner = null;
     private boolean running = false;
-    public Queue<Packet> queue = new ArrayDeque<>();
+    public Queue<GamePacket> queue = new ArrayDeque<>();
 
     public boolean isRunning() {
         return running;
@@ -124,25 +123,110 @@ public class Game {
                     p.getHandler().sendObject(new GameStartPacket());
                     System.out.println("Send Game Start");
                 }
-                queue.offer(new Ping(-1));
-                queue.offer(new Ping(0));
-                queue.offer(new Ping(1));
-                while (!queue.isEmpty()){
-                    Ping p = (Ping) queue.poll();
-                    System.out.println(p.getTime());
-                }
-
-
                 /**
                  * Game running
+                 */
+                boolean gameRunning = true;
+                Card lastCardPlaced = null;
+                Queue<Card> DECK = new ArrayDeque<>();
+                for (int i = 0; i < decks; i++) {
+                    for(Card c : shuffle(Card.getDECK())){
+                        DECK.add(c);
+                    }
+                }
+                lastCardPlaced = DECK.poll();
+                DECK.add(lastCardPlaced);
+                for(Player p : players){
+                    for (int i = 0; i < cardsPerPlayer; i++) {
+                        p.addCard(DECK.poll());
+                    }
+                }
+                while (gameRunning){
+                    while (!queue.isEmpty()){
+                        GamePacket gamePacket = queue.poll();
+                        Player player = gamePacket.getPlayer();
+                        Packet packet = gamePacket.getPacket();
+                        /**
+                         * TODO: Manage Packets
+                         */
+                        if(packet instanceof DrawCardPacket p){
+                            
+                        }
+                        if(packet instanceof SkipTurnPacket p){
+                            nextPlayer();
+                        }
+                        if(packet instanceof UNOPacket p){
+
+                        }
+                        if(packet instanceof PlaceCardPacket p){
+                            nextPlayer();
+                        }
+                    }
+                    List<String> nextPlayers = new ArrayList<>();
+                    for(Player p : players){
+                        nextPlayers.add(p.getDisplayName());
+                    }
+                    int turn = 1;
+                    Iterator<Player> playerIterator =  players.iterator();
+                    while (playerIterator.hasNext()){
+                        Player p = playerIterator.next();
+                        if(!p.getHandler().isConnected()) {
+                            if(players.size() == 1){
+                                gameRunning = false;
+                                break;
+                            }
+                            players.remove(p);
+                            continue;
+                        }
+                        if(players.isEmpty()){
+                            gameRunning = false;
+                            break;
+                        }
+                        boolean isTurn = players.get(0).equals(p);
+                        boolean canSkip = isTurn;
+                        boolean canDraw = isTurn;
+                        boolean canUNO = false;
+
+                        p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, p.getCards()));
+                        if(p.getCards().isEmpty()){
+                            gameRunning = false;
+                            System.out.println(p.getDisplayName() + " has won");
+                        }
+                    }
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+                /**
+                 * Game ended
                  */
                 System.out.println("Game end");
                 for(Player p : players){
                     p.getHandler().sendObject(new GameEndPacket());
+                    p.getCards().clear();
                 }
                 running = false;
             }
         });
         t.start();
+    }
+    public static List<Card> shuffle(List<Card> list){
+        List<Card> listShuffled = new ArrayList<>();
+        Random random = new Random();
+        for(Card o : list){
+            if(listShuffled.isEmpty()){
+                listShuffled.add(o);
+            } else {
+                listShuffled.add(random.nextInt(listShuffled.size()),o);
+            }
+        }
+        return listShuffled;
+    }
+    private void nextPlayer(){
+        Player tempPlayer = players.get(0);
+        players.remove(0);
+        players.add(tempPlayer);
     }
 }
