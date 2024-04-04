@@ -177,5 +177,8 @@ public class Card extends Packet implements Comparable<Card>{
     public int hashCode() {
         return Objects.hash(color, num);
     }
+    public String getExact(){
+        return color + "-" + num + "-" + overrideColor;
+    }
 }
 

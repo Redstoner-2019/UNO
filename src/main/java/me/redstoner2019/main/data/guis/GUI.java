@@ -1,5 +1,6 @@
 package me.redstoner2019.main.data.guis;
 
+import me.redstoner2019.main.CustomButton;
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
 import me.redstoner2019.main.data.CardColor;
@@ -21,11 +22,9 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.NumberFormatter;
 import javax.swing.text.PlainDocument;
+import javax.swing.text.Position;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
+import java.awt.event.*;
 import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -33,6 +32,7 @@ import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
+import java.util.zip.ZipFile;
 
 import static me.redstoner2019.main.data.CardColor.*;
 import static me.redstoner2019.main.data.CardType.*;
@@ -45,8 +45,9 @@ public class GUI extends Client {
     public static JSONArray serverList = new JSONArray();
     public static boolean forceUpdate = false;
     public static BufferedImage cards = null;
-    public static Card lastCardPut = new Card(CardColor.BLUE, CardType.ZERO);
+    public static Card lastCardPut = new Card(SPECIAL, PLUS_4, RED);
     public static List<Card> deck = new ArrayList<>();
+    public static int indexSelected = -1;
     public GUI() throws Exception {
         initialize();
     }
@@ -79,7 +80,7 @@ public class GUI extends Client {
 
         BufferedImage image = null;
         try {
-            image = ImageIO.read(new File("C:\\Users\\andre\\Downloads/IMG-20200812-WA0006_v2_enhanced (1).jpg"));
+            image = ImageIO.read(GUI.class.getResource("/textures/background.png"));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -94,7 +95,7 @@ public class GUI extends Client {
         JLabel mainMenuTitleLabel = new JLabel("UNO");
         JLabel mainMenuSubTitleLabel = new JLabel("Version " + Main.getVersion());
         JButton mainMenuPlayButton = new JButton("PLAY");
-        JButton mainMenuSettingsButton = new JButton("SETTINGS");frame.setIconImage(new ImageIcon(image).getImage());
+        JButton mainMenuSettingsButton = new JButton("SETTINGS");
 
         mainMenuTitleLabel.setBounds((frame.getWidth()-400)/2,30,400,80);
         mainMenuSubTitleLabel.setBounds((frame.getWidth()-300)/2,100,300,50);
@@ -425,10 +426,62 @@ public class GUI extends Client {
          */
 
         JLabel draw = new JLabel();
+        JButton drawButton = new JButton("DRAW");
+        JButton skipButton = new JButton("SKIP");
+        JButton unoButton = new JButton("UNO");
+        JLabel nextUpLabel = new JLabel();
+
+        nextUpLabel.setText("<html>Next up: YOU<br/>Lukas<br/>Halil</html>");
+        nextUpLabel.setVerticalAlignment(JLabel.TOP);
 
         draw.setBounds(0,0,frame.getWidth(),frame.getHeight());
+        drawButton.setBounds(frame.getWidth()-400,50,300,40);
+        skipButton.setBounds(frame.getWidth()-400,100,300,40);
+        unoButton.setBounds(frame.getWidth()-400,150,300,40);
+        nextUpLabel.setBounds(50,50,300,600);
+
+        drawButton.setBackground(Color.DARK_GRAY);
+        drawButton.setForeground(Color.white);
+        skipButton.setBackground(Color.DARK_GRAY);
+        skipButton.setForeground(Color.white);
+        unoButton.setBackground(Color.DARK_GRAY);
+        unoButton.setForeground(Color.white);
+        nextUpLabel.setForeground(Color.WHITE);
+        nextUpLabel.setFont(new Font("Arial",Font.BOLD,30));
+
+        draw.addMouseListener(new MouseListener() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if(indexSelected < 0) return;
+                System.out.println(deck.get(indexSelected));
+            }
+
+            @Override
+            public void mousePressed(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseReleased(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseEntered(MouseEvent e) {
+
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+
+            }
+        });
 
         panel.add(draw);
+        draw.add(drawButton);
+        draw.add(skipButton);
+        draw.add(unoButton);
+        draw.add(nextUpLabel);
 
         draw.setIcon(new ImageIcon(Util.resize(image,frame.getWidth(),frame.getHeight())));
 
@@ -436,13 +489,24 @@ public class GUI extends Client {
         deck.add(new Card(CardColor.GREEN, CardType.ZERO));
         deck.add(new Card(CardColor.BLUE, CardType.ZERO));
         deck.add(new Card(CardColor.YELLOW, CardType.ZERO));
-        deck.add(new Card(CardColor.SPECIAL, CardType.DRAW));
+        deck.add(new Card(CardColor.SPECIAL, PLUS_4));
 
-        BufferedImage finalImage = image;
+        List<Card> cards1 = Card.getDECK();
+        Random random = new Random();
+        for (int i = 0; i < 10; i++) {
+            int j = random.nextInt(cards1.size());
+            //deck.add(cards1.get(j));
+        }
+
+        BufferedImage finalImage = Util.resize(image,frame.getWidth(),frame.getHeight());
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 long lastUpdate = System.currentTimeMillis();
+                int frames = 0;
+                long lastUpdateFPS = 0;
+                String baseTitle = frame.getTitle();
+                BufferedImage image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
                 while (true) {
                     switch (gui){
                         case "main-menu": {
@@ -512,23 +576,44 @@ public class GUI extends Client {
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
-                            BufferedImage image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
+                            image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
 
                             Graphics2D g = image2.createGraphics();
 
                             BufferedImage card = getCard(lastCardPut);
 
-                            g.drawImage(Util.resize(finalImage,image2.getWidth(),image2.getHeight()),null,0,0);
+                            g.drawImage(finalImage,null,0,0);
 
                             g.drawImage(card,null,(frame.getWidth() - card.getWidth())/2,(frame.getHeight() - card.getHeight())/2 - 200);
 
                             if(deck.size() > 1){
                                 int spacing = (frame.getWidth() - 200) / deck.size();
+
+                                Point p = draw.getMousePosition();
+
+                                boolean shift = false;
+
+                                if(p != null){
+                                    int posX = p.x -50;
+                                    indexSelected = posX / spacing;
+                                    if(p.y > frame.getHeight() - 300 && p.y < frame.getHeight() - 100){
+                                        shift = true;
+                                    } else {
+                                        indexSelected = -1;
+                                    }
+                                    boolean hovers = p.y > 50 && p.y < 90;
+                                } else {
+                                    indexSelected = -1;
+                                }
                                 int x = 0;
                                 int i = 0;
-                                while (x < (frame.getWidth() - 200)){
-                                    card = getCard(deck.get(i));
-                                    g.drawImage(card,null,x+100,(frame.getHeight() - 300));
+                                for(Card c : deck){
+                                    card = getCard(c);
+                                    int y = 0;
+                                    if(i == indexSelected && shift){
+                                        y = 100;
+                                    }
+                                    g.drawImage(card,null,x+50,(frame.getHeight() - 300 - y));
                                     i++;
                                     x+=spacing;
                                 }
@@ -543,6 +628,13 @@ public class GUI extends Client {
 
                         }
                     }
+                    if(System.currentTimeMillis() - lastUpdateFPS >= 1000){
+                        frame.setTitle(baseTitle + " " + frames + " FPS");
+                        lastUpdateFPS = System.currentTimeMillis();
+                        frames = 0;
+                        frame.setIconImage(image2);
+                    }
+                    frames++;
                 }
             }
         });
@@ -649,98 +741,30 @@ public class GUI extends Client {
             }
         });
     }
-
-    /*public static BufferedImage getCard(Card c){
-        int color = 0;
-        int number = 0;
-        HashMap<CardColor,Integer> colors = new HashMap<>();
-        colors.put(RED,0);
-        colors.put(GREEN,2);
-        colors.put(YELLOW,1);
-        colors.put(BLUE,3);
-        colors.put(SPECIAL,4);
-
-        HashMap<CardType,Integer> types = new HashMap<>();
-        int i = 0;
-        for(CardType t : CardType.values()){
-            types.put(t,i);
-            i++;
-        }
-
-        color = colors.get(c.getColor());
-        number = types.get(c.getNum());
-
-        if(c == null) return new BufferedImage(1,1,1);
-
-        if(c.getColor() == SPECIAL){
-            number = 13;
-            if(c.getNum() == CardType.CHANGE_COLOR){
-                color = 0;
-            }
-            if(c.getNum() == CardType.PLUS_4){
-                color = 4;
-            }
-        }
-
-        BufferedImage ca = getCard(color,number);
-        if(c.getOverrideColor() != null){
-            Graphics2D g = ca.createGraphics();
-
-            g.setRenderingHint(RenderingHints.KEY_ALPHA_INTERPOLATION, RenderingHints.VALUE_ALPHA_INTERPOLATION_QUALITY);
-            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g.setRenderingHint(RenderingHints.KEY_COLOR_RENDERING, RenderingHints.VALUE_COLOR_RENDER_QUALITY);
-            g.setRenderingHint(RenderingHints.KEY_DITHERING, RenderingHints.VALUE_DITHER_ENABLE);
-            g.setRenderingHint(RenderingHints.KEY_FRACTIONALMETRICS, RenderingHints.VALUE_FRACTIONALMETRICS_ON);
-            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-            g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
-            g.setRenderingHint(RenderingHints.KEY_STROKE_CONTROL, RenderingHints.VALUE_STROKE_PURE);
-
-            switch(c.getOverrideColor()){
-                case RED: {
-                    g.setColor(Color.RED);
-                    break;
-                }
-                case GREEN: {
-                    g.setColor(Color.GREEN);
-                    break;
-                }
-                case BLUE: {
-                    g.setColor(Color.BLUE);
-                    break;
-                }
-                case YELLOW: {
-                    g.setColor(Color.ORANGE);
-                    break;
-                }
-                default: {
-                    return new BufferedImage(1,1,1);
-                }
-            }
-            g.fillOval(90,15,20,20);
-            g.fillOval(13,150,20,20);
-            g.dispose();
-        }
-        return ca;
-    }*/
+    public static HashMap<String, BufferedImage> buffer = new HashMap<>();
 
     public static BufferedImage getCard(Card c){
-        BufferedImage b = cards.getSubimage(0,0,128,192);
-        return b;
-    }
-
-    /*public static BufferedImage getCard(int color, int number){
-        int x0 = 125;
-        int y0 = 25;
-        int cWidth = 125;
-        int cHeight = 187;
-        if(cards == null) return new BufferedImage(cWidth,cHeight,1);
-        BufferedImage subImage = new BufferedImage(cWidth,cHeight,1);
-        for (int x = 0; x < cWidth; x++) {
-            for (int y = 0; y < cHeight; y++) {
-                subImage.setRGB(x,y,cards.getRGB(x0 + (cWidth * number) + x,y0 + (cHeight * color) + y));
-            }
+        if(buffer.containsKey(c.getExact())){
+            return buffer.get(c.getExact());
         }
-        return Util.resize(subImage,128,192);
-        //return cards.getSubimage(x0 + (cWidth * number),y0 + (cHeight * color),cWidth,cHeight);
-    }*/
+        String filename = "";
+
+        if(c.getColor().equals(SPECIAL) && c.getOverrideColor() == null){
+            filename = "textures/SPECIAL/" + c.getNum() + ".png";
+        } else if (c.getColor().equals(SPECIAL) && c.getOverrideColor() != null){
+            filename = "textures/" + c.getOverrideColor() + "/" + c.getNum().name() + ".png";
+        } else if(!c.getColor().equals(SPECIAL)) {
+            filename = "textures/" + c.getColor().name() + "/" + c.getNum().name() + ".png";
+        } else {
+            System.out.println("Broken Card " + c);
+        }
+        try {
+            BufferedImage finalImage = ImageIO.read(new File(filename));
+            buffer.put(c.getExact(),finalImage);
+            return finalImage;
+        } catch (IOException e) {
+            System.out.println("Couldnt read " + filename);
+        }
+        return cards.getSubimage(0,0,128,192);
+    }
 }
