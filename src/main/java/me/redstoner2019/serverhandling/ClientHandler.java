@@ -1,11 +1,18 @@
 package me.redstoner2019.serverhandling;
 
+import me.redstoner2019.main.serverstuff.ServerMain;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ClientHandler {
+    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private Socket socket;
@@ -76,9 +83,19 @@ public class ClientHandler {
                     }
                     try {
                         o = getIn().readObject();
+                        ServerMain.packetsrecieved++;
                     } catch (ClassNotFoundException ignored) {
                         System.out.println("ClassNotFoundExeption");
+                    } catch (SocketException e) {
+                        System.out.println(e.getLocalizedMessage());
+                        if(e.getLocalizedMessage().equals("Connection reset")){
+                            Server.getClients().remove(this);
+                            Util.log("Client disconnected"); //8008135
+                            run = false;
+                            break;
+                        }
                     } catch (IOException e){
+                        e.printStackTrace();
                         /*Server.getClients().remove(this);
                         Util.log("Client disconnected"); //8008135
                         run = false;
@@ -92,6 +109,7 @@ public class ClientHandler {
     }
 
     public void sendObject(Object packet){
+        ServerMain.packetsSent++;
         if(socket.isClosed()){
             disconnect();
             return;

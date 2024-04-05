@@ -5,6 +5,7 @@ import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Game;
 import me.redstoner2019.main.data.Player;
 import me.redstoner2019.main.data.data.Userdata;
+import me.redstoner2019.main.data.guis.PerformanceProfiler;
 import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.DisconnectPacket;
@@ -12,7 +13,13 @@ import me.redstoner2019.main.data.packets.loginpackets.LoginPacket;
 import me.redstoner2019.main.data.packets.loginpackets.LoginSuccessPacket;
 import me.redstoner2019.main.data.packets.loginpackets.Ping;
 import me.redstoner2019.serverhandling.*;
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
 
+import javax.swing.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -21,6 +28,8 @@ import java.util.List;
 public class ServerMain extends Server {
     public static HashMap<String, Game> games = new HashMap<String, Game>();
     public static List<Player> players = new ArrayList<>();
+    public static int packetsSent = 0;
+    public static int packetsrecieved = 0;
     public static void main(String[] args) throws Exception {
         LoggerDump.initialize();
         setClientConnectEvent(new ClientConnectEvent() {
@@ -142,20 +151,29 @@ public class ServerMain extends Server {
         Thread serverThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
+                    PerformanceProfiler performanceProfiler = new PerformanceProfiler();
+                    performanceProfiler.start();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
                 while (true){
-                    Iterator<String> it = games.keySet().iterator();
-                    while (it.hasNext()){
-                        String s = it.next();
-                        Game game = games.get(s);
-                        if(game.getPlayers().isEmpty()){
-                            //games.remove(s);
-                        }
-                    }
+                    //Iterator<String> it = games.keySet().iterator();
+                    //while (it.hasNext()){
+                    //    String s = it.next();
+                    //    Game game = games.get(s);
+                    //    if(game.getPlayers().isEmpty()){
+                    //        //games.remove(s);
+                    //    }
+                    //}
                 }
 
             }
         });
-        //serverThread.start();
+        serverThread.start();
         start();
+    }
+    public static long bytesToMB(long memory){
+        return memory / 1024 / 1024;
     }
 }

@@ -1,5 +1,6 @@
 package me.redstoner2019.main.data.guis;
 
+import me.redstoner2019.main.BoundsCheck;
 import me.redstoner2019.main.CustomButton;
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
@@ -54,6 +55,8 @@ public class GUI extends Client {
         initialize();
     }
     private void initialize() throws Exception {
+        //gui = "game-main-select-color";
+
         String customTexture = "";
 
 
@@ -183,8 +186,8 @@ public class GUI extends Client {
         JList<String> serversJList = new JList<>();
         JScrollPane serverScrollPane = new JScrollPane(serversJList);
         JTextArea serverConnectionInfo = new JTextArea();
-        JTextField usernameField = new JTextField();
-        JPasswordField passwordField = new JPasswordField();
+        JTextField usernameField = new JTextField(Main.username);
+        JPasswordField passwordField = new JPasswordField(Main.password);
 
         serverSelectorLabel.setBounds(frame.getWidth()-500,50,500,40);
         serverGuiMenuButton.setBounds(frame.getWidth()-450,frame.getHeight()-130,190,40);
@@ -479,13 +482,43 @@ public class GUI extends Client {
         draw.addMouseListener(new MouseListener() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                if(indexSelected < 0) return;
-                System.out.println(deck.get(indexSelected));
-            }
 
+            }
+            CardColor colorChosen = null;
             @Override
             public void mousePressed(MouseEvent e) {
-
+                switch (gui){
+                    case "game-main" :{
+                        if(indexSelected < 0) return;
+                        Card c = deck.get(indexSelected);
+                        if(!c.getColor().equals(SPECIAL)) sendObject(new PlaceCardPacket(c)); else gui = "game-main-select-color";
+                        break;
+                    }
+                    case "game-main-select-color" :{
+                        if(BoundsCheck.within(e.getX(),e.getY(),200,350,128,192)){
+                            colorChosen = RED;
+                        }
+                        if(BoundsCheck.within(e.getX(),e.getY(),440,350,128,192)){
+                            colorChosen = GREEN;
+                        }
+                        if(BoundsCheck.within(e.getX(),e.getY(),680,350,128,192)){
+                            colorChosen = BLUE;
+                        }
+                        if(BoundsCheck.within(e.getX(),e.getY(),920,350,128,192)){
+                            colorChosen = YELLOW;
+                        }
+                        if(colorChosen != null){
+                            Card c = deck.get(indexSelected);
+                            c.setOverrideColor(colorChosen);
+                            sendObject(new PlaceCardPacket(c));
+                            gui = "game-main";
+                        }
+                        break;
+                    }
+                    case "game-main-game-end" :{
+                        break;
+                    }
+                }
             }
 
             @Override
@@ -582,7 +615,7 @@ public class GUI extends Client {
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
-                            if(codeField.getText().length() == 4){
+                            if(codeField.getText() != null && codeField.getText().length() == 4){
                                 joinLobby.setEnabled(true);
                                 createLobby.setEnabled(false);
                             } else {
@@ -608,6 +641,11 @@ public class GUI extends Client {
                             skipButton.setEnabled(canSkip);
                             unoButton.setEnabled(canUNO);
 
+                            drawButton.setVisible(true);
+                            skipButton.setVisible(true);
+                            unoButton.setVisible(true);
+                            nextUpLabel.setVisible(true);
+
                             image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
 
                             Graphics2D g = image2.createGraphics();
@@ -618,7 +656,7 @@ public class GUI extends Client {
 
                             g.drawImage(card,null,((frame.getWidth() - card.getWidth())/2) - 100,(frame.getHeight() - card.getHeight())/2 - 200);
 
-                            if(deck.size() > 1){
+                            if(!deck.isEmpty()){
                                 int spacing = (frame.getWidth() - 200) / deck.size();
 
                                 Point p = draw.getMousePosition();
@@ -656,6 +694,39 @@ public class GUI extends Client {
                             draw.setIcon(new ImageIcon(image2));
                             break;
                         }
+                        case "game-main-select-color": {
+                            List<Component> components = List.of(draw);
+                            for(Component c : panel.getComponents()){
+                                c.setVisible(components.contains(c));
+                            }
+
+                            image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
+
+                            Graphics2D g = image2.createGraphics();
+
+                            g.drawImage(finalImage,null,0,0);
+
+                            g.setFont(new Font("Arial", Font.BOLD,50));
+                            FontMetrics fm = g.getFontMetrics(g.getFont());
+                            g.drawString("Choose Color",(width-fm.stringWidth("Choose Color")) / 2,200);
+
+                            g.drawImage(getCard(new Card(RED,ZERO)),null,200,350);
+                            g.drawImage(getCard(new Card(GREEN,ZERO)),null,440,350);
+                            g.drawImage(getCard(new Card(BLUE,ZERO)),null,680,350);
+                            g.drawImage(getCard(new Card(YELLOW,ZERO)),null,920,350);
+
+                            g.dispose();
+
+                            drawButton.setVisible(false);
+                            skipButton.setVisible(false);
+                            unoButton.setVisible(false);
+                            nextUpLabel.setVisible(false);
+
+                            draw.setIcon(new ImageIcon(image2));
+                        }
+                        case "game-main-game-end": {
+
+                        }
                         default: {
 
                         }
@@ -677,7 +748,7 @@ public class GUI extends Client {
             @Override
             public void packetRecievedEvent(Object packet) {
                 if(!(packet instanceof Ping) && !(packet instanceof LobbyInfoPacket)){
-                    System.out.println(packet.getClass());
+                    //System.out.println(packet.getClass());
                 }
                 if(packet instanceof DisconnectPacket p){
                     scheduled_disconnect[0] = true;

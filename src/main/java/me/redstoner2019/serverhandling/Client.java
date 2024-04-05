@@ -50,9 +50,17 @@ public class Client {
                         } catch (ClassNotFoundException ignored){
                             System.err.println("Class not found");
                             ignored.printStackTrace();
+                        } catch (ClassCastException ignored){
+                            System.err.println("Couldnt cast class");
+                            ignored.printStackTrace();
                         } catch (StreamCorruptedException ignored){
                             System.err.println("Stream corrupted");
                             ignored.printStackTrace();
+                            try {
+                                in.readAllBytes();
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                             break;
                         } catch (SocketException ignored){
                             System.err.println("Socket not connected");

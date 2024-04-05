@@ -111,6 +111,11 @@ public class Card extends Packet implements Comparable<Card>{
         this.overrideColor = overrideColor;
     }
 
+    /**
+     * Check if card can be played on this card.
+     * @param card Card to be checked if it can be played on this card.
+     * @return true if the card can be played.
+     */
     public boolean canBePlayed(Card card){
         if(Main.TEST_MODE) return true;
         if(color == SPECIAL && card.getColor() == SPECIAL){

@@ -26,7 +26,7 @@ public class Server {
         try {
             Util.log("Starting Server on Port " + InetAddress.getLocalHost().getHostAddress() + ":" +  PORT);
         } catch (UnknownHostException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         ServerSocket serverSocket;
         try {
@@ -49,11 +49,13 @@ public class Server {
                             clients.add(handler);
                             if(clientConnectEvent != null) clientConnectEvent.connectEvent(handler);
                         } catch (Exception e) {
-                            throw new RuntimeException(e);
+                            e.printStackTrace();
                         }
                     }});t.start();
                 //Util.log("A client has connected! " + socket.getInetAddress());
-            }catch (Exception ignored){}
+            }catch (Exception ignored){
+                ignored.printStackTrace();
+            }
         }
     }
 

@@ -117,6 +117,7 @@ public class Game {
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
+                if(running) return;
                 System.out.println("Game Start");
                 running = true;
                 for(Player p : players){
@@ -134,8 +135,10 @@ public class Game {
                         DECK.add(c);
                     }
                 }
-                lastCardPlaced = DECK.poll();
-                DECK.add(lastCardPlaced);
+                while (lastCardPlaced == null || lastCardPlaced.getColor().equals(CardColor.SPECIAL)){
+                    lastCardPlaced = DECK.poll();
+                    DECK.add(lastCardPlaced);
+                }
                 for(Player p : players){
                     for (int i = 0; i < cardsPerPlayer; i++) {
                         p.addCard(DECK.poll());
@@ -146,36 +149,89 @@ public class Game {
                         GamePacket gamePacket = queue.poll();
                         Player player = gamePacket.getPlayer();
                         Packet packet = gamePacket.getPacket();
+                        boolean isTurn = players.get(0).equals(player);
                         /**
                          * TODO: Manage Packets
                          */
                         if(packet instanceof DrawCardPacket p){
-                            
+                            if(!isTurn) continue;
+                            if(!player.isCanDraw()) continue;
+                            if(p.getAmount() == 1){
+                                player.setCanSkip(true);
+                                player.setCanDraw(false);
+                            }
+                            for (int i = 0; i < p.getAmount(); i++) {
+                                Card card = DECK.poll();
+                                player.addCard(card);
+                                System.out.println(player.getDisplayName() + " has drawn " + card);
+                                if(DECK.size() <= 10){
+                                    DECK.addAll(shuffle(Card.getDECK()));
+                                }
+                            }
                         }
                         if(packet instanceof SkipTurnPacket p){
+                            if(!isTurn) continue;
+                            if(!player.isCanSkip()) continue;
+                            System.out.println(player.getDisplayName() + " Skipped their turn");
+                            player.setCanSkip(false);
+                            player.setCanDraw(false);
                             nextPlayer();
                         }
                         if(packet instanceof UNOPacket p){
-
+                            if(!isTurn) continue;
+                            System.out.println(player.getDisplayName() + ": UNO!");
+                            player.setUNO(true);
+                            player.setCanUNO(false);
                         }
                         if(packet instanceof PlaceCardPacket p){
-                            nextPlayer();
+                            if(!isTurn) continue;
+                            System.out.println(player.getDisplayName() + " placed card " + p.getCard());
+                            if(lastCardPlaced.canBePlayed(p.getCard())){
+                                DECK.add(lastCardPlaced);
+                                lastCardPlaced = p.getCard();
+                                player.removeCard(p.getCard());
+                                if(lastCardPlaced.getOverrideColor() == null) lastCardPlaced.setOverrideColor(CardColor.RED);
+                                if(lastCardPlaced.getNum().equals(CardType.PLUS_4)){
+                                    if(!(players.size() > 1)) {
+                                        System.out.println("Couldnt draw");
+                                        continue;
+                                    }
+                                    for (int i = 0; i < 4; i++) {
+                                        Card card = DECK.poll();
+                                        players.get(1).addCard(card);
+                                        System.out.println(players.get(1).getDisplayName() + " has drawn " + card);
+                                    }
+                                }
+                                if(lastCardPlaced.getNum().equals(CardType.DRAW)){
+                                    if(!(players.size() > 1)) {
+                                        System.out.println("Couldnt draw");
+                                        continue;
+                                    }
+                                    for (int i = 0; i < 2; i++) {
+                                        Card card = DECK.poll();
+                                        players.get(1).addCard(card);
+                                        System.out.println(players.get(1).getDisplayName() + " has drawn " + card);
+                                    }
+                                }
+                                if(lastCardPlaced.getNum().equals(CardType.SKIP)){
+                                    nextPlayer();
+                                }
+                                nextPlayer();
+                            }
                         }
                     }
                     List<String> nextPlayers = new ArrayList<>();
                     for(Player p : players){
                         nextPlayers.add(p.getDisplayName());
                     }
-                    int turn = 1;
-                    Iterator<Player> playerIterator =  players.iterator();
-                    while (playerIterator.hasNext()){
-                        Player p = playerIterator.next();
+                    List<Player> toRemove = new ArrayList<>();
+                    for (Player p : players){
                         if(!p.getHandler().isConnected()) {
                             if(players.size() == 1){
                                 gameRunning = false;
                                 break;
                             }
-                            players.remove(p);
+                            toRemove.add(p);
                             continue;
                         }
                         if(players.isEmpty()){
@@ -183,18 +239,19 @@ public class Game {
                             break;
                         }
                         boolean isTurn = players.get(0).equals(p);
-                        boolean canSkip = isTurn;
-                        boolean canDraw = isTurn;
-                        boolean canUNO = false;
+                        boolean canSkip = isTurn && p.isCanSkip();
+                        boolean canDraw = isTurn && p.isCanDraw();
+                        boolean canUNO = isTurn && p.isCanUNO();
 
-                        p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, p.getCards()));
+                        p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, List.copyOf(p.getCards())));
                         if(p.getCards().isEmpty()){
                             gameRunning = false;
                             System.out.println(p.getDisplayName() + " has won");
                         }
                     }
+                    players.removeAll(toRemove);
                     try {
-                        Thread.sleep(100);
+                        Thread.sleep(10);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }
@@ -226,7 +283,14 @@ public class Game {
     }
     private void nextPlayer(){
         Player tempPlayer = players.get(0);
+        tempPlayer.setCanDraw(false);
+        tempPlayer.setCanSkip(false);
+        tempPlayer.setCanUNO(false);
         players.remove(0);
         players.add(tempPlayer);
+
+        players.get(0).setCanUNO(true);
+        players.get(0).setCanSkip(false);
+        players.get(0).setCanDraw(true);
     }
 }

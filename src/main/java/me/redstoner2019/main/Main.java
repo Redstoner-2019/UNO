@@ -18,11 +18,17 @@ import static me.redstoner2019.main.data.CardColor.*;
 public class Main {
     public static final boolean TEST_MODE = false;
     private static final String VERSION = "v1.4.0-alpha.1";
+    public static String username;
+    public static String password;
     public static String getVersion(){
         return VERSION;
     }
     static BufferedImage cards;
     public static void main(String[] args) throws Exception {
+        if(args.length == 2){
+            username = args[0];
+            password = args[1];
+        }
         LoggerDump.initialize();
         //generateTextures();
 
