@@ -14,11 +14,14 @@ import me.redstoner2019.main.data.packets.loginpackets.LoginSuccessPacket;
 import me.redstoner2019.main.data.packets.loginpackets.Ping;
 import me.redstoner2019.serverhandling.*;
 import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.text.DefaultStyledDocument;
 import javax.swing.text.NumberFormatter;
 import javax.swing.text.PlainDocument;
@@ -27,6 +30,8 @@ import java.awt.*;
 import java.awt.event.*;
 import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
+import java.awt.image.ConvolveOp;
+import java.awt.image.Kernel;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -42,7 +47,7 @@ public class GUI extends Client {
     private final int width = 1280;
     private final int height = 720;
     public static String gui = "main-menu";
-    public static JSONArray serverList = new JSONArray();
+    public static JSONObject clientData = new JSONObject();
     public static boolean forceUpdate = false;
     public static BufferedImage cards = null;
     public static Card lastCardPut = new Card(SPECIAL, PLUS_4, RED);
@@ -51,11 +56,13 @@ public class GUI extends Client {
     public static boolean canDraw = false;
     public static boolean canSkip = false;
     public static boolean canUNO = false;
+    public static String winner = "";
+    public static List<String> leaderboard = new ArrayList<>();
     public GUI() throws Exception {
         initialize();
     }
     private void initialize() throws Exception {
-        //gui = "game-main-select-color";
+        //gui = "game-main-game-end";
 
         String customTexture = "";
 
@@ -96,6 +103,23 @@ public class GUI extends Client {
 
         System.out.println("Textures loaded");
 
+        if(!new File("client.properties").exists()) {
+            new File("client.properties").createNewFile();
+            JSONObject freshData = new JSONObject();
+            freshData.put("username","");
+            freshData.put("password","");
+            JSONArray servers = new JSONArray();
+            servers.put("localhost");
+            freshData.put("servers",servers);
+            Util.writeStringToFile(Util.prettyJSON(freshData.toString()),new File("client.properties"));
+        }
+
+        clientData = new JSONObject(Util.readFile(new File("client.properties")));
+
+        Main.password = clientData.getString("password");
+        Main.username = clientData.getString("username");
+
+        JSONArray serverList = clientData.getJSONArray("servers");
 
         serverList.put("localhost");
         serverList.put("cruw-community.de");
@@ -230,6 +254,14 @@ public class GUI extends Client {
                 LoginPacket o = new LoginPacket(usernameField.getText(),passwordField.getText(),null);
                 sendObject(o);
                 sendObject(new RequestLobbiesPacket());
+                clientData.put("username",usernameField.getText());
+                clientData.put("password",passwordField.getText());
+                clientData.put("servers",serverList);
+                try {
+                    Util.writeStringToFile(Util.prettyJSON(clientData.toString()),new File("client.properties"));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -329,6 +361,13 @@ public class GUI extends Client {
         codeField.setDocument(doc);
         codeField.setHorizontalAlignment(JTextField.CENTER);
 
+        lobbies.addListSelectionListener(new ListSelectionListener() {
+            @Override
+            public void valueChanged(ListSelectionEvent e) {
+                codeField.setText(lobbies.getSelectedValue());
+            }
+        });
+
         joinLobby.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -336,7 +375,6 @@ public class GUI extends Client {
                     sendObject(new JoinLobbyPacket(codeField.getText()));
                     //sendObject(new Ping(System.currentTimeMillis()));
                 }
-                gui = "game-lobby";
             }
         });
 
@@ -372,6 +410,7 @@ public class GUI extends Client {
         JList<String> lobbyPlayers = new JList<>();
         JScrollPane lobbyPlayersScrollPane = new JScrollPane(lobbyPlayers);
         JButton lobbyStart = new JButton("START GAME");
+        JButton leaveLobby = new JButton("Leave Lobby");
         JLabel lobbySettingsLabel = new JLabel("Settings");
         JTextField lobbyCardsPerPlayer = new JTextField("7");
         JTextField lobbyDecks = new JTextField("2");
@@ -388,6 +427,7 @@ public class GUI extends Client {
         lobbyCode.setBounds(0,10,frame.getWidth(),40);
         lobbyPlayersScrollPane.setBounds(50,50,(frame.getWidth()/2)-50,frame.getHeight()-140);
         lobbyStart.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-140,400,50);
+        leaveLobby.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-220,400,50);
         lobbySettingsLabel.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-620,400,50);
         lobbyCardsPerPlayer.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-540,400,50);
         lobbyDecks.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-480,400,50);
@@ -421,6 +461,14 @@ public class GUI extends Client {
                 sendObject(new GameStartPacket());
             }
         });
+        leaveLobby.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendObject(new LeaveLobbyPacket());
+                gui = "server-main";
+            }
+        });
+
 
         panel.add(lobbyCode);
         panel.add(lobbyPlayersScrollPane);
@@ -431,6 +479,7 @@ public class GUI extends Client {
         panel.add(lobbyStacking);
         panel.add(lobbySevenSwap);
         panel.add(lobbyJumpIn);
+        panel.add(leaveLobby);
 
         /**
          * game-main
@@ -490,21 +539,24 @@ public class GUI extends Client {
                 switch (gui){
                     case "game-main" :{
                         if(indexSelected < 0) return;
-                        Card c = deck.get(indexSelected);
-                        if(!c.getColor().equals(SPECIAL)) sendObject(new PlaceCardPacket(c)); else gui = "game-main-select-color";
+                        if(deck.size()>0) {
+                            Card c = deck.get(indexSelected);
+                            if (!c.getColor().equals(SPECIAL)) sendObject(new PlaceCardPacket(c));
+                            else gui = "game-main-select-color";
+                        }
                         break;
                     }
                     case "game-main-select-color" :{
-                        if(BoundsCheck.within(e.getX(),e.getY(),200,350,128,192)){
+                        if(BoundsCheck.within(e.getX(),e.getY(),200,200,128,192)){
                             colorChosen = RED;
                         }
-                        if(BoundsCheck.within(e.getX(),e.getY(),440,350,128,192)){
+                        if(BoundsCheck.within(e.getX(),e.getY(),440,200,128,192)){
                             colorChosen = GREEN;
                         }
-                        if(BoundsCheck.within(e.getX(),e.getY(),680,350,128,192)){
+                        if(BoundsCheck.within(e.getX(),e.getY(),680,200,128,192)){
                             colorChosen = BLUE;
                         }
-                        if(BoundsCheck.within(e.getX(),e.getY(),920,350,128,192)){
+                        if(BoundsCheck.within(e.getX(),e.getY(),920,200,128,192)){
                             colorChosen = YELLOW;
                         }
                         if(colorChosen != null){
@@ -551,12 +603,21 @@ public class GUI extends Client {
         deck.add(new Card(CardColor.YELLOW, CardType.ZERO));
         deck.add(new Card(CardColor.SPECIAL, PLUS_4));
 
-        List<Card> cards1 = Card.getDECK();
-        Random random = new Random();
-        for (int i = 0; i < 10; i++) {
-            int j = random.nextInt(cards1.size());
-            //deck.add(cards1.get(j));
-        }
+        /**
+         * end-results
+         */
+
+        JButton backButton = new JButton("BACK");
+        backButton.setBounds((width-300)/2,500,300,40);
+        backButton.setForeground(Color.WHITE);
+        backButton.setBackground(Color.DARK_GRAY);
+        backButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gui = "game-lobby";
+            }
+        });
+        draw.add(backButton);
 
         BufferedImage finalImage = image;
         Thread t = new Thread(new Runnable() {
@@ -625,7 +686,7 @@ public class GUI extends Client {
                             break;
                         }
                         case "game-lobby": {
-                            List<Component> components = List.of(lobbyDecks,lobbyStacking,lobbySevenSwap,lobbyJumpIn,lobbyCardsPerPlayer,lobbySettingsLabel,lobbyCode,lobbyPlayersScrollPane,lobbyStart);
+                            List<Component> components = List.of(lobbyDecks,lobbyStacking,lobbySevenSwap,lobbyJumpIn,lobbyCardsPerPlayer,lobbySettingsLabel,lobbyCode,lobbyPlayersScrollPane,lobbyStart,leaveLobby);
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
@@ -645,6 +706,7 @@ public class GUI extends Client {
                             skipButton.setVisible(true);
                             unoButton.setVisible(true);
                             nextUpLabel.setVisible(true);
+                            backButton.setVisible(false);
 
                             image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
 
@@ -700,20 +762,147 @@ public class GUI extends Client {
                                 c.setVisible(components.contains(c));
                             }
 
+                            backButton.setVisible(false);
+
                             image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
 
                             Graphics2D g = image2.createGraphics();
 
                             g.drawImage(finalImage,null,0,0);
 
+                            if(!deck.isEmpty()){
+
+                                BufferedImage card;
+                                int spacing = (frame.getWidth() - 200) / deck.size();
+
+                                boolean shift = false;
+
+                                int x = 0;
+                                int i = 0;
+                                for(Card c : deck){
+                                    card = getCard(c);
+                                    int y = 0;
+                                    g.drawImage(card,null,x+50,(frame.getHeight() - 300 - y));
+                                    i++;
+                                    x+=spacing;
+                                }
+                            }
+
+                            g.dispose();
+
+                            float[] gaussianBlurKernel = {
+                                    0.006f,  0.012f,  0.012f,  0.012f,  0.006f,
+                                    0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
+                                    0.012f,  0.025f,  0.039f,  0.025f,  0.012f,
+                                    0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
+                                    0.006f,  0.012f,  0.012f,  0.012f,  0.006f
+                            };
+
+                            Kernel kernel = new Kernel(5, 5, gaussianBlurKernel);
+                            ConvolveOp convolutionOp = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+
+                            image2 = convolutionOp.filter(image2, null);
+
+                            g = image2.createGraphics();
+
                             g.setFont(new Font("Arial", Font.BOLD,50));
                             FontMetrics fm = g.getFontMetrics(g.getFont());
-                            g.drawString("Choose Color",(width-fm.stringWidth("Choose Color")) / 2,200);
+                            g.drawString("Choose Color",(width-fm.stringWidth("Choose Color")) / 2,200-150);
 
-                            g.drawImage(getCard(new Card(RED,ZERO)),null,200,350);
-                            g.drawImage(getCard(new Card(GREEN,ZERO)),null,440,350);
-                            g.drawImage(getCard(new Card(BLUE,ZERO)),null,680,350);
-                            g.drawImage(getCard(new Card(YELLOW,ZERO)),null,920,350);
+                            Point p = draw.getMousePosition();
+
+                            int selected = 0;
+
+                            if(p != null && BoundsCheck.within(p.getX(),p.getY(),200,200,128,192)){
+                                selected = 1;
+                            }
+                            if(p != null && BoundsCheck.within(p.getX(),p.getY(),440,200,128,192)){
+                                selected = 2;
+                            }
+                            if(p != null && BoundsCheck.within(p.getX(),p.getY(),680,200,128,192)){
+                                selected = 3;
+                            }
+                            if(p != null && BoundsCheck.within(p.getX(),p.getY(),920,200,128,192)){
+                                selected = 4;
+                            }
+
+                            if(selected == 1) g.drawImage(Util.resize(getCard(new Card(RED,ZERO)),148,212),null,190,340-150); else g.drawImage(getCard(new Card(RED,ZERO)),null,200,350-150);
+                            if(selected == 2) g.drawImage(Util.resize(getCard(new Card(GREEN,ZERO)),148,212),null,430,340-150); else g.drawImage(getCard(new Card(GREEN,ZERO)),null,440,350-150);
+                            if(selected == 3) g.drawImage(Util.resize(getCard(new Card(BLUE,ZERO)),148,212),null,670,340-150); else g.drawImage(getCard(new Card(BLUE,ZERO)),null,680,350-150);
+                            if(selected == 4) g.drawImage(Util.resize(getCard(new Card(YELLOW,ZERO)),148,212),null,910,340-150); else g.drawImage(getCard(new Card(YELLOW,ZERO)),null,920,350-150);
+
+                            g.dispose();
+
+                            drawButton.setVisible(false);
+                            skipButton.setVisible(false);
+                            unoButton.setVisible(false);
+                            nextUpLabel.setVisible(false);
+                            backButton.setVisible(false);
+
+                            draw.setIcon(new ImageIcon(image2));
+                            break;
+                        }
+                        case "game-main-game-end": {
+                            List<Component> components = List.of(draw);
+                            for(Component c : panel.getComponents()){
+                                c.setVisible(components.contains(c));
+                            }
+
+                            backButton.setVisible(true);
+                            drawButton.setVisible(false);
+                            skipButton.setVisible(false);
+                            unoButton.setVisible(false);
+                            nextUpLabel.setVisible(false);
+
+                            image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
+
+                            Graphics2D g = image2.createGraphics();
+
+                            g.drawImage(finalImage,null,0,0);
+
+                            g.dispose();
+
+                            float[] gaussianBlurKernel = {
+                                    0.006f,  0.012f,  0.012f,  0.012f,  0.006f,
+                                    0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
+                                    0.012f,  0.025f,  0.039f,  0.025f,  0.012f,
+                                    0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
+                                    0.006f,  0.012f,  0.012f,  0.012f,  0.006f
+                            };
+
+                            Kernel kernel = new Kernel(5, 5, gaussianBlurKernel);
+                            ConvolveOp convolutionOp = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+
+                            image2 = convolutionOp.filter(image2, null);
+
+                            g = image2.createGraphics();
+
+                            g.setFont(new Font("Arial", Font.BOLD,80));
+                            FontMetrics fm = g.getFontMetrics(g.getFont());
+                            g.drawString("Game Ended",(width-fm.stringWidth("Game Ended")) / 2,100);
+
+                            int y0 = 90;
+
+                            g.setFont(new Font("Arial", Font.BOLD,60));
+                            fm = g.getFontMetrics(g.getFont());
+
+                            g.drawString("Winner: " + winner,(width-fm.stringWidth("Winner: " + winner)) / 2,100 + y0);
+
+                            y0+=30;
+
+                            if(!leaderboard.isEmpty()) g.setFont(new Font("Arial", Font.PLAIN,Math.min(270/leaderboard.size(),40)));
+                            fm = g.getFontMetrics(g.getFont());
+
+                            for(String s : leaderboard) {
+                                y0+=g.getFont().getSize()+5;
+                                g.drawString(s, (width-fm.stringWidth(s))/2, 100 + y0);
+                            }
+
+                            g.setFont(new Font("Arial", Font.BOLD,30));
+                            fm = g.getFontMetrics(g.getFont());
+
+                            //g.drawString("Press SPACE to continue",(width-fm.stringWidth("Press SPACE to continue")) / 2,600);
+
 
                             g.dispose();
 
@@ -723,9 +912,7 @@ public class GUI extends Client {
                             nextUpLabel.setVisible(false);
 
                             draw.setIcon(new ImageIcon(image2));
-                        }
-                        case "game-main-game-end": {
-
+                            break;
                         }
                         default: {
 
@@ -777,11 +964,15 @@ public class GUI extends Client {
                         lobbySevenSwap.setEnabled(p.isOwner());
                         lobbyJumpIn.setEnabled(p.isOwner());
 
+                        lobbyStacking.setEnabled(false);
+                        lobbySevenSwap.setEnabled(false);
+                        lobbyJumpIn.setEnabled(false);
+
                         if(!p.isOwner()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
                         if(!p.isOwner()) lobbyDecks.setText(p.getDecks() + "");
-                        if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
-                        if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
-                        if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
+                        //if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
+                        //if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
+                        //if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
 
                         Thread.sleep(100);
 
@@ -800,11 +991,11 @@ public class GUI extends Client {
                         lastPingUpdate[0] = System.currentTimeMillis();
                     }
                     sendObject(new Ping(System.currentTimeMillis()));
+
                 }
                 if(packet instanceof LobbiesPacket p){
                     lobbies.setListData(p.getLobbies());
                     System.out.println(Arrays.toString(p.getLobbies()));
-                    sendObject(new RequestLobbiesPacket());
                 }
                 if(packet instanceof GameStartPacket p){
                     System.out.println("Game start");
@@ -812,7 +1003,9 @@ public class GUI extends Client {
                 }
                 if(packet instanceof GameEndPacket p){
                     System.out.println("Game end");
-                    gui = "game-lobby";
+                    winner = p.getWinner();
+                    leaderboard = p.getPlacement();
+                    gui = "game-main-game-end";
                 }
                 if(packet instanceof GameDataPacket p){
                     canSkip = p.isCanSkip();
@@ -894,5 +1087,21 @@ public class GUI extends Client {
             System.out.println("Couldnt read " + filename);
         }
         return cards.getSubimage(0,0,128,192);
+    }
+    public static BufferedImage toGrayscale(BufferedImage image, float grayscaleFactor) {
+        if (grayscaleFactor < 0.0f || grayscaleFactor > 1.0f) {
+            throw new IllegalArgumentException("Grayscale factor must be between 0.0 and 1.0");
+        }
+
+        BufferedImage grayscaleImage = new BufferedImage(image.getWidth(), image.getHeight(), BufferedImage.TYPE_BYTE_GRAY);
+
+        // Iterate over each pixel in the original image, converting it to grayscale and setting the corresponding pixel in the grayscale image
+        for (int i = 0; i < image.getHeight(); i++) {
+            for (int j = 0; j < image.getWidth(); j++) {
+                Color color = new Color(image.getRGB(j, i));
+                grayscaleImage.setRGB(j, i, new Color(color.getRed(), color.getGreen(), color.getBlue(), 200).getRGB());
+            }
+        }
+        return grayscaleImage;
     }
 }

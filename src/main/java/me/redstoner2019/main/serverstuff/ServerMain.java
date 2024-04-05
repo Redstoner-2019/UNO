@@ -31,16 +31,13 @@ public class ServerMain extends Server {
     public static int packetsSent = 0;
     public static int packetsrecieved = 0;
     public static void main(String[] args) throws Exception {
-        LoggerDump.initialize();
+        boolean nogui = args.length > 0 && args[0].equals("nogui");
+        if(!nogui) LoggerDump.initialize();
         setClientConnectEvent(new ClientConnectEvent() {
             @Override
             public void connectEvent(ClientHandler handler) throws Exception {
                 System.out.println("Client has connected " + handler.getSocket().getInetAddress());
                 Player player = new Player();
-                /*String username = null;
-                String displayName = "";
-                boolean isLoggedIn = false;
-                String lobbyCreated = "";*/
                 handler.startPacketListener(new PacketListener() {
                     @Override
                     public void packetRecievedEvent(Object packet) {
@@ -82,8 +79,16 @@ public class ServerMain extends Server {
                             player.setGameID(game.getGameCode());
 
                             games.put(game.getGameCode(),game);
-                            //handler.sendObject(new LoginSuccessPacket());
                             handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
+                            String[] lobbies = new String[games.keySet().size()];
+                            Iterator<String> it = games.keySet().iterator();
+                            int i = 0;
+                            while (it.hasNext()){
+                                String s = it.next();
+                                lobbies[i] = s;
+                                i++;
+                            }
+                            broadcastMessage(new LobbiesPacket(lobbies));
                         }
                         if(packet instanceof JoinLobbyPacket p){
                             Game game = games.getOrDefault(p.getID(),null);
@@ -96,7 +101,7 @@ public class ServerMain extends Server {
                         }
                         if(packet instanceof UpdateLobbyPacket p){
                             Game game = games.getOrDefault(player.getGameID(),null);
-                            if(game.getOwner().equals(player)){
+                            if(game != null && game.getOwner().equals(player)){
                                 game.setCardsPerPlayer(p.getCardsPerPlayer());
                                 game.setDecks(p.getDecks());
                                 game.setStacking(p.isStacking());
@@ -104,7 +109,7 @@ public class ServerMain extends Server {
                                 game.setJumpIn(p.isJumpIn());
                             }else {
                             }
-                            if(!game.isRunning()) handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
+                            if(game != null && !game.isRunning()) handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
                         }
                         if(packet instanceof RequestLobbiesPacket){
                             String[] lobbies = new String[games.keySet().size()];
@@ -127,6 +132,11 @@ public class ServerMain extends Server {
                         }
                         if(packet instanceof DrawCardPacket p){
                             games.get(player.getGameID()).queue.add(new GamePacket(player,p));
+                        }
+                        if(packet instanceof LeaveLobbyPacket p){
+                            Game game = games.get(player.getGameID());
+                            game.getPlayers().remove(player);
+                            player.setGameID("");
                         }
                         if(packet instanceof SkipTurnPacket p){
                             games.get(player.getGameID()).queue.add(new GamePacket(player,p));

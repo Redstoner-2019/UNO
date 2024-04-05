@@ -57,15 +57,14 @@ public class Client {
                             System.err.println("Stream corrupted");
                             ignored.printStackTrace();
                             try {
-                                in.readAllBytes();
+                                in.reset();
                             } catch (IOException e) {
-                                throw new RuntimeException(e);
+                                if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent();
                             }
                             break;
                         } catch (SocketException ignored){
                             System.err.println("Socket not connected");
                             System.err.println(ignored.getLocalizedMessage());
-                            ignored.printStackTrace();
                             connectionLostEvent.onConnectionLostEvent();
                             break;
                         } catch (EOFException ignored){

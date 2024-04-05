@@ -5,8 +5,17 @@ import me.redstoner2019.serverhandling.ClientHandler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Player {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Player player = (Player) o;
+        return Objects.equals(username, player.username);
+    }
+
     private List<Card> cards = new ArrayList<>();
     private String username = "";
     private boolean loggedIn = false;

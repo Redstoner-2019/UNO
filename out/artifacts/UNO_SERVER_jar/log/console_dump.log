@@ -1,0 +1,6 @@
+Exception in thread "Thread-2" 5 Apr 2024 20:16:26 GMT [ERROR] java.lang.IllegalStateException: Agent not initialized
+5 Apr 2024 20:16:26 GMT [ERROR] 	at me.redstoner2019.main.ObjectSizeAgent.getObjectSize(InstrumentationAgent.java:12)
+5 Apr 2024 20:16:26 GMT [ERROR] 	at me.redstoner2019.serverhandling.ClientHandler.sendObject(ClientHandler.java:116)
+5 Apr 2024 20:16:26 GMT [ERROR] 	at me.redstoner2019.main.serverstuff.ServerMain$1$1.packetRecievedEvent(ServerMain.java:62)
+5 Apr 2024 20:16:26 GMT [ERROR] 	at me.redstoner2019.serverhandling.ClientHandler$1.run(ClientHandler.java:107)
+5 Apr 2024 20:16:26 GMT [ERROR] 	at java.base/java.lang.Thread.run(Thread.java:833)

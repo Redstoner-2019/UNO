@@ -2,23 +2,23 @@ package me.redstoner2019.serverhandling;
 
 import me.redstoner2019.main.serverstuff.ServerMain;
 
+import java.io.EOFException;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
 public class ClientHandler {
-    private ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private Socket socket;
     private String username;
     private boolean connected = true;
     public String currentlySelectedChat = null;
+    private Queue<Packet> toSend = new ArrayDeque<>();
 
     public ClientHandler(ObjectInputStream in, ObjectOutputStream out, Socket socket, String username) {
         this.in = in;
@@ -79,19 +79,28 @@ public class ClientHandler {
                     if(socket.isClosed()){
                         Server.getClients().remove(this);
                         Util.log("Client disconnected"); //8008135
+                        connected = false;
                         run = false;
+                        break;
                     }
                     try {
                         o = getIn().readObject();
                         ServerMain.packetsrecieved++;
                     } catch (ClassNotFoundException ignored) {
                         System.out.println("ClassNotFoundExeption");
+                    } catch (EOFException ignored) {
+                        System.out.println("EOFException");
+                        try {
+                            getIn().reset();
+                        } catch (IOException e) {
+                            System.out.println("Reset unsuccesful");
+                        }
                     } catch (SocketException e) {
                         System.out.println(e.getLocalizedMessage());
                         if(e.getLocalizedMessage().equals("Connection reset")){
                             Server.getClients().remove(this);
                             Util.log("Client disconnected"); //8008135
-                            run = false;
+                            connected = false;
                             break;
                         }
                     } catch (IOException e){
@@ -114,6 +123,7 @@ public class ClientHandler {
             disconnect();
             return;
         }
+        toSend.add((Packet) packet);
         try {
             out.writeObject(packet);
             out.flush();

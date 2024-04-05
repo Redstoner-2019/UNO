@@ -2,6 +2,7 @@ package me.redstoner2019.main.data;
 
 import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.Ping;
+import me.redstoner2019.main.serverstuff.ServerMain;
 import me.redstoner2019.serverhandling.Packet;
 
 import java.util.*;
@@ -17,6 +18,9 @@ public class Game {
     private Player owner = null;
     private boolean running = false;
     public Queue<GamePacket> queue = new ArrayDeque<>();
+    private String winner;
+    private List<String> leaderboard;
+    private Queue<Card> DECK;
 
     public boolean isRunning() {
         return running;
@@ -34,7 +38,38 @@ public class Game {
         return players;
     }
 
+    public void updatePlayers(){
+        try {
+            Iterator<Player> playerIterator = players.iterator();
+            while (playerIterator.hasNext()){
+                Player p = playerIterator.next();
+                if(!p.getHandler().isConnected()) {
+                    players.remove(p);
+                }
+                if(!p.getGameID().equals(gameCode)) {
+                    players.remove(p);
+                }
+            }
+        } catch (Exception e){
+
+        }
+    }
     public Player getOwner() {
+        updatePlayers();
+        boolean foundOwner = false;
+        for(Player p : players)
+            if (p.equals(owner)) {
+                if(!p.getHandler().isConnected()){
+                    foundOwner = false;
+                    break;
+                }
+                foundOwner = true;
+                break;
+            }
+        if(!foundOwner && !players.isEmpty()) {
+            owner = players.get(0);
+            System.out.println(gameCode + " has a new owner " + owner.getUsername());
+        }
         return owner;
     }
 
@@ -129,7 +164,7 @@ public class Game {
                  */
                 boolean gameRunning = true;
                 Card lastCardPlaced = null;
-                Queue<Card> DECK = new ArrayDeque<>();
+                DECK = new ArrayDeque<>();
                 for (int i = 0; i < decks; i++) {
                     for(Card c : shuffle(Card.getDECK())){
                         DECK.add(c);
@@ -145,6 +180,7 @@ public class Game {
                     }
                 }
                 while (gameRunning){
+                    updatePlayers();
                     while (!queue.isEmpty()){
                         GamePacket gamePacket = queue.poll();
                         Player player = gamePacket.getPlayer();
@@ -190,6 +226,12 @@ public class Game {
                                 DECK.add(lastCardPlaced);
                                 lastCardPlaced = p.getCard();
                                 player.removeCard(p.getCard());
+                                if(player.getCards().size() == 1 && !player.isUNO()){
+                                    player.addCard(DECK.poll());
+                                    player.addCard(DECK.poll());
+                                    System.out.println(player.getUsername() + " forgot to say UNO");
+                                }
+                                if(player.getCards().size() == 1) player.setUNO(false);
                                 if(lastCardPlaced.getOverrideColor() == null) lastCardPlaced.setOverrideColor(CardColor.RED);
                                 if(lastCardPlaced.getNum().equals(CardType.PLUS_4)){
                                     if(!(players.size() > 1)) {
@@ -222,10 +264,14 @@ public class Game {
                     }
                     List<String> nextPlayers = new ArrayList<>();
                     for(Player p : players){
-                        nextPlayers.add(p.getDisplayName());
+                        String s = p.getDisplayName();
+                        if(p.isUNO()) s+= " - UNO!";
+                        nextPlayers.add(s);
                     }
                     List<Player> toRemove = new ArrayList<>();
-                    for (Player p : players){
+                    Iterator<Player> playerIterator = players.iterator();
+                    while (playerIterator.hasNext()){
+                        Player p = playerIterator.next();
                         if(!p.getHandler().isConnected()) {
                             if(players.size() == 1){
                                 gameRunning = false;
@@ -246,6 +292,19 @@ public class Game {
                         p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, List.copyOf(p.getCards())));
                         if(p.getCards().isEmpty()){
                             gameRunning = false;
+                            winner = p.getDisplayName();
+                            players.sort(new Comparator<Player>() {
+                                @Override
+                                public int compare(Player o1, Player o2) {
+                                    return o1.getCards().size()-o2.getCards().size();
+                                }
+                            });
+                            int place = 1;
+                            leaderboard = new ArrayList<>();
+                            for(Player pl : players){
+                                leaderboard.add(place + ". " + pl.getDisplayName() + " -> " + pl.getCards().size() + " cards left");
+                                place++;
+                            }
                             System.out.println(p.getDisplayName() + " has won");
                         }
                     }
@@ -261,7 +320,7 @@ public class Game {
                  */
                 System.out.println("Game end");
                 for(Player p : players){
-                    p.getHandler().sendObject(new GameEndPacket());
+                    p.getHandler().sendObject(new GameEndPacket(winner, leaderboard));
                     p.getCards().clear();
                 }
                 running = false;
@@ -283,6 +342,13 @@ public class Game {
     }
     private void nextPlayer(){
         Player tempPlayer = players.get(0);
+        System.out.println("Checking invalid uno " + tempPlayer.isUNO());
+        if(tempPlayer.isUNO()){
+            tempPlayer.addCard(DECK.poll());
+            tempPlayer.addCard(DECK.poll());
+            tempPlayer.setUNO(false);
+            System.out.println(tempPlayer.getUsername() + " - invalid UNO, drawn +2 Cards");
+        }
         tempPlayer.setCanDraw(false);
         tempPlayer.setCanSkip(false);
         tempPlayer.setCanUNO(false);

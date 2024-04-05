@@ -1,5 +1,7 @@
 package me.redstoner2019.serverhandling;
 
+import me.redstoner2019.main.serverstuff.ServerMain;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;

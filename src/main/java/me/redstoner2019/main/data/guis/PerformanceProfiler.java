@@ -45,6 +45,7 @@ public class PerformanceProfiler {
     private XYSeries memorySeries = new XYSeries("Memory Usage");
     private XYSeries cpuSeries = new XYSeries("CPU Usage");
     private XYSeries networkSeries = new XYSeries("Network Usage");
+    private NumberAxis yAxisNetwork;
 
     public PerformanceProfiler() throws Exception {
         initialize();
@@ -64,7 +65,7 @@ public class PerformanceProfiler {
         frame.setBackground(Color.WHITE);
         frame.setForeground(Color.WHITE);
 
-        frame.setLocation(frame.getX()+(2*1920),frame.getY());
+        //frame.setLocation(frame.getX()+(2*1920),frame.getY());
 
         JPanel panel = new ChartPanel(memoryChart);
         frame.getContentPane().add(panel, BorderLayout.CENTER);
@@ -115,8 +116,8 @@ public class PerformanceProfiler {
          * Network
          */
 
-        NumberAxis yAxisNetwork = new NumberAxis("yaxis");
-        yAxisNetwork.setRange(0.0, 500);
+        yAxisNetwork = new NumberAxis("yaxis");
+        yAxisNetwork.setRange(0.0, 1.0);
         yAxisNetwork.setLabel("Usage (Packets/s)");
         NumberAxis xAxisNetwork = new NumberAxis("xaxis");
         xAxisNetwork.setRange(-120.0, 0);
@@ -224,6 +225,8 @@ public class PerformanceProfiler {
         memorySeries.add(0, bytesToMB(usedMemory));
         cpuSeries.add(0, cpuUsage*100);
         networkSeries.add(0, ServerMain.packetsrecieved+ServerMain.packetsSent);
+
+        yAxisNetwork.setRange(0.0,Math.max(networkSeries.getMaxY(),10));
 
         memoryChart.setTitle("Memory Usage " + bytesToMB(usedMemory) + "MB");
         cpuChart.setTitle("Cpu Usage " + String.format("%.2f",cpuUsage*100) + "%");
