@@ -310,7 +310,7 @@ public class Game {
                     }
                     players.removeAll(toRemove);
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(100);
                     } catch (InterruptedException e) {
                         throw new RuntimeException(e);
                     }

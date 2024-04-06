@@ -4,6 +4,7 @@ import me.redstoner2019.main.data.Card;
 import me.redstoner2019.main.data.CardColor;
 import me.redstoner2019.main.data.CardType;
 import me.redstoner2019.main.data.guis.GUI;
+import me.redstoner2019.main.serverstuff.ServerMain;
 import me.redstoner2019.serverhandling.Util;
 
 import javax.imageio.ImageIO;
@@ -18,16 +19,30 @@ import static me.redstoner2019.main.data.CardColor.*;
 public class Main {
     public static final boolean TEST_MODE = true;
     private static final String VERSION = "v1.4.0-alpha.1";
-    public static String username;
-    public static String password;
+    public static String username = "";
+    public static String password = "";
     public static String getVersion(){
         return VERSION;
     }
     static BufferedImage cards;
     public static void main(String[] args) throws Exception {
+        if(args.length == 3){
+            if(args[0].equals("client")) {
+                username = args[1];
+                password = args[2];
+            }
+        }
         if(args.length == 2){
-            username = args[0];
-            password = args[1];
+            if(args[0].equals("server")) {
+                ServerMain.main(new String[]{args[1]});
+                return;
+            }
+        }
+        if(args.length == 1){
+            if(args[0].equals("server")) {
+                ServerMain.main(new String[]{});
+                return;
+            }
         }
         LoggerDump.initialize();
         //generateTextures();

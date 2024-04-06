@@ -16,6 +16,8 @@ public class Client {
     public static ConnectionFailedEvent connectionFailEvent = null;
     public static ConnectionSuccessEvent connectionSuccessEvent = null;
     public static ConnectionLostEvent connectionLostEvent = null;
+    public static int packetsRecieved = 0;
+    public static int packetsSent = 0;
 
     public static void setConnectionLostEvent(ConnectionLostEvent connectionLostEvent) {
         Client.connectionLostEvent = connectionLostEvent;
@@ -47,6 +49,7 @@ public class Client {
                         try {
                             Object o = in.readObject();
                             listener.packetRecievedEvent(o);
+                            packetsRecieved++;
                         } catch (ClassNotFoundException ignored){
                             System.err.println("Class not found");
                             ignored.printStackTrace();
@@ -60,8 +63,8 @@ public class Client {
                                 in.reset();
                             } catch (IOException e) {
                                 if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent();
+                                break;
                             }
-                            break;
                         } catch (SocketException ignored){
                             System.err.println("Socket not connected");
                             System.err.println(ignored.getLocalizedMessage());
@@ -118,6 +121,7 @@ public class Client {
             //System.out.println(o.getClass() + " -> " + o.toString());
             out.writeObject(o);
             out.flush();
+            packetsSent++;
         } catch (IOException e) {
             e.printStackTrace();
         }

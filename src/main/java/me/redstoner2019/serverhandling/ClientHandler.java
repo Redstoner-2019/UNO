@@ -1,5 +1,6 @@
 package me.redstoner2019.serverhandling;
 
+import me.redstoner2019.main.data.packets.loginpackets.DisconnectPacket;
 import me.redstoner2019.main.serverstuff.ServerMain;
 
 import java.io.EOFException;
@@ -58,6 +59,7 @@ public class ClientHandler {
     public void setSocket(Socket socket) {
         this.socket = socket;
     }
+    private int unuscessful_resets = 0;
     public void disconnect(){
         try {
             socket.close();
@@ -91,10 +93,19 @@ public class ClientHandler {
                     } catch (EOFException ignored) {
                         System.out.println("EOFException");
                         try {
-                            getIn().reset();
+                            getIn().close();
+                            setIn(new ObjectInputStream(socket.getInputStream()));
+                            System.out.println(getIn());
+                            unuscessful_resets = 0;
                         } catch (IOException e) {
                             System.out.println("Reset unsuccesful");
+                            unuscessful_resets++;
                         }
+                        if(unuscessful_resets == 10) {
+                            sendObject(new DisconnectPacket("Stream corrupted"));
+                            disconnect();
+                        }
+                        break;
                     } catch (SocketException e) {
                         System.out.println(e.getLocalizedMessage());
                         if(e.getLocalizedMessage().equals("Connection reset")){

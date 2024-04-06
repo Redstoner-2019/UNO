@@ -8,10 +8,7 @@ import me.redstoner2019.main.data.data.Userdata;
 import me.redstoner2019.main.data.guis.PerformanceProfiler;
 import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
-import me.redstoner2019.main.data.packets.loginpackets.DisconnectPacket;
-import me.redstoner2019.main.data.packets.loginpackets.LoginPacket;
-import me.redstoner2019.main.data.packets.loginpackets.LoginSuccessPacket;
-import me.redstoner2019.main.data.packets.loginpackets.Ping;
+import me.redstoner2019.main.data.packets.loginpackets.*;
 import me.redstoner2019.serverhandling.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -95,6 +92,9 @@ public class ServerMain extends Server {
                             if(game == null) {
                                 return;
                             }
+                            if(game.isRunning()){
+                                return;
+                            }
                             player.setGameID(game.getGameCode());
                             game.addPlayer(player);
                             handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
@@ -124,6 +124,22 @@ public class ServerMain extends Server {
                         }
                         if(packet instanceof Ping){
                             handler.sendObject(packet);
+                        }
+                        if(packet instanceof CreateAccountPacket p){
+                            Userdata userdata = Userdata.read(p.getUsername());
+                            if(userdata != null) {
+                                handler.sendObject(new DisconnectPacket("Username already exists"));
+                                return;
+                            }
+                            userdata = new Userdata();
+                            userdata.setGamesPlayed(0);
+                            userdata.setGamesWon(0);
+                            userdata.setUsername(p.getUsername());
+                            userdata.setPassword(p.getPassword());
+                            userdata.setDisplayName(p.getDisplayname());
+                            userdata.setPlus4Placed(0);
+                            Userdata.write(userdata);
+                            handler.sendObject(new DisconnectPacket("Account created"));
                         }
                         if(packet instanceof GameStartPacket){
                             System.out.println("Starting gmae");
@@ -162,7 +178,7 @@ public class ServerMain extends Server {
             @Override
             public void run() {
                 try {
-                    PerformanceProfiler performanceProfiler = new PerformanceProfiler();
+                    PerformanceProfiler performanceProfiler = new PerformanceProfiler("Server");
                     performanceProfiler.start();
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -15,6 +15,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 import me.redstoner2019.main.serverstuff.ServerMain;
+import me.redstoner2019.serverhandling.Client;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -46,8 +47,10 @@ public class PerformanceProfiler {
     private XYSeries cpuSeries = new XYSeries("CPU Usage");
     private XYSeries networkSeries = new XYSeries("Network Usage");
     private NumberAxis yAxisNetwork;
+    private String type;
 
-    public PerformanceProfiler() throws Exception {
+    public PerformanceProfiler(String type) throws Exception {
+        this.type = type;
         initialize();
         osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
         mBeanServer = ManagementFactory.getPlatformMBeanServer();
@@ -59,7 +62,8 @@ public class PerformanceProfiler {
         frame.setResizable(false);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setBounds(0, 0, width, height);
-        frame.setTitle("Performance Profiler");
+        if(type.equals("Server")) frame.setTitle("Performance Profiler Server");
+        if(type.equals("Client")) frame.setTitle("Performance Profiler Client");
         frame.setLocationRelativeTo(null);
         frame.setVisible(true);
         frame.setBackground(Color.WHITE);
@@ -224,15 +228,19 @@ public class PerformanceProfiler {
 
         memorySeries.add(0, bytesToMB(usedMemory));
         cpuSeries.add(0, cpuUsage*100);
-        networkSeries.add(0, ServerMain.packetsrecieved+ServerMain.packetsSent);
+        if(type.equals("Server")) networkSeries.add(0, ServerMain.packetsrecieved+ServerMain.packetsSent);
+        if(type.equals("Client")) networkSeries.add(0, Client.packetsRecieved+Client.packetsSent);
 
         yAxisNetwork.setRange(0.0,Math.max(networkSeries.getMaxY(),10));
 
         memoryChart.setTitle("Memory Usage " + bytesToMB(usedMemory) + "MB");
         cpuChart.setTitle("Cpu Usage " + String.format("%.2f",cpuUsage*100) + "%");
-        networkChart.setTitle("Network Usage " + bytesToKB(networkUsage) + "KB/s (Sending:" + ServerMain.packetsSent + " packets/s, Recieving " + ServerMain.packetsrecieved + " packets/s)");
-        ServerMain.packetsSent = 0;
-        ServerMain.packetsrecieved = 0;
+        if(type.equals("Server")) networkChart.setTitle("Network Usage " + (ServerMain.packetsSent + ServerMain.packetsrecieved) + " packets/s (Sending:" + ServerMain.packetsSent + " packets/s, Recieving " + ServerMain.packetsrecieved + " packets/s)");
+        if(type.equals("Client")) networkChart.setTitle("Network Usage " + (Client.packetsSent + Client.packetsRecieved) + " packets/s (Sending:" + Client.packetsSent + " packets/s, Recieving " + Client.packetsRecieved + " packets/s)");
+        if(type.equals("Server")) ServerMain.packetsSent = 0;
+        if(type.equals("Server")) ServerMain.packetsrecieved = 0;
+        if(type.equals("Client")) Client.packetsSent = 0;
+        if(type.equals("Client")) Client.packetsRecieved = 0;
     }
 
     public static long bytesToMB(long memory){

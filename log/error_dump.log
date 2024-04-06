@@ -1,7 +1,16 @@
-5 Apr 2024 21:44:33 GMT [INFO]  Init complete
-5 Apr 2024 21:44:33 GMT [INFO]  file:/C:/Projects/UNO/target/classes/textures/texture.png
-5 Apr 2024 21:44:34 GMT [INFO]  Loading 5 Apr 2024 21:44:58 GMT [INFO]  Waiting for connection...
-5 Apr 2024 21:44:58 GMT [INFO]  Client has conn5 Apr 2024 21:44:58 GMT [INFO]  []
-8 GMT [INFO]  Started Packet Listener
-5 Apr 2024 21:45:04 GMT [INFO]  Connection reset
-5 Apr 2024 21:45:04 GMT [INFO]  Client disconnected
+6 Apr 2024 23:52:09 GMT [INFO]  Init complete
+6 Apr 2024 23:52:09 GMT [INFO]  file:/C:/Projects/UNO/target/classes/textures/texture.png
+6 Apr 2024 23:52:09 GMT [INFO]  Loading 6 Apr 2024 23:52:17 GMT [INFO]  Waiting for connection...
+6 Apr 2024 23:52:17 GMT [INFO]  Client has conn6 Apr 2024 23:52:19 GMT [INFO]  []
+6 Apr 2024 23:52:20 GMT [INFO]  [MD15]
+6 Apr 2024 23:52:28 GMT [INFO]  Game start
+onnection...
+6 Apr 2024 23:52:19 GMT [INFO]  Client has connected /127.0.0.1
+6 Apr 2024 23:52:19 GMT [INFO]  Started Packet Listener
+6 Apr 2024 23:52:20 GMT [INFO]  MD15
+6 Apr 2024 23:52:28 GMT [INFO]  Starting gmae
+6 Apr 2024 23:52:28 GMT [INFO]  Game Start
+6 Apr 2024 23:52:28 GMT [INFO]  Send Game Start
+6 Apr 2024 23:52:28 GMT [INFO]  Send Game Start
+6 Apr 2024 23:55:27 GMT [INFO]  Connection reset
+6 Apr 2024 23:55:27 GMT [INFO]  Client disconnected

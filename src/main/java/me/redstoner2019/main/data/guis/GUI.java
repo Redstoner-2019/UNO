@@ -8,10 +8,7 @@ import me.redstoner2019.main.data.CardColor;
 import me.redstoner2019.main.data.CardType;
 import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
-import me.redstoner2019.main.data.packets.loginpackets.DisconnectPacket;
-import me.redstoner2019.main.data.packets.loginpackets.LoginPacket;
-import me.redstoner2019.main.data.packets.loginpackets.LoginSuccessPacket;
-import me.redstoner2019.main.data.packets.loginpackets.Ping;
+import me.redstoner2019.main.data.packets.loginpackets.*;
 import me.redstoner2019.serverhandling.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -58,10 +55,16 @@ public class GUI extends Client {
     public static boolean canUNO = false;
     public static String winner = "";
     public static List<String> leaderboard = new ArrayList<>();
+    public static int maxFPS = 1000;
+    public static int minMS = 1000/maxFPS;
+    public static boolean darkMode = false;
     public GUI() throws Exception {
         initialize();
     }
     private void initialize() throws Exception {
+        final LoadingGUI[] loadingGUI = {new LoadingGUI()};
+        loadingGUI[0].setMax(10);
+        loadingGUI[0].setValue(0);
         //gui = "game-main-game-end";
 
         String customTexture = "";
@@ -82,13 +85,16 @@ public class GUI extends Client {
         frame.setBounds(0, 0, width, height);
         frame.setTitle("UNO - " + Main.getVersion());
         frame.setLocationRelativeTo(null);
-        frame.setVisible(true);
         frame.setBackground(Color.WHITE);
         frame.setForeground(Color.WHITE);
 
-        JPanel panel = new JPanel();
-        frame.getContentPane().add(panel, BorderLayout.CENTER);
-        panel.setLayout(null);
+        JPanel pan = new JPanel();
+        frame.getContentPane().add(pan, BorderLayout.CENTER);
+        pan.setLayout(null);
+
+        JLabel panel = new JLabel();
+        panel.setBounds(0,0,width,height);
+        pan.add(panel);
 
         BufferedImage image = new BufferedImage(1920, 1080, 1);
 
@@ -116,13 +122,10 @@ public class GUI extends Client {
 
         clientData = new JSONObject(Util.readFile(new File("client.properties")));
 
-        Main.password = clientData.getString("password");
-        Main.username = clientData.getString("username");
+        if(Main.password.isEmpty()) Main.password = clientData.getString("password");
+        if(Main.username.isEmpty()) Main.username = clientData.getString("username");
 
         JSONArray serverList = clientData.getJSONArray("servers");
-
-        serverList.put("localhost");
-        serverList.put("cruw-community.de");
 
         /**
          * Main Menu
@@ -165,6 +168,7 @@ public class GUI extends Client {
                 gui = "server-selector";
             }
         });
+        loadingGUI[0].increaseValue();
 
         /**
          * Settings GUI
@@ -173,10 +177,14 @@ public class GUI extends Client {
         JLabel settingsTitleLabel = new JLabel("UNO");
         JLabel settingsSubTitleLabel = new JLabel("Version " + Main.getVersion());
         JButton settingsMainMenuButton = new JButton("MAIN MENU");
+        JButton startPerformanceProfiler = new JButton("Start Performance Profiler");
+        JButton toggleDarkMode = new JButton("Toggle Dark Mode");
 
         settingsTitleLabel.setBounds((frame.getWidth()-400)/2,30,400,80);
         settingsSubTitleLabel.setBounds((frame.getWidth()-300)/2,100,300,50);
         settingsMainMenuButton.setBounds((frame.getWidth()-300)/2,frame.getHeight()-100,300,40);
+        startPerformanceProfiler.setBounds((frame.getWidth()-300)/2,150,300,40);
+        toggleDarkMode.setBounds((frame.getWidth()-300)/2,200,300,40);
 
         settingsTitleLabel.setHorizontalAlignment(JLabel.CENTER);
         settingsTitleLabel.setVerticalAlignment(JLabel.CENTER);
@@ -186,10 +194,42 @@ public class GUI extends Client {
         settingsTitleLabel.setFont(new Font("Arial", Font.BOLD,50));
         settingsSubTitleLabel.setFont(new Font("Arial", Font.PLAIN,25));
         settingsMainMenuButton.setFont(new Font("Arial", Font.PLAIN,20));
+        startPerformanceProfiler.setFont(new Font("Arial", Font.PLAIN,20));
+        toggleDarkMode.setFont(new Font("Arial", Font.PLAIN,20));
 
         panel.add(settingsTitleLabel);
         panel.add(settingsSubTitleLabel);
         panel.add(settingsMainMenuButton);
+        panel.add(startPerformanceProfiler);
+        panel.add(toggleDarkMode);
+
+        startPerformanceProfiler.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                startPerformanceProfiler.setEnabled(false);
+                Thread profilerThread = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            PerformanceProfiler performanceProfiler = new PerformanceProfiler("Client");
+                            performanceProfiler.start();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
+                profilerThread.start();
+            }
+        });
+
+        toggleDarkMode.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                darkMode = !darkMode;
+            }
+        });
+
+
 
         settingsMainMenuButton.addActionListener(new ActionListener() {
             @Override
@@ -197,16 +237,24 @@ public class GUI extends Client {
                 gui = "main-menu";
             }
         });
+        loadingGUI[0].increaseValue();
 
         /**
          * Server Selector GUI
          */
 
         JLabel serverSelectorLabel = new JLabel("Select Server");
+
         JButton serverGuiMenuButton = new JButton("MAIN MENU");
         JButton serverGuiJoinServerButton = new JButton("JOIN SELECTED SERVER");
         JButton serverGuiAddServer = new JButton("ADD SERVER");
+        JButton serverGuiDeleteServer = new JButton("DELETE SERVER");
+        JButton serverGuiCreateAccount = new JButton("CREATE ACCOUNT");
+        JButton serverGuiManageAccount = new JButton("MANAGE ACCOUNT");
         JButton serverGuiSearchLocalServersButton = new JButton("SEARCH LOCAL");
+
+        serverGuiManageAccount.setEnabled(false);
+
         JList<String> serversJList = new JList<>();
         JScrollPane serverScrollPane = new JScrollPane(serversJList);
         JTextArea serverConnectionInfo = new JTextArea();
@@ -214,11 +262,16 @@ public class GUI extends Client {
         JPasswordField passwordField = new JPasswordField(Main.password);
 
         serverSelectorLabel.setBounds(frame.getWidth()-500,50,500,40);
-        serverGuiMenuButton.setBounds(frame.getWidth()-450,frame.getHeight()-130,190,40);
-        serverGuiJoinServerButton.setBounds(frame.getWidth()-450,frame.getHeight()-200,190,40);
-        serverGuiAddServer.setBounds(frame.getWidth()-240,frame.getHeight()-130,190,40);
-        serverGuiSearchLocalServersButton.setBounds(frame.getWidth()-240,frame.getHeight()-200,190,40);
-        serverScrollPane.setBounds(50,50,frame.getWidth()-550,height-140);
+
+        serverGuiAddServer.setBounds(50,frame.getHeight()-200,200,40);
+        serverGuiSearchLocalServersButton.setBounds(580,frame.getHeight()-200,200,40);
+        serverGuiMenuButton.setBounds(580,frame.getHeight()-130,200,40);
+        serverGuiJoinServerButton.setBounds(frame.getWidth()-450,frame.getHeight()-200,400,110);
+        serverGuiDeleteServer.setBounds(50,frame.getHeight()-130,200,40);
+        serverGuiCreateAccount.setBounds(315,frame.getHeight()-130,200,40);
+        serverGuiManageAccount.setBounds(315,frame.getHeight()-200,200,40);
+
+        serverScrollPane.setBounds(50,50,frame.getWidth()-550,height-280);
         serverConnectionInfo.setBounds(frame.getWidth()-450,100,400,250);
         usernameField.setBounds(frame.getWidth()-450,frame.getHeight()-340,400,40);
         passwordField.setBounds(frame.getWidth()-450,frame.getHeight()-270,400,40);
@@ -289,6 +342,28 @@ public class GUI extends Client {
             }
         });
 
+        serverGuiDeleteServer.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                serverList.remove(serversJList.getSelectedIndex());
+                if(serverList.isEmpty()) serverList.put("localhost");
+                forceUpdate = true;
+            }
+        });
+        serverGuiCreateAccount.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gui = "create-account";
+            }
+        });
+        serverGuiManageAccount.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gui = "manage-account";
+                System.out.println("gui");
+            }
+        });
+
         panel.add(serverSelectorLabel);
         panel.add(serverGuiMenuButton);
         panel.add(serverScrollPane);
@@ -298,6 +373,10 @@ public class GUI extends Client {
         panel.add(serverConnectionInfo);
         panel.add(usernameField);
         panel.add(passwordField);
+        panel.add(serverGuiDeleteServer);
+        panel.add(serverGuiCreateAccount);
+        panel.add(serverGuiManageAccount);
+        loadingGUI[0].increaseValue();
 
         /**
          * server-main
@@ -382,7 +461,7 @@ public class GUI extends Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 sendObject(new CreateLobbyPacket());
-                sendObject(new Ping(System.currentTimeMillis()));
+                //sendObject(new Ping(System.currentTimeMillis()));
                 gui = "game-lobby";
             }
         });
@@ -402,6 +481,7 @@ public class GUI extends Client {
         panel.add(codeField);
         panel.add(serverMainDisconnectButton);
         panel.add(lobbiesScrollPane);
+        loadingGUI[0].increaseValue();
 
         /**
          * game-lobby
@@ -417,6 +497,8 @@ public class GUI extends Client {
         JCheckBox lobbyStacking = new JCheckBox("Stacking");
         JCheckBox lobbySevenSwap = new JCheckBox("Seven Swap");
         JCheckBox lobbyJumpIn = new JCheckBox("Jump-In");
+
+        lobbyStacking.setOpaque(true);
 
         PlainDocument doc1 = (PlainDocument) lobbyCardsPerPlayer.getDocument();
         doc1.setDocumentFilter(new IntFilter());
@@ -480,6 +562,7 @@ public class GUI extends Client {
         panel.add(lobbySevenSwap);
         panel.add(lobbyJumpIn);
         panel.add(leaveLobby);
+        loadingGUI[0].increaseValue();
 
         /**
          * game-main
@@ -602,6 +685,7 @@ public class GUI extends Client {
         deck.add(new Card(CardColor.BLUE, CardType.ZERO));
         deck.add(new Card(CardColor.YELLOW, CardType.ZERO));
         deck.add(new Card(CardColor.SPECIAL, PLUS_4));
+        loadingGUI[0].increaseValue();
 
         /**
          * end-results
@@ -618,6 +702,74 @@ public class GUI extends Client {
             }
         });
         draw.add(backButton);
+        loadingGUI[0].increaseValue();
+
+        /**
+         * create-account
+         */
+        JLabel createAccountTitleLabel = new JLabel("CREATE ACCOUNT");
+        JTextField createAccountUsername = new JTextField();
+        JTextField createAccountDisplayName = new JTextField();
+        JPasswordField createAccountPasswordField = new JPasswordField();
+        JPasswordField createAccountConfirmPassword = new JPasswordField();
+        JLabel createAccountLabel = new JLabel("<html>Username:<br><br>Displayname:<br><br>Password:<br><br>Confirm Password:</html>");
+        JButton createAccountCreateButton = new JButton("Create");
+        JButton createAccountBackButton = new JButton("Back");
+
+        int yOffset = 100;
+
+        createAccountTitleLabel.setBounds(((width-1000)/2),50,1000,50);
+        createAccountUsername.setBounds(((width-400)/2) + 210,100 + yOffset,190,30);
+        createAccountDisplayName.setBounds(((width-400)/2) + 210,140 + yOffset,190,30);
+        createAccountPasswordField.setBounds(((width-400)/2) + 210,180 + yOffset,190,30);
+        createAccountConfirmPassword.setBounds(((width-400)/2) + 210,220 + yOffset,190,30);
+        createAccountCreateButton.setBounds(((width-400)/2),260 + yOffset,400,30);
+        createAccountBackButton.setBounds(((width-400)/2),300 + yOffset,400,30);
+        createAccountLabel.setBounds(((width-400)/2),100 + yOffset,190,150);
+
+        createAccountTitleLabel.setHorizontalAlignment(JLabel.CENTER);
+        createAccountTitleLabel.setVerticalAlignment(JLabel.CENTER);
+
+        createAccountTitleLabel.setFont(new Font("Arial", Font.PLAIN,40));
+        createAccountLabel.setFont(new Font("Arial", Font.PLAIN,16));
+        createAccountUsername.setFont(new Font("Arial", Font.PLAIN,16));
+        createAccountDisplayName.setFont(new Font("Arial", Font.PLAIN,16));
+        createAccountPasswordField.setFont(new Font("Arial", Font.PLAIN,16));
+        createAccountConfirmPassword.setFont(new Font("Arial", Font.PLAIN,16));
+
+        createAccountBackButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gui = "server-selector";
+            }
+        });
+        createAccountCreateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(createAccountPasswordField.getText().equals(createAccountConfirmPassword.getText())) {
+                    connect(serversJList.getSelectedValue(),8008);
+                    sendObject(new CreateAccountPacket(createAccountUsername.getText(), createAccountPasswordField.getText(), createAccountDisplayName.getText()));
+                    createAccountTitleLabel.setText("CREATE ACCOUNT (Success)");
+                } else {
+                    createAccountTitleLabel.setText("CREATE ACCOUNT (Passwords dont match)");
+                }
+            }
+        });
+
+        panel.add(createAccountTitleLabel);
+        panel.add(createAccountUsername);
+        panel.add(createAccountDisplayName);
+        panel.add(createAccountPasswordField);
+        panel.add(createAccountConfirmPassword);
+        panel.add(createAccountCreateButton);
+        panel.add(createAccountBackButton);
+        panel.add(createAccountLabel);
+        loadingGUI[0].increaseValue();
+
+        /**
+         * manage account
+         */
+        loadingGUI[0].increaseValue();
 
         BufferedImage finalImage = image;
         Thread t = new Thread(new Runnable() {
@@ -628,7 +780,90 @@ public class GUI extends Client {
                 long lastUpdateFPS = 0;
                 String baseTitle = frame.getTitle();
                 BufferedImage image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
+                float[] gaussianBlurKernel = {
+                        0.006f,  0.012f,  0.012f,  0.012f,  0.006f,
+                        0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
+                        0.012f,  0.025f,  0.039f,  0.025f,  0.012f,
+                        0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
+                        0.006f,  0.012f,  0.012f,  0.012f,  0.006f
+                };
+                int kernelSize = 5;
+
+                /*float[] gaussianBlurKernel = {
+                        0.006f,  0.025f,  0.006f,
+                        0.025f,  0.039f,  0.025f,
+                        0.006f,  0.025f,  0.006f
+                };
+                int kernelSize = 3;*/
+
+                Kernel kernel = new Kernel(kernelSize, kernelSize, gaussianBlurKernel);
+                ConvolveOp convolutionOp = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
+
+                BufferedImage blurredBackground = convolutionOp.filter(finalImage, null);
+
                 while (true) {
+                    long renderStart = System.currentTimeMillis();
+
+                    if(darkMode){
+                        for(Component c : panel.getComponents()){
+                            c.setForeground(Color.WHITE);
+                            if(c instanceof JCheckBox) {
+                                //continue;
+                            }
+                            if(!(c instanceof JLabel)) c.setBackground(Color.DARK_GRAY);
+                            //if(c instanceof JCheckBox) c.setBackground(new Color(Color.OPAQUE));
+                        }
+
+                        serversJList.setForeground(Color.WHITE);
+                        serversJList.setBackground(Color.DARK_GRAY);
+
+                        lobbies.setForeground(Color.WHITE);
+                        lobbies.setBackground(Color.DARK_GRAY);
+
+                        lobbyPlayers.setForeground(Color.WHITE);
+                        lobbyPlayers.setBackground(Color.DARK_GRAY);
+                    } else {
+                        for(Component c : panel.getComponents()){
+                            c.setForeground(Color.BLACK);
+                            if(c instanceof JCheckBox) {
+                                //continue;
+                            }
+                            if(!(c instanceof JLabel)) c.setBackground(Color.WHITE);
+                        }
+
+                        serversJList.setForeground(Color.BLACK);
+                        serversJList.setBackground(Color.WHITE);
+
+                        lobbies.setForeground(Color.BLACK);
+                        lobbies.setBackground(Color.WHITE);
+
+                        lobbyPlayers.setForeground(Color.BLACK);
+                        lobbyPlayers.setBackground(Color.WHITE);
+                    }
+
+                    if(darkMode) {
+                        BufferedImage backgImage = new BufferedImage(width, height, 1);
+
+                        Graphics2D g2 = backgImage.createGraphics();
+
+                        g2.drawImage(blurredBackground, null, -2, -2);
+
+                        g2.dispose();
+
+                        panel.setIcon(new ImageIcon(backgImage));
+                    } else {
+                        BufferedImage backgImage = new BufferedImage(width, height, 1);
+
+                        Graphics2D g2 = backgImage.createGraphics();
+
+                        g2.setColor(Color.WHITE);
+
+                        g2.fillRect(0,0,width,height);
+
+                        g2.dispose();
+
+                        panel.setIcon(new ImageIcon(backgImage));
+                    }
                     switch (gui){
                         case "main-menu": {
                             List<Component> components = List.of(mainMenuTitleLabel,mainMenuPlayButton,mainMenuSettingsButton,mainMenuSubTitleLabel);
@@ -638,14 +873,14 @@ public class GUI extends Client {
                             break;
                         }
                         case "settings-gui": {
-                            List<Component> components = List.of(settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton);
+                            List<Component> components = List.of(settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton,startPerformanceProfiler,toggleDarkMode);
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
                             break;
                         }
                         case "server-selector": {
-                            List<Component> components = List.of(serverSelectorLabel,serverGuiMenuButton,serverScrollPane,serverGuiJoinServerButton,serverGuiAddServer,serverGuiSearchLocalServersButton,serverConnectionInfo,usernameField,passwordField);
+                            List<Component> components = List.of(serverSelectorLabel,serverGuiMenuButton,serverScrollPane,serverGuiJoinServerButton,serverGuiAddServer,serverGuiSearchLocalServersButton,serverConnectionInfo,usernameField,passwordField,serverGuiDeleteServer,serverGuiCreateAccount,serverGuiManageAccount);
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
@@ -768,7 +1003,7 @@ public class GUI extends Client {
 
                             Graphics2D g = image2.createGraphics();
 
-                            g.drawImage(finalImage,null,0,0);
+                            g.drawImage(blurredBackground,null,-2,-2);
 
                             if(!deck.isEmpty()){
 
@@ -787,23 +1022,6 @@ public class GUI extends Client {
                                     x+=spacing;
                                 }
                             }
-
-                            g.dispose();
-
-                            float[] gaussianBlurKernel = {
-                                    0.006f,  0.012f,  0.012f,  0.012f,  0.006f,
-                                    0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
-                                    0.012f,  0.025f,  0.039f,  0.025f,  0.012f,
-                                    0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
-                                    0.006f,  0.012f,  0.012f,  0.012f,  0.006f
-                            };
-
-                            Kernel kernel = new Kernel(5, 5, gaussianBlurKernel);
-                            ConvolveOp convolutionOp = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
-
-                            image2 = convolutionOp.filter(image2, null);
-
-                            g = image2.createGraphics();
 
                             g.setFont(new Font("Arial", Font.BOLD,50));
                             FontMetrics fm = g.getFontMetrics(g.getFont());
@@ -858,24 +1076,7 @@ public class GUI extends Client {
 
                             Graphics2D g = image2.createGraphics();
 
-                            g.drawImage(finalImage,null,0,0);
-
-                            g.dispose();
-
-                            float[] gaussianBlurKernel = {
-                                    0.006f,  0.012f,  0.012f,  0.012f,  0.006f,
-                                    0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
-                                    0.012f,  0.025f,  0.039f,  0.025f,  0.012f,
-                                    0.012f,  0.025f,  0.025f,  0.025f,  0.012f,
-                                    0.006f,  0.012f,  0.012f,  0.012f,  0.006f
-                            };
-
-                            Kernel kernel = new Kernel(5, 5, gaussianBlurKernel);
-                            ConvolveOp convolutionOp = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
-
-                            image2 = convolutionOp.filter(image2, null);
-
-                            g = image2.createGraphics();
+                            g.drawImage(blurredBackground,null,-2,-2);
 
                             g.setFont(new Font("Arial", Font.BOLD,80));
                             FontMetrics fm = g.getFontMetrics(g.getFont());
@@ -914,8 +1115,22 @@ public class GUI extends Client {
                             draw.setIcon(new ImageIcon(image2));
                             break;
                         }
+                        case "manage-account" :{
+                            List<Component> components = List.of(draw);
+                            for(Component c : panel.getComponents()){
+                                c.setVisible(components.contains(c));
+                            }
+                            break;
+                        }
+                        case "create-account" :
+                            List<Component> components = List.of(createAccountTitleLabel, createAccountUsername, createAccountDisplayName, createAccountPasswordField, createAccountConfirmPassword, createAccountCreateButton, createAccountBackButton, createAccountLabel);
+                            for(Component c : panel.getComponents()){
+                                c.setVisible(components.contains(c));
+                            }{
+                            break;
+                        }
                         default: {
-
+                            System.out.println("Invalid gui " + gui);
                         }
                     }
                     if(System.currentTimeMillis() - lastUpdateFPS >= 1000){
@@ -925,113 +1140,129 @@ public class GUI extends Client {
                         frame.setIconImage(image2);
                     }
                     frames++;
+                    long renderTime = (System.currentTimeMillis())-renderStart;
+                    if(renderTime < minMS){
+                        try {
+                            Thread.sleep(minMS-renderTime);
+                        } catch (InterruptedException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                    if(loadingGUI[0] != null){
+                        loadingGUI[0].increaseValue();
+                        loadingGUI[0].dispose();
+                        loadingGUI[0] = null;
+                    }
+                    frame.setVisible(true);
                 }
             }
         });
         t.start();
         final boolean[] scheduled_disconnect = {false};
         final long[] lastPingUpdate = {System.currentTimeMillis()};
+        Object LOCK = new Object();
         setPacketListener(new PacketListener() {
             @Override
             public void packetRecievedEvent(Object packet) {
-                if(!(packet instanceof Ping) && !(packet instanceof LobbyInfoPacket)){
-                    //System.out.println(packet.getClass());
-                }
-                if(packet instanceof DisconnectPacket p){
-                    scheduled_disconnect[0] = true;
-                    serverConnectionInfo.setForeground(Color.RED);
-                    serverConnectionInfo.setText(p.getDisconnectReason());
-                }
-                if(packet instanceof LoginSuccessPacket){
-                    gui = "server-main";
-                }
-                if(packet instanceof LobbyInfoPacket p){
-                    try{
-                        gui = "game-lobby";
-                        lobbyCode.setText("Lobby: " + p.getCode());
-                        String[] players = new String[p.getPlayers().size()];
-                        int i = 0;
-                        for(String s : p.getPlayers().keySet()){
-                            players[i] = p.getPlayers().get(s);
-                            i++;
-                        }
-                        lobbyPlayers.setListData(players);
-                        lobbyStart.setEnabled(p.isOwner());
+                synchronized (LOCK){
+                    String clas = packet.getClass().toString();
+                    if(packet instanceof DisconnectPacket p){
+                        scheduled_disconnect[0] = true;
+                        serverConnectionInfo.setForeground(Color.RED);
+                        serverConnectionInfo.setText(p.getDisconnectReason());
+                    }
+                    if(packet instanceof LoginSuccessPacket){
+                        gui = "server-main";
+                    }
+                    if(packet instanceof LobbyInfoPacket p){
+                        try{
+                            gui = "game-lobby";
+                            lobbyCode.setText("Lobby: " + p.getCode());
+                            String[] players = new String[p.getPlayers().size()];
+                            int i = 0;
+                            for(String s : p.getPlayers().keySet()){
+                                players[i] = p.getPlayers().get(s);
+                                i++;
+                            }
+                            lobbyPlayers.setListData(players);
+                            lobbyStart.setEnabled(p.isOwner());
 
-                        lobbyCardsPerPlayer.setEditable(p.isOwner());
-                        lobbyDecks.setEditable(p.isOwner());
-                        lobbyStacking.setEnabled(p.isOwner());
+                            lobbyCardsPerPlayer.setEditable(p.isOwner());
+                            lobbyDecks.setEditable(p.isOwner());
+                        /*lobbyStacking.setEnabled(p.isOwner());
                         lobbySevenSwap.setEnabled(p.isOwner());
-                        lobbyJumpIn.setEnabled(p.isOwner());
+                        lobbyJumpIn.setEnabled(p.isOwner());*/
 
-                        lobbyStacking.setEnabled(false);
-                        lobbySevenSwap.setEnabled(false);
-                        lobbyJumpIn.setEnabled(false);
+                            lobbyStacking.setEnabled(false);
+                            lobbySevenSwap.setEnabled(false);
+                            lobbyJumpIn.setEnabled(false);
 
-                        if(!p.isOwner()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
-                        if(!p.isOwner()) lobbyDecks.setText(p.getDecks() + "");
-                        //if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
-                        //if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
-                        //if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
+                            if(!p.isOwner()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
+                            if(!p.isOwner()) lobbyDecks.setText(p.getDecks() + "");
+                            //if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
+                            //if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
+                            //if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
 
-                        Thread.sleep(100);
+                            //Thread.sleep(100);
 
-                        if(p.isOwner()){
-                            sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
-                        } else sendObject(new UpdateLobbyPacket(0,0, lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
-                    }catch (Exception e){
-                        sendObject(new UpdateLobbyPacket(7,2, false, false, false));
+                            if(p.isOwner()){
+                                sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
+                            } else sendObject(new UpdateLobbyPacket(0,0, lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
+                        }catch (Exception e){
+                            sendObject(new UpdateLobbyPacket(7,2, false, false, false));
+                        }
+
+
                     }
+                    if(packet instanceof Ping p){
+                        if(System.currentTimeMillis() - lastPingUpdate[0] > 1000) {
+                            frame.setTitle("UNO - " + Main.getVersion() + " " + (System.currentTimeMillis() - p.getTime() + " ms ping"));
+                            lastPingUpdate[0] = System.currentTimeMillis();
+                        }
+                        //sendObject(new Ping(System.currentTimeMillis()));
 
-
-                }
-                if(packet instanceof Ping p){
-                    if(System.currentTimeMillis() - lastPingUpdate[0] > 1000) {
-                        frame.setTitle("UNO - " + Main.getVersion() + " " + (System.currentTimeMillis() - p.getTime() + " ms ping"));
-                        lastPingUpdate[0] = System.currentTimeMillis();
                     }
-                    sendObject(new Ping(System.currentTimeMillis()));
-
-                }
-                if(packet instanceof LobbiesPacket p){
-                    lobbies.setListData(p.getLobbies());
-                    System.out.println(Arrays.toString(p.getLobbies()));
-                }
-                if(packet instanceof GameStartPacket p){
-                    System.out.println("Game start");
-                    gui = "game-main";
-                }
-                if(packet instanceof GameEndPacket p){
-                    System.out.println("Game end");
-                    winner = p.getWinner();
-                    leaderboard = p.getPlacement();
-                    gui = "game-main-game-end";
-                }
-                if(packet instanceof GameDataPacket p){
-                    canSkip = p.isCanSkip();
-                    canDraw = p.isCanDraw();
-                    canUNO = p.isCanUNO();
-
-                    lastCardPut = p.getLastPlaced();
-                    deck = p.getOwnDeck();
-
-                    int spot = 1;
-
-                    String nextPlayersString = "<html>Current turn: ";
-                    if(p.isTurn()){
-                        nextPlayersString+="YOU<br>";
-                    } else {
-                        nextPlayersString+=p.getNextPlayers().get(0)+"<br>";
+                    if(packet instanceof LobbiesPacket p){
+                        lobbies.setListData(p.getLobbies());
+                        System.out.println(Arrays.toString(p.getLobbies()));
                     }
-
-                    for(String s : p.getNextPlayers()){
-                        nextPlayersString+=spot + ". " +s+"<br>";
-                        spot++;
+                    if(packet instanceof GameStartPacket p){
+                        System.out.println("Game start");
+                        gui = "game-main";
                     }
-                    nextPlayersString+="</html>";
+                    if(packet instanceof GameEndPacket p){
+                        System.out.println("Game end");
+                        winner = p.getWinner();
+                        leaderboard = p.getPlacement();
+                        gui = "game-main-game-end";
+                    }
+                    if(packet instanceof GameDataPacket p){
+                        canSkip = p.isCanSkip();
+                        canDraw = p.isCanDraw();
+                        canUNO = p.isCanUNO();
 
-                    nextUpLabel.setText(nextPlayersString);
+                        lastCardPut = p.getLastPlaced();
+                        deck = p.getOwnDeck();
+
+                        int spot = 1;
+
+                        String nextPlayersString = "<html>Current turn: ";
+                        if(p.isTurn()){
+                            nextPlayersString+="YOU<br>";
+                        } else {
+                            nextPlayersString+=p.getNextPlayers().get(0)+"<br>";
+                        }
+
+                        for(String s : p.getNextPlayers()){
+                            nextPlayersString+=spot + ". " +s+"<br>";
+                            spot++;
+                        }
+                        nextPlayersString+="</html>";
+
+                        nextUpLabel.setText(nextPlayersString);
+                    }
                 }
+
             }
         });
         setConnectionFailedEvent(new ConnectionFailedEvent() {

@@ -22,7 +22,7 @@ public class DocumentSizeFilter extends DocumentFilter {
         else
             Toolkit.getDefaultToolkit().beep();
     }
-    public void replace(FilterBypass fb, int offs, int length, String str, AttributeSet a)throws BadLocationException{
+    public void replace(FilterBypass fb, int offs, int length, String str, AttributeSet a) throws BadLocationException{
         if(DEBUG){
             System.out.println("in DocumentSizeFilter's replace method");
         }
