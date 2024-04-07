@@ -1,21 +1,8 @@
-7 Apr 2024 20:37:08 GMT [INFO]  Init complete
-7 Apr 2024 20:37:08 GMT [INFO]  Starting Server on Port 192.168.138.173:8008
-7 Apr 2024 20:37:08 GMT [INFO]  Waiting for connection...
-7 Apr 2024 20:37:11 GMT [INFO]  Waiting for connection...
-7 Apr 2024 20:37:11 GMT [INFO]  Client has connected /127.0.0.1
-7 Apr 2024 20:37:11 GMT [INFO]  Started Packet Listener
-7 Apr 2024 20:37:12 GMT [INFO]  Account 7 Apr 2024 20:47:08 GMT [INFO]  Game end
-7 Apr 2024 20:47:14 GMT [INFO]  Game start
-7 Apr 2024 20:50:32 GMT [INFO]  [FR4YU]
-7 Apr 2024 20:50:57 GMT [INFO]  Game start
-7 Apr 2024 21:10:42 GMT [INFO]  Game end
-connected /127.0.0.1
-7 Apr 2024 20:37:22 GMT [INFO]  Started Packet Listener
-7 Apr 2024 20:37:22 GMT [INFO]  Login success
-7 Apr 2024 20:37:24 GMT [INFO]  CERZU
-7 Apr 2024 20:37:25 GMT [INFO]  Starting gmae
-7 Apr 2024 20:37:25 GMT [INFO]  Game Start
-7 Apr 2024 20:37:25 GMT [INFO]  Send Game Start
-7 Apr 2024 20:37:25 GMT [INFO]  7 cards/player
-7 Apr 2024 20:37:27 GMT [INFO]  Connection reset
-7 Apr 2024 20:37:27 GMT [INFO]  Client disconnected
+7 Apr 2024 21:24:37 GMT [INFO]  Init complete
+7 Apr 2024 21:24:37 GMT [INFO]  Starting Server on Port 192.168.138.173:8008
+7 Apr 2024 21:24:37 GMT [INFO]  Waiting for connection...
+7 Apr 2024 21:25:06 GMT [INFO]  Waiting for connection...
+7 Apr 2024 21:25:06 GMT [INFO]  Client has connected /127.0.0.1
+7 Apr 2024 21:25:06 GMT [INFO]  Started Packet Listener
+7 Apr 2024 21:25:06 GMT [INFO]  Login success
+7 Apr 2024 21:25:08 GMT [INFO]  3B2PH
