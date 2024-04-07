@@ -76,7 +76,8 @@ public class Client {
                             connectionLostEvent.onConnectionLostEvent();
                             break;
                         } catch (EOFException ignored){
-                            System.err.println("EOFException");
+                            //System.err.println("EOFException");
+                            //disconnect();
                             try {
                                 in.reset();
                             } catch (IOException e) {

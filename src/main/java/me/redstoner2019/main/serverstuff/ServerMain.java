@@ -52,13 +52,14 @@ public class ServerMain extends Server {
 
                             Userdata userdata = Userdata.read(username);
                             if(userdata == null){
-                                handler.sendObject(new DisconnectPacket("Account doesnt exist"));
-                                handler.disconnect();
+                                System.out.println("Account doesnt exist");
+                                handler.sendObject(new DisconnectPacket("Account doesnt exist",404));
                             } else {
                                 if(!userdata.getPassword().equals(password)){
-                                    handler.sendObject(new DisconnectPacket("Incorrect Password"));
-                                    handler.disconnect();
+                                    System.out.println("Incorrect password");
+                                    handler.sendObject(new DisconnectPacket("Incorrect Password",401));
                                 } else {
+                                    System.out.println("Login success");
                                     handler.sendObject(new LoginSuccessPacket());
                                     player.setDisplayName(displayName);
                                     player.setUsername(username);
@@ -69,14 +70,21 @@ public class ServerMain extends Server {
                             }
 
                         }
-                        if(packet instanceof CreateLobbyPacket){
-                            Game game = Game.createGame();
+                        if(packet instanceof CreateLobbyPacket p){
+                            Game game;
+                            if(p.getForceCode().length() > 5) p.setForceCode(p.getForceCode().substring(0,5));
+                            if(p.getForceCode().length() < 4) p.setForceCode("");
+                            if(games.containsKey(p.getForceCode())) {
+                                handler.sendObject(new LobbyJoinResultPacket(401,"Lobby with this code already exists"));
+                                return;
+                            } else game = Game.createGame(p.getForceCode());
                             game.setOwner(player);
                             game.addPlayer(player);
                             System.out.println(game.getGameCode());
                             player.setGameID(game.getGameCode());
 
                             games.put(game.getGameCode(),game);
+                            handler.sendObject(new LobbyJoinResultPacket(200,"Created Lobby"));
                             handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
                             String[] lobbies = new String[games.keySet().size()];
                             Iterator<String> it = games.keySet().iterator();
@@ -92,13 +100,16 @@ public class ServerMain extends Server {
                             System.out.println("ID " + p.getID());
                             Game game = games.getOrDefault(p.getID(),null);
                             if(game == null) {
+                                handler.sendObject(new LobbyJoinResultPacket(404,"Lobby not found"));
                                 return;
                             }
                             if(game.isRunning()){
+                                handler.sendObject(new LobbyJoinResultPacket(405,"Game is already running"));
                                 return;
                             }
                             player.setGameID(game.getGameCode());
                             game.addPlayer(player);
+                            handler.sendObject(new LobbyJoinResultPacket(200,"Joined Lobby"));
                             handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
                         }
                         if(packet instanceof UpdateLobbyPacket p){

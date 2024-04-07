@@ -1,0 +1,4 @@
+Manifest-Version: 1.0
+Main-Class: me.redstoner2019.main.serverstuff.ServerMain
+Premain-Class: me.redstoner2019.main.ObjectSizeAgent
+

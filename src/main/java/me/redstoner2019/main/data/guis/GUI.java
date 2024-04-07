@@ -119,6 +119,7 @@ public class GUI extends Client {
             JSONArray servers = new JSONArray();
             servers.put("localhost");
             freshData.put("servers",servers);
+            freshData.put("dark-mode",false);
             Util.writeStringToFile(Util.prettyJSON(freshData.toString()),new File("client.properties"));
         }
 
@@ -128,6 +129,7 @@ public class GUI extends Client {
         if(Main.username.isEmpty()) Main.username = clientData.getString("username");
 
         JSONArray serverList = clientData.getJSONArray("servers");
+        if(clientData.has("dark-mode")) darkMode = clientData.getBoolean("dark-mode");
 
         /**
          * Main Menu
@@ -228,6 +230,12 @@ public class GUI extends Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 darkMode = !darkMode;
+                clientData.put("dark-mode",darkMode);
+                try {
+                    Util.writeStringToFile(Util.prettyJSON(clientData.toString()),new File("client.properties"));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -281,6 +289,7 @@ public class GUI extends Client {
         serverSelectorLabel.setHorizontalAlignment(JLabel.CENTER);
         serverSelectorLabel.setVerticalAlignment(JLabel.CENTER);
         serverConnectionInfo.setEditable(false);
+        serverConnectionInfo.setLineWrap(true);
 
         serverSelectorLabel.setFont(new Font("Arial", Font.BOLD,50));
         serverConnectionInfo.setFont(new Font("Arial", Font.BOLD,18));
@@ -396,7 +405,7 @@ public class GUI extends Client {
         serverConnectedTo.setBounds(0,0,frame.getWidth(),50);
         joinLobby.setBounds((frame.getWidth()-400) / 2, 200, 400,40);
         codeField.setBounds((frame.getWidth()-400) / 2, 260, 400,40);
-        joinResult.setBounds((frame.getWidth()-400) / 2, 320, 400,40);
+        joinResult.setBounds((frame.getWidth()-800) / 2, 320, 800,40);
         createLobby.setBounds((frame.getWidth()-400) / 2, 380, 400,40);
         serverMainDisconnectButton.setBounds((frame.getWidth()-400) / 2, 440, 400,40);
         lobbiesScrollPane.setBounds(0,0,200,frame.getHeight()-100);
@@ -462,9 +471,9 @@ public class GUI extends Client {
         createLobby.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                sendObject(new CreateLobbyPacket());
+                sendObject(new CreateLobbyPacket(codeField.getText().toUpperCase()));
                 //sendObject(new Ping(System.currentTimeMillis()));
-                gui = "game-lobby";
+                //gui = "game-lobby";
             }
         });
 
@@ -819,10 +828,7 @@ public class GUI extends Client {
 
                     if(darkMode){
                         for(Component c : panel.getComponents()){
-                            c.setForeground(Color.WHITE);
-                            if(c instanceof JCheckBox) {
-                                //continue;
-                            }
+                            if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.WHITE);
                             if(!(c instanceof JLabel)) c.setBackground(Color.DARK_GRAY);
                             //if(c instanceof JCheckBox) c.setBackground(new Color(Color.OPAQUE));
                         }
@@ -837,10 +843,7 @@ public class GUI extends Client {
                         lobbyPlayers.setBackground(Color.DARK_GRAY);
                     } else {
                         for(Component c : panel.getComponents()){
-                            c.setForeground(Color.BLACK);
-                            if(c instanceof JCheckBox) {
-                                //continue;
-                            }
+                            if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.BLACK);
                             if(!(c instanceof JLabel)) c.setBackground(Color.WHITE);
                         }
 
@@ -924,13 +927,13 @@ public class GUI extends Client {
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
-                            if(codeField.getText() != null && codeField.getText().length() == 5){
+                            /*if(codeField.getText() != null && codeField.getText().length() == 5){
                                 joinLobby.setEnabled(true);
                                 createLobby.setEnabled(false);
                             } else {
                                 joinLobby.setEnabled(false);
                                 createLobby.setEnabled(true);
-                            }
+                            }*/
                             break;
                         }
                         case "game-lobby": {
@@ -1154,20 +1157,20 @@ public class GUI extends Client {
                         }
                     }
                     if(System.currentTimeMillis() - lastUpdateFPS >= 1000){
-                        frame.setTitle(baseTitle + " " + frames + " FPS");
+                        //frame.setTitle(baseTitle + " " + frames + " FPS");
                         lastUpdateFPS = System.currentTimeMillis();
                         frames = 0;
                         frame.setIconImage(image2);
                     }
                     frames++;
                     long renderTime = (System.currentTimeMillis())-renderStart;
-                    if(renderTime < minMS){
+                    /*if(renderTime < minMS){
                         try {
                             Thread.sleep(minMS-renderTime);
                         } catch (InterruptedException e) {
                             throw new RuntimeException(e);
                         }
-                    }
+                    }*/
                     if(loadingGUI[0] != null){
                         loadingGUI[0].increaseValue();
                         loadingGUI[0].dispose();
@@ -1188,11 +1191,20 @@ public class GUI extends Client {
                     String clas = packet.getClass().toString();
                     if(packet instanceof DisconnectPacket p){
                         scheduled_disconnect[0] = true;
-                        serverConnectionInfo.setForeground(Color.RED);
+                        if(p.getCode() == 200) serverConnectionInfo.setForeground(Color.GREEN); else serverConnectionInfo.setForeground(Color.RED);
                         serverConnectionInfo.setText(p.getDisconnectReason());
+                        disconnect();
+                        return;
                     }
                     if(packet instanceof LoginSuccessPacket){
                         gui = "server-main";
+                    }
+                    if(packet instanceof LobbyJoinResultPacket p){
+                        joinResult.setText(p.getMsg());
+                        if(p.getCode() == 200) {
+                            joinResult.setForeground(Color.GREEN);
+                            gui = "game-lobby";
+                        } else joinResult.setForeground(Color.RED);
                     }
                     if(packet instanceof LobbyInfoPacket p){
                         try{

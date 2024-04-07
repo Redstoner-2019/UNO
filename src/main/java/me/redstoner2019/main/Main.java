@@ -17,8 +17,8 @@ import java.util.HashMap;
 import static me.redstoner2019.main.data.CardColor.*;
 
 public class Main {
-    public static final boolean TEST_MODE = true;
-    private static final String VERSION = "v1.4.0-alpha.2";
+    public static final boolean TEST_MODE = false;
+    private static final String VERSION = "v1.4.0-alpha.4";
     public static String username = "";
     public static String password = "";
     public static String getVersion(){
@@ -26,6 +26,7 @@ public class Main {
     }
     static BufferedImage cards;
     public static void main(String[] args) throws Exception {
+        //System.out.printf("%f%%%n",Math.pow(1.0/36.0,5)*100);
         if(args.length == 3){
             if(args[0].equals("client")) {
                 username = args[1];

@@ -132,13 +132,14 @@ public class Game {
         if(!players.contains(p)) players.add(p);
     }
 
-    public static Game createGame(){
+    public static Game createGame(String forceCode){
         char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
         String gameCode = "";
         Random random = new Random();
         for (int i = 0; i < 5; i++) {
             gameCode+=chars[random.nextInt(chars.length)];
         }
+        if(!forceCode.isEmpty()) gameCode = forceCode;
         Game game = new Game(gameCode);
         return game;
     }
