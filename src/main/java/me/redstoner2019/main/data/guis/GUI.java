@@ -29,6 +29,8 @@ import java.awt.font.TextAttribute;
 import java.awt.image.BufferedImage;
 import java.awt.image.ConvolveOp;
 import java.awt.image.Kernel;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
 import java.text.NumberFormat;
@@ -420,7 +422,7 @@ public class GUI extends Client {
 
 
         DefaultStyledDocument doc = new DefaultStyledDocument();
-        doc.setDocumentFilter(new DocumentSizeFilter(4));
+        doc.setDocumentFilter(new DocumentSizeFilter(5));
         doc.addDocumentListener(new DocumentListener() {
             @Override
             public void insertUpdate(DocumentEvent e) {
@@ -450,7 +452,7 @@ public class GUI extends Client {
         joinLobby.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if(codeField.getText().length() == 4) {
+                if(codeField.getText().length() == 5) {
                     sendObject(new JoinLobbyPacket(codeField.getText()));
                     //sendObject(new Ping(System.currentTimeMillis()));
                 }
@@ -551,6 +553,13 @@ public class GUI extends Client {
             }
         });
 
+        /*lobbyDecks.addPropertyChangeListener(new PropertyChangeListener() {
+            @Override
+            public void propertyChange(PropertyChangeEvent evt) {
+                System.out.println("Test");
+                //sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
+            }
+        });*/
 
         panel.add(lobbyCode);
         panel.add(lobbyPlayersScrollPane);
@@ -699,6 +708,7 @@ public class GUI extends Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gui = "game-lobby";
+                sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
             }
         });
         draw.add(backButton);
@@ -771,6 +781,12 @@ public class GUI extends Client {
          */
         loadingGUI[0].increaseValue();
 
+        try {
+            startSender();
+        } catch (Exception ex) {
+            throw new RuntimeException(ex);
+        }
+
         BufferedImage finalImage = image;
         Thread t = new Thread(new Runnable() {
             @Override
@@ -789,12 +805,9 @@ public class GUI extends Client {
                 };
                 int kernelSize = 5;
 
-                /*float[] gaussianBlurKernel = {
-                        0.006f,  0.025f,  0.006f,
-                        0.025f,  0.039f,  0.025f,
-                        0.006f,  0.025f,  0.006f
+                float[] darkenKernel = {
+                        0.5f
                 };
-                int kernelSize = 3;*/
 
                 Kernel kernel = new Kernel(kernelSize, kernelSize, gaussianBlurKernel);
                 ConvolveOp convolutionOp = new ConvolveOp(kernel, ConvolveOp.EDGE_NO_OP, null);
@@ -911,7 +924,7 @@ public class GUI extends Client {
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
-                            if(codeField.getText() != null && codeField.getText().length() == 4){
+                            if(codeField.getText() != null && codeField.getText().length() == 5){
                                 joinLobby.setEnabled(true);
                                 createLobby.setEnabled(false);
                             } else {
@@ -974,8 +987,10 @@ public class GUI extends Client {
                                 }
                                 int x = 0;
                                 int i = 0;
+
                                 for(Card c : deck){
                                     card = getCard(c);
+
                                     int y = 0;
                                     if(i == indexSelected && shift){
                                         y = 100;
@@ -1014,8 +1029,13 @@ public class GUI extends Client {
 
                                 int x = 0;
                                 int i = 0;
+
+                                Kernel dKernel = new Kernel(1, 1, darkenKernel);
+                                ConvolveOp dconvolutionOp = new ConvolveOp(dKernel, ConvolveOp.EDGE_NO_OP, null);
+
                                 for(Card c : deck){
                                     card = getCard(c);
+                                    card = dconvolutionOp.filter(card, null);
                                     int y = 0;
                                     g.drawImage(card,null,x+50,(frame.getHeight() - 300 - y));
                                     i++;
@@ -1152,8 +1172,8 @@ public class GUI extends Client {
                         loadingGUI[0].increaseValue();
                         loadingGUI[0].dispose();
                         loadingGUI[0] = null;
+                        frame.setVisible(true);
                     }
-                    frame.setVisible(true);
                 }
             }
         });
@@ -1197,19 +1217,21 @@ public class GUI extends Client {
                             lobbySevenSwap.setEnabled(false);
                             lobbyJumpIn.setEnabled(false);
 
+
+
                             if(!p.isOwner()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
                             if(!p.isOwner()) lobbyDecks.setText(p.getDecks() + "");
                             //if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
                             //if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
                             //if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
 
-                            //Thread.sleep(100);
-
+                            Thread.sleep(100);
                             if(p.isOwner()){
                                 sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
-                            } else sendObject(new UpdateLobbyPacket(0,0, lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
+                            } /*else sendObject(new UpdateLobbyPacket(0,0, lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));*/
                         }catch (Exception e){
                             sendObject(new UpdateLobbyPacket(7,2, false, false, false));
+                            //e.printStackTrace();
                         }
 
 

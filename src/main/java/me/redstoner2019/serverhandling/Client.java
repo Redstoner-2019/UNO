@@ -6,6 +6,10 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Queue;
 
 public class Client {
     public static Socket socket = null;
@@ -18,6 +22,7 @@ public class Client {
     public static ConnectionLostEvent connectionLostEvent = null;
     public static int packetsRecieved = 0;
     public static int packetsSent = 0;
+    private static List<Object> toSend = new ArrayList<>();
 
     public static void setConnectionLostEvent(ConnectionLostEvent connectionLostEvent) {
         Client.connectionLostEvent = connectionLostEvent;
@@ -108,23 +113,45 @@ public class Client {
     public static String lastObjectSendName = "";
     public static long lastSent = 0;
     public static void sendObject(Object o){
-        if(socket.isClosed()) return;
-        if(o.getClass().toString().equals(lastObjectSendName) && (System.currentTimeMillis()-lastSent) < 100){
-            return;
-        }
-        lastSent = System.currentTimeMillis();
-        Packet p = (Packet) o;
-        p.setVersion(Main.getVersion());
-        o = p;
         try {
-            lastObjectSendName = o.getClass().toString();
-            //System.out.println(o.getClass() + " -> " + o.toString());
-            out.writeObject(o);
-            out.flush();
-            packetsSent++;
-        } catch (IOException e) {
-            e.printStackTrace();
+            toSend.add(o);
+        }catch (Exception e){
+            System.out.println("Clearing Buffer");
+            toSend.clear();
         }
+    }
+    public static void startSender() throws Exception {
+        final Object REFERENCE = new Object();
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    synchronized (REFERENCE){
+                        if(!isConnected) {
+                            toSend.clear();
+                            continue;
+                        }
+                        if(toSend.isEmpty()) continue;
+                        Object o = toSend.get(0);
+                        toSend.remove(0);
+                        if(o == null) continue;
+                        lastSent = System.currentTimeMillis();
+                        Packet p = (Packet) o;
+                        p.setVersion(Main.getVersion());
+                        o = p;
+                        try {
+                            lastObjectSendName = o.getClass().toString();
+                            out.writeObject(o);
+                            out.flush();
+                            packetsSent++;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
+        t.start();
     }
     public static void setPacketListener(PacketListener packetListener){
         listener = packetListener;
@@ -143,5 +170,8 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+    public static int packetsInBuffer(){
+        return toSend.size();
     }
 }

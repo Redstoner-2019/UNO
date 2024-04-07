@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 
 import me.redstoner2019.main.serverstuff.ServerMain;
 import me.redstoner2019.serverhandling.Client;
+import me.redstoner2019.serverhandling.ClientHandler;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -235,8 +236,14 @@ public class PerformanceProfiler {
 
         memoryChart.setTitle("Memory Usage " + bytesToMB(usedMemory) + "MB");
         cpuChart.setTitle("Cpu Usage " + String.format("%.2f",cpuUsage*100) + "%");
-        if(type.equals("Server")) networkChart.setTitle("Network Usage " + (ServerMain.packetsSent + ServerMain.packetsrecieved) + " packets/s (Sending:" + ServerMain.packetsSent + " packets/s, Recieving " + ServerMain.packetsrecieved + " packets/s)");
-        if(type.equals("Client")) networkChart.setTitle("Network Usage " + (Client.packetsSent + Client.packetsRecieved) + " packets/s (Sending:" + Client.packetsSent + " packets/s, Recieving " + Client.packetsRecieved + " packets/s)");
+        if(type.equals("Server")) {
+            int packetsBuffered = 0;
+            for(ClientHandler c : ServerMain.getClients()) packetsBuffered+=c.packetsInBuffer();
+            networkChart.setTitle("Network Usage " + (ServerMain.packetsSent + ServerMain.packetsrecieved) + " packets/s (Sending:" + ServerMain.packetsSent + " packets/s, Recieving " + ServerMain.packetsrecieved + " packets/s " + packetsBuffered + " packets in buffer)");
+        }
+        if(type.equals("Client")) {
+            networkChart.setTitle("Network Usage " + (Client.packetsSent + Client.packetsRecieved) + " packets/s (Sending:" + Client.packetsSent + " packets/s, Recieving " + Client.packetsRecieved + " packets/s " + Client.packetsInBuffer() + " packets in buffer )");
+        }
         if(type.equals("Server")) ServerMain.packetsSent = 0;
         if(type.equals("Server")) ServerMain.packetsrecieved = 0;
         if(type.equals("Client")) Client.packetsSent = 0;

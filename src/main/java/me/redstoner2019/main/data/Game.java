@@ -136,7 +136,7 @@ public class Game {
         char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
         String gameCode = "";
         Random random = new Random();
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < 5; i++) {
             gameCode+=chars[random.nextInt(chars.length)];
         }
         Game game = new Game(gameCode);
@@ -174,6 +174,7 @@ public class Game {
                     lastCardPlaced = DECK.poll();
                     DECK.add(lastCardPlaced);
                 }
+                System.out.println(cardsPerPlayer + " cards/player");
                 for(Player p : players){
                     for (int i = 0; i < cardsPerPlayer; i++) {
                         p.addCard(DECK.poll());

@@ -1,15 +1,15 @@
 package me.redstoner2019.serverhandling;
 
+import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.packets.loginpackets.DisconnectPacket;
 import me.redstoner2019.main.serverstuff.ServerMain;
 
-import java.io.EOFException;
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
+import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Queue;
 
 public class ClientHandler {
@@ -19,7 +19,7 @@ public class ClientHandler {
     private String username;
     private boolean connected = true;
     public String currentlySelectedChat = null;
-    private Queue<Packet> toSend = new ArrayDeque<>();
+    private List<Object> toSend = new ArrayList<>();
 
     public ClientHandler(ObjectInputStream in, ObjectOutputStream out, Socket socket, String username) {
         this.in = in;
@@ -69,7 +69,37 @@ public class ClientHandler {
             e.printStackTrace();
         }
     }
-
+    public void startPacketSender(){
+        final Object REFERENCE = new Object();
+        Thread t = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true){
+                    synchronized (REFERENCE){
+                        if(!isConnected()) {
+                            toSend.clear();
+                            continue;
+                        }
+                        if(toSend.isEmpty()) continue;
+                        Object o = toSend.get(0);
+                        toSend.remove(0);
+                        if(o == null) continue;
+                        Packet p = (Packet) o;
+                        p.setVersion(Main.getVersion());
+                        o = p;
+                        try {
+                            out.writeObject(o);
+                            out.flush();
+                            ServerMain.packetsSent++;
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }
+            }
+        });
+        t.start();
+    }
     public void startPacketListener(final PacketListener listener){
         System.out.println("Started Packet Listener");
         Thread t = new Thread(new Runnable() {
@@ -129,18 +159,11 @@ public class ClientHandler {
     }
 
     public void sendObject(Object packet){
-        ServerMain.packetsSent++;
-        if(socket.isClosed()){
-            disconnect();
-            return;
-        }
-        toSend.add((Packet) packet);
         try {
-            out.writeObject(packet);
-            out.flush();
-        } catch (IOException e) {
-            disconnect();
-            Util.log("Error sending Object.");
+            toSend.add(packet);
+        }catch (Exception e){
+            System.out.println("Clearing Buffer");
+            toSend.clear();
         }
     }
 
@@ -150,5 +173,8 @@ public class ClientHandler {
 
     public void setConnected(boolean connected) {
         this.connected = connected;
+    }
+    public int packetsInBuffer(){
+        return toSend.size();
     }
 }

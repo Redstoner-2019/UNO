@@ -35,6 +35,7 @@ public class ServerMain extends Server {
             public void connectEvent(ClientHandler handler) throws Exception {
                 System.out.println("Client has connected " + handler.getSocket().getInetAddress());
                 Player player = new Player();
+                handler.startPacketSender();
                 handler.startPacketListener(new PacketListener() {
                     @Override
                     public void packetRecievedEvent(Object packet) {
@@ -88,6 +89,7 @@ public class ServerMain extends Server {
                             broadcastMessage(new LobbiesPacket(lobbies));
                         }
                         if(packet instanceof JoinLobbyPacket p){
+                            System.out.println("ID " + p.getID());
                             Game game = games.getOrDefault(p.getID(),null);
                             if(game == null) {
                                 return;
@@ -109,7 +111,14 @@ public class ServerMain extends Server {
                                 game.setJumpIn(p.isJumpIn());
                             }else {
                             }
-                            if(game != null && !game.isRunning()) handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
+                            /*for(Player pl : players){
+                                if(pl.getGameID().equals(player.getGameID())){*/
+                                    if(game != null && !game.isRunning()) {
+                                        handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()), game.getPlayerHashMap(), game.getCardsPerPlayer(), game.getDecks(), game.isStacking(), game.isSevenSwap(), game.isJumpIn()));
+                                    }
+                                    /*}
+                            }*/
+                            //else handler.sendObject(new LobbyInfoPacket("", false,new HashMap<>(),0,0,false,false,false));
                         }
                         if(packet instanceof RequestLobbiesPacket){
                             String[] lobbies = new String[games.keySet().size()];
