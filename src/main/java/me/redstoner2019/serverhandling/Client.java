@@ -67,13 +67,13 @@ public class Client {
                             try {
                                 in.reset();
                             } catch (IOException e) {
-                                if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent();
+                                if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent(ignored.getLocalizedMessage());
                                 break;
                             }
                         } catch (SocketException ignored){
                             System.err.println("Socket not connected");
                             System.err.println(ignored.getLocalizedMessage());
-                            connectionLostEvent.onConnectionLostEvent();
+                            connectionLostEvent.onConnectionLostEvent(ignored.getLocalizedMessage());
                             break;
                         } catch (EOFException ignored){
                             //System.err.println("EOFException");
@@ -87,7 +87,7 @@ public class Client {
                             System.err.println("Lukas du hurensohn was hast du getan dass dies ausgegeben wird");
                             System.err.println("Localized message: " + e.getLocalizedMessage());
                             e.printStackTrace();
-                            if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent();
+                            if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent(e.getLocalizedMessage());
                             try {
                                 out.flush();
                             } catch (IOException ex) {}

@@ -260,6 +260,10 @@ public class Game {
                                 if(lastCardPlaced.getNum().equals(CardType.SKIP)){
                                     nextPlayer();
                                 }
+                                if(lastCardPlaced.getNum().equals(CardType.REVERSE)){
+                                    Collections.reverse(players);
+                                    nextPlayer();
+                                }
                                 nextPlayer();
                             }
                         }
@@ -272,44 +276,49 @@ public class Game {
                     }
                     List<Player> toRemove = new ArrayList<>();
                     Iterator<Player> playerIterator = players.iterator();
-                    while (playerIterator.hasNext()){
-                        Player p = playerIterator.next();
-                        if(!p.getHandler().isConnected()) {
-                            if(players.size() == 1){
+                    try{
+                        while (playerIterator.hasNext()){
+                            Player p = playerIterator.next();
+                            if(!p.getHandler().isConnected()) {
+                                if(players.size() == 1){
+                                    gameRunning = false;
+                                    break;
+                                }
+                                toRemove.add(p);
+                                continue;
+                            }
+                            if(players.isEmpty()){
                                 gameRunning = false;
                                 break;
                             }
-                            toRemove.add(p);
-                            continue;
-                        }
-                        if(players.isEmpty()){
-                            gameRunning = false;
-                            break;
-                        }
-                        boolean isTurn = players.get(0).equals(p);
-                        boolean canSkip = isTurn && p.isCanSkip();
-                        boolean canDraw = isTurn && p.isCanDraw();
-                        boolean canUNO = isTurn && p.isCanUNO();
+                            boolean isTurn = players.get(0).equals(p);
+                            boolean canSkip = isTurn && p.isCanSkip();
+                            boolean canDraw = isTurn && p.isCanDraw();
+                            boolean canUNO = isTurn && p.isCanUNO();
 
-                        p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, List.copyOf(p.getCards())));
-                        if(p.getCards().isEmpty()){
-                            gameRunning = false;
-                            winner = p.getDisplayName();
-                            players.sort(new Comparator<Player>() {
-                                @Override
-                                public int compare(Player o1, Player o2) {
-                                    return o1.getCards().size()-o2.getCards().size();
+                            p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, List.copyOf(p.getCards())));
+                            if(p.getCards().isEmpty()){
+                                gameRunning = false;
+                                winner = p.getDisplayName();
+                                players.sort(new Comparator<Player>() {
+                                    @Override
+                                    public int compare(Player o1, Player o2) {
+                                        return o1.getCards().size()-o2.getCards().size();
+                                    }
+                                });
+                                int place = 1;
+                                leaderboard = new ArrayList<>();
+                                for(Player pl : players){
+                                    leaderboard.add(place + ". " + pl.getDisplayName() + " -> " + pl.getCards().size() + " cards left");
+                                    place++;
                                 }
-                            });
-                            int place = 1;
-                            leaderboard = new ArrayList<>();
-                            for(Player pl : players){
-                                leaderboard.add(place + ". " + pl.getDisplayName() + " -> " + pl.getCards().size() + " cards left");
-                                place++;
+                                System.out.println(p.getDisplayName() + " has won");
                             }
-                            System.out.println(p.getDisplayName() + " has won");
                         }
+                    }catch (Exception e){
+                        e.printStackTrace();
                     }
+
                     players.removeAll(toRemove);
                     try {
                         Thread.sleep(100);

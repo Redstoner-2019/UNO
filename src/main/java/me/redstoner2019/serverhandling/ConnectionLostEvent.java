@@ -1,5 +1,5 @@
 package me.redstoner2019.serverhandling;
 
 public interface ConnectionLostEvent {
-    void onConnectionLostEvent();
+    void onConnectionLostEvent(String reason);
 }

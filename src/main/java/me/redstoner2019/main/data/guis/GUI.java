@@ -1316,13 +1316,13 @@ public class GUI extends Client {
         });
         setConnectionLostEvent(new ConnectionLostEvent() {
             @Override
-            public void onConnectionLostEvent() {
+            public void onConnectionLostEvent(String reason) {
                 gui = "server-selector";
                 if(scheduled_disconnect[0]){
                     scheduled_disconnect[0] = false;
                     return;
                 }
-                serverConnectionInfo.setText("Lost connection.");
+                serverConnectionInfo.setText(reason);
                 serverConnectionInfo.setForeground(Color.RED);
             }
         });
@@ -1345,7 +1345,7 @@ public class GUI extends Client {
             System.out.println("Broken Card " + c);
         }
         try {
-            BufferedImage finalImage = ImageIO.read(new File(filename));
+            BufferedImage finalImage = ImageIO.read(GUI.class.getResource(filename));
             buffer.put(c.getExact(),finalImage);
             return finalImage;
         } catch (IOException e) {
