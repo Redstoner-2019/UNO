@@ -27,6 +27,13 @@ public class Player {
     private String displayName;
     private String gameID = "";
     private ClientHandler handler;
+    public void reset(){
+        this.canDraw = false;
+        this.canSkip = false;
+        this.canUNO = false;
+        this.UNO = false;
+        this.cards = new ArrayList<>();
+    }
 
     public ClientHandler getHandler() {
         return handler;

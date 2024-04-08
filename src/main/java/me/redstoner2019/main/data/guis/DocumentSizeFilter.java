@@ -26,10 +26,13 @@ public class DocumentSizeFilter extends DocumentFilter {
         if(DEBUG){
             System.out.println("in DocumentSizeFilter's replace method");
         }
-        if((fb.getDocument().getLength() + str.length() - length) <= maxCharacters)
+        try{
+            if((fb.getDocument().getLength() + str.length() - length) <= maxCharacters)
             super.replace(fb, offs, length, str, a);
         else
             Toolkit.getDefaultToolkit().beep();
+        }catch (Exception ignored){}
+
     }
 
 }

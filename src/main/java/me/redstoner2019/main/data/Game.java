@@ -157,6 +157,7 @@ public class Game {
                 System.out.println("Game Start");
                 running = true;
                 for(Player p : players){
+                    p.reset();
                     p.getHandler().sendObject(new GameStartPacket());
                     System.out.println("Send Game Start");
                 }
@@ -223,6 +224,10 @@ public class Game {
                         }
                         if(packet instanceof PlaceCardPacket p){
                             if(!isTurn) continue;
+                            if(!player.getCards().contains(p.getCard())) {
+                                System.out.println(player.getUsername() + " does not have card " + p.getCard());
+                                continue;
+                            }
                             System.out.println(player.getDisplayName() + " placed card " + p.getCard());
                             if(lastCardPlaced.canBePlayed(p.getCard())){
                                 DECK.add(lastCardPlaced);
@@ -291,12 +296,14 @@ public class Game {
                                 gameRunning = false;
                                 break;
                             }
-                            boolean isTurn = players.get(0).equals(p);
-                            boolean canSkip = isTurn && p.isCanSkip();
-                            boolean canDraw = isTurn && p.isCanDraw();
-                            boolean canUNO = isTurn && p.isCanUNO();
+                            //if(packetManaged){
+                                boolean isTurn = players.get(0).equals(p);
+                                boolean canSkip = isTurn && p.isCanSkip();
+                                boolean canDraw = isTurn && p.isCanDraw();
+                                boolean canUNO = isTurn && p.isCanUNO();
 
-                            p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, List.copyOf(p.getCards())));
+                                p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, List.copyOf(p.getCards())));
+                            //}
                             if(p.getCards().isEmpty()){
                                 gameRunning = false;
                                 winner = p.getDisplayName();
@@ -319,6 +326,9 @@ public class Game {
                         e.printStackTrace();
                     }
 
+                    if(!toRemove.isEmpty()){
+                        System.out.println("Removing player(s) " + toRemove);
+                    }
                     players.removeAll(toRemove);
                     try {
                         Thread.sleep(100);
@@ -363,8 +373,9 @@ public class Game {
         tempPlayer.setCanDraw(false);
         tempPlayer.setCanSkip(false);
         tempPlayer.setCanUNO(false);
-        players.remove(0);
+
         players.add(tempPlayer);
+        players.remove(0);
 
         players.get(0).setCanUNO(true);
         players.get(0).setCanSkip(false);

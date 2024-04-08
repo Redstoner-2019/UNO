@@ -45,11 +45,16 @@ public class ServerMain extends Server {
                     @Override
                     public void packetRecievedEvent(Object packet) {
                         if(packet == null) return;
+                        if(!(packet instanceof Packet)) {
+                            handler.sendObject("invalid packet bitch");
+                            return;
+                        }
                         if(!((Packet)packet).getVersion().equals(Main.getVersion())){
                             handler.sendObject(new DisconnectPacket("Invalid Version. \nServer " + Main.getVersion() + "\nClient " + ((Packet) packet).getVersion(),401));
                             return;
                         }
                         if(packet instanceof LoginPacket p){
+                            if(player.isLoggedIn()) return;
                             System.out.println("Server " + Main.getVersion());
                             System.out.println("Client " + p.getVersion());
                             String username = p.getUsername();
@@ -78,6 +83,7 @@ public class ServerMain extends Server {
 
                         }
                         if(packet instanceof CreateLobbyPacket p){
+                            if(!player.getGameID().isEmpty()) return;
                             Game game;
                             if(p.getForceCode().length() > 5) p.setForceCode(p.getForceCode().substring(0,5));
                             if(p.getForceCode().length() < 4) p.setForceCode("");
@@ -104,6 +110,7 @@ public class ServerMain extends Server {
                             broadcastMessage(new LobbiesPacket(lobbies));
                         }
                         if(packet instanceof JoinLobbyPacket p){
+                            if(!player.getGameID().isEmpty()) return;
                             System.out.println("ID " + p.getID());
                             Game game = games.getOrDefault(p.getID(),null);
                             if(game == null) {
@@ -127,16 +134,10 @@ public class ServerMain extends Server {
                                 game.setStacking(p.isStacking());
                                 game.setSevenSwap(p.isSevenSwap());
                                 game.setJumpIn(p.isJumpIn());
-                            }else {
                             }
-                            /*for(Player pl : players){
-                                if(pl.getGameID().equals(player.getGameID())){*/
-                                    if(game != null && !game.isRunning()) {
-                                        handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()), game.getPlayerHashMap(), game.getCardsPerPlayer(), game.getDecks(), game.isStacking(), game.isSevenSwap(), game.isJumpIn()));
-                                    }
-                                    /*}
-                            }*/
-                            //else handler.sendObject(new LobbyInfoPacket("", false,new HashMap<>(),0,0,false,false,false));
+                            if(game != null && !game.isRunning()) {
+                                handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()), game.getPlayerHashMap(), game.getCardsPerPlayer(), game.getDecks(), game.isStacking(), game.isSevenSwap(), game.isJumpIn()));
+                            }
                         }
                         if(packet instanceof RequestLobbiesPacket){
                             String[] lobbies = new String[games.keySet().size()];
@@ -179,20 +180,50 @@ public class ServerMain extends Server {
                             game.start();
                         }
                         if(packet instanceof DrawCardPacket p){
+                            if(!games.containsKey(player.getGameID())) {
+                                System.out.println("Couldnt find lobby " + player.getGameID());
+                                player.reset();
+                                player.setGameID("");
+                                handler.sendObject(new LobbyJoinResultPacket(404,"Couldnt find lobby"));
+                                return;
+                            }
                             games.get(player.getGameID()).queue.add(new GamePacket(player,p));
                         }
                         if(packet instanceof LeaveLobbyPacket p){
                             Game game = games.get(player.getGameID());
                             game.getPlayers().remove(player);
+                            System.out.println("Player " + player.getUsername() + " left lobby " + player.getGameID());
+                            player.reset();
                             player.setGameID("");
                         }
                         if(packet instanceof SkipTurnPacket p){
+                            if(!games.containsKey(player.getGameID())) {
+                                System.out.println("Couldnt find lobby " + player.getGameID());
+                                player.reset();
+                                player.setGameID("");
+                                handler.sendObject(new LobbyJoinResultPacket(404,"Couldnt find lobby"));
+                                return;
+                            }
                             games.get(player.getGameID()).queue.add(new GamePacket(player,p));
                         }
                         if(packet instanceof UNOPacket p){
+                            if(!games.containsKey(player.getGameID())) {
+                                System.out.println("Couldnt find lobby " + player.getGameID());
+                                player.reset();
+                                player.setGameID("");
+                                handler.sendObject(new LobbyJoinResultPacket(404,"Couldnt find lobby"));
+                                return;
+                            }
                             games.get(player.getGameID()).queue.add(new GamePacket(player,p));
                         }
                         if(packet instanceof PlaceCardPacket p){
+                            if(!games.containsKey(player.getGameID())) {
+                                System.out.println("Couldnt find lobby " + player.getGameID());
+                                player.reset();
+                                player.setGameID("");
+                                handler.sendObject(new LobbyJoinResultPacket(404,"Couldnt find lobby"));
+                                return;
+                            }
                             games.get(player.getGameID()).queue.add(new GamePacket(player,p));
                         }
                         if(packet instanceof ProfilerUpdate){
@@ -235,6 +266,7 @@ public class ServerMain extends Server {
                         String s = it.next();
                         Game game = games.get(s);
                         if(game.getPlayers().isEmpty()){
+                            System.out.println("Removing lobby " + s);
                             games.remove(s);
                         }
                     }

@@ -597,6 +597,7 @@ public class GUI extends Client {
         JButton drawButton = new JButton("DRAW");
         JButton skipButton = new JButton("SKIP");
         JButton unoButton = new JButton("UNO");
+        JButton leaveGameButton = new JButton("Leave Game");
         JLabel nextUpLabel = new JLabel();
 
         nextUpLabel.setText("<html>Next up: YOU<br/>Lukas<br/>Halil</html>");
@@ -606,6 +607,7 @@ public class GUI extends Client {
         drawButton.setBounds(frame.getWidth()-400,50,300,40);
         skipButton.setBounds(frame.getWidth()-400,100,300,40);
         unoButton.setBounds(frame.getWidth()-400,150,300,40);
+        leaveGameButton.setBounds(frame.getWidth()-400,200,300,40);
         nextUpLabel.setBounds(50,50,300,600);
 
         drawButton.setBackground(Color.DARK_GRAY);
@@ -614,6 +616,8 @@ public class GUI extends Client {
         skipButton.setForeground(Color.white);
         unoButton.setBackground(Color.DARK_GRAY);
         unoButton.setForeground(Color.white);
+        leaveGameButton.setBackground(Color.DARK_GRAY);
+        leaveGameButton.setForeground(Color.white);
         nextUpLabel.setForeground(Color.WHITE);
         nextUpLabel.setFont(new Font("Arial",Font.BOLD,30));
 
@@ -633,6 +637,13 @@ public class GUI extends Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 sendObject(new UNOPacket());
+            }
+        });
+        leaveGameButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                sendObject(new LeaveLobbyPacket());
+                gui = "server-main";
             }
         });
 
@@ -702,6 +713,7 @@ public class GUI extends Client {
         draw.add(skipButton);
         draw.add(unoButton);
         draw.add(nextUpLabel);
+        draw.add(leaveGameButton);
 
         draw.setIcon(new ImageIcon(Util.resize(image,frame.getWidth(),frame.getHeight())));
 
@@ -1230,7 +1242,10 @@ public class GUI extends Client {
                         if(p.getCode() == 200) {
                             joinResult.setForeground(Color.GREEN);
                             gui = "game-lobby";
-                        } else joinResult.setForeground(Color.RED);
+                        } else {
+                            joinResult.setForeground(Color.RED);
+                            gui = "server-main";
+                        }
                     }
                     if(packet instanceof LobbyInfoPacket p){
                         try{

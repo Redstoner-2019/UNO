@@ -7,6 +7,14 @@
     "games-won" : 0,
     "username" : "halil"
   },
+  "test" : {
+    "password" : "test",
+    "displayname" : "Test",
+    "plus-4-placed" : 0,
+    "games-played" : 0,
+    "games-won" : 0,
+    "username" : "test"
+  },
   "lukas" : {
     "password" : "test",
     "displayname" : "Lukas",

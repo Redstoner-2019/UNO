@@ -81,9 +81,9 @@ public class ClientHandler {
                             Object o = toSend.get(0);
                             toSend.remove(0);
                             if(o == null) continue;
-                            Packet p = (Packet) o;
-                            p.setVersion(Main.getVersion());
-                            o = p;
+                            if(o instanceof Packet p) {
+                                p.setVersion(Main.getVersion());
+                            }
                             try {
                                 out.writeObject(o);
                                 out.flush();
