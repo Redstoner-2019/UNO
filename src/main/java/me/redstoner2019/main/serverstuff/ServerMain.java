@@ -1,5 +1,6 @@
 package me.redstoner2019.main.serverstuff;
 
+import com.sun.management.OperatingSystemMXBean;
 import me.redstoner2019.main.LoggerDump;
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Game;
@@ -7,6 +8,7 @@ import me.redstoner2019.main.data.Player;
 import me.redstoner2019.main.data.data.Userdata;
 import me.redstoner2019.main.data.guis.PerformanceProfiler;
 import me.redstoner2019.main.data.packets.gamepackets.*;
+import me.redstoner2019.main.data.packets.generalpackets.ProfilerUpdate;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.*;
 import me.redstoner2019.serverhandling.*;
@@ -17,19 +19,22 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
+import java.lang.management.ManagementFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 
 public class ServerMain extends Server {
+    private static OperatingSystemMXBean osBean;
     public static HashMap<String, Game> games = new HashMap<String, Game>();
     public static List<Player> players = new ArrayList<>();
     public static int packetsSent = 0;
     public static int packetsrecieved = 0;
     public static void main(String[] args) throws Exception {
         boolean nogui = args.length > 0 && args[0].equals("nogui");
-        if(!nogui) LoggerDump.initialize();
+        osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+        LoggerDump.initialize();
         setClientConnectEvent(new ClientConnectEvent() {
             @Override
             public void connectEvent(ClientHandler handler) throws Exception {
@@ -41,10 +46,12 @@ public class ServerMain extends Server {
                     public void packetRecievedEvent(Object packet) {
                         if(packet == null) return;
                         if(!((Packet)packet).getVersion().equals(Main.getVersion())){
-                            System.out.println("Wrong Version " + ((Packet)packet).getVersion());
-                            handler.disconnect();
+                            handler.sendObject(new DisconnectPacket("Invalid Version. \nServer " + Main.getVersion() + "\nClient " + ((Packet) packet).getVersion(),401));
+                            return;
                         }
                         if(packet instanceof LoginPacket p){
+                            System.out.println("Server " + Main.getVersion());
+                            System.out.println("Client " + p.getVersion());
                             String username = p.getUsername();
                             String password = p.getPassword();
                             String displayName = "";
@@ -144,6 +151,11 @@ public class ServerMain extends Server {
                         }
                         if(packet instanceof Ping){
                             handler.sendObject(packet);
+                            long freeMemory = Runtime.getRuntime().freeMemory();
+                            long totalMemory = Runtime.getRuntime().totalMemory();
+                            long usedMemory = totalMemory - freeMemory;
+                            double cpuUsage = osBean.getProcessCpuLoad() * 100;
+                            handler.sendObject(new ProfilerUpdate((int) bytesToMB(usedMemory),cpuUsage));
                         }
                         if(packet instanceof CreateAccountPacket p){
                             Userdata userdata = Userdata.read(p.getUsername());
@@ -183,6 +195,9 @@ public class ServerMain extends Server {
                         if(packet instanceof PlaceCardPacket p){
                             games.get(player.getGameID()).queue.add(new GamePacket(player,p));
                         }
+                        if(packet instanceof ProfilerUpdate){
+
+                        }
                     }
                 });
                 while (!handler.getSocket().isConnected()){
@@ -198,12 +213,23 @@ public class ServerMain extends Server {
             @Override
             public void run() {
                 try {
-                    PerformanceProfiler performanceProfiler = new PerformanceProfiler("Server");
-                    performanceProfiler.start();
+                    if(!nogui) {
+                        PerformanceProfiler performanceProfiler = new PerformanceProfiler("Server");
+                        performanceProfiler.start();
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
                 while (true){
+
+                    long freeMemory = Runtime.getRuntime().freeMemory();
+                    long totalMemory = Runtime.getRuntime().totalMemory();
+                    long usedMemory = totalMemory - freeMemory;
+
+                    if(bytesToMB(usedMemory) > 50) {
+                        System.gc();
+                    }
+
                     Iterator<String> it = games.keySet().iterator();
                     while (it.hasNext()){
                         String s = it.next();
@@ -212,6 +238,7 @@ public class ServerMain extends Server {
                             games.remove(s);
                         }
                     }
+                    //broadcastMessage(new LobbiesPacket(lobbies));
                 }
 
             }

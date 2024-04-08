@@ -4,6 +4,7 @@ import me.redstoner2019.main.Main;
 
 import com.sun.management.OperatingSystemMXBean;
 import javax.management.MBeanServer;
+import javax.management.ObjectInstance;
 import javax.management.ObjectName;
 import javax.swing.*;
 import java.awt.*;
@@ -14,6 +15,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
+import me.redstoner2019.main.data.packets.generalpackets.ProfilerUpdate;
 import me.redstoner2019.main.serverstuff.ServerMain;
 import me.redstoner2019.serverhandling.Client;
 import me.redstoner2019.serverhandling.ClientHandler;
@@ -34,6 +36,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 public class PerformanceProfiler {
+    private static int measureEveryMS = 1000;
     public static JFrame frame;
     private final int width = 1280;
     private final int height = 940;
@@ -46,7 +49,8 @@ public class PerformanceProfiler {
     private ScheduledExecutorService scheduler;
     private XYSeries memorySeries = new XYSeries("Memory Usage");
     private XYSeries cpuSeries = new XYSeries("CPU Usage");
-    private XYSeries networkSeries = new XYSeries("Network Usage");
+    private XYSeries networkSeriesSend = new XYSeries("Network Usage Send");
+    private XYSeries networkSeriesRecieve = new XYSeries("Network Usage Recieve");
     private NumberAxis yAxisNetwork;
     private String type;
 
@@ -76,23 +80,29 @@ public class PerformanceProfiler {
         frame.getContentPane().add(panel, BorderLayout.CENTER);
         panel.setLayout(null);
 
-        XYAreaRenderer cpuRenderer = new XYAreaRenderer();
-        cpuRenderer.setSeriesPaint(0, new Color(255,128,0,128));
-        cpuRenderer.setDefaultOutlineStroke(new BasicStroke(3));
-        cpuRenderer.setDefaultOutlinePaint(new Color(255,128,0,255));
-        cpuRenderer.setOutline(true);
-
-        XYAreaRenderer networkRenderer = new XYAreaRenderer();
-        networkRenderer.setSeriesPaint(0, new Color(255,0,0,128));
-        networkRenderer.setDefaultOutlineStroke(new BasicStroke(3));
-        networkRenderer.setDefaultOutlinePaint(new Color(255,0,0,255));
-        networkRenderer.setOutline(true);
-
         XYAreaRenderer memoryRenderer = new XYAreaRenderer();
         memoryRenderer.setSeriesPaint(0, new Color(0,255,0,128));
         memoryRenderer.setDefaultOutlineStroke(new BasicStroke(3));
         memoryRenderer.setDefaultOutlinePaint(new Color(0,255,0,255));
         memoryRenderer.setOutline(true);
+
+        XYAreaRenderer cpuRenderer = new XYAreaRenderer();
+        cpuRenderer.setSeriesPaint(0, new Color(255,0,0,128));
+        cpuRenderer.setDefaultOutlineStroke(new BasicStroke(3));
+        cpuRenderer.setDefaultOutlinePaint(new Color(255,0,0,255));
+        cpuRenderer.setOutline(true);
+
+        XYAreaRenderer networkRecieveRenderer = new XYAreaRenderer();
+        networkRecieveRenderer.setSeriesPaint(0, new Color(0,128,255,128));
+        networkRecieveRenderer.setDefaultOutlineStroke(new BasicStroke(3));
+        networkRecieveRenderer.setDefaultOutlinePaint(new Color(0,128,255,255));
+        networkRecieveRenderer.setOutline(true);
+
+        XYAreaRenderer networkSendRenderer = new XYAreaRenderer();
+        networkSendRenderer.setSeriesPaint(0, new Color(0,0,255,128));
+        networkSendRenderer.setDefaultOutlineStroke(new BasicStroke(3));
+        networkSendRenderer.setDefaultOutlinePaint(new Color(0,0,255,255));
+        networkSendRenderer.setOutline(true);
 
         /**
          * CPU
@@ -128,13 +138,15 @@ public class PerformanceProfiler {
         xAxisNetwork.setRange(-120.0, 0);
         xAxisNetwork.setLabel("Time (S)");
 
-        networkSeries = new XYSeries("Network Usage");
+        networkSeriesSend = new XYSeries("Network Usage Send");
+        networkSeriesRecieve = new XYSeries("Network Usage Recieve");
 
         XYSeriesCollection networkDataset = new XYSeriesCollection();
-        networkDataset.addSeries(networkSeries);
+        networkDataset.addSeries(networkSeriesSend);
+        networkDataset.addSeries(networkSeriesRecieve);
 
-        XYPlot xyplotNetwork = new XYPlot(networkDataset, xAxisNetwork, yAxisNetwork, networkRenderer);
-        networkChart = new JFreeChart("Network Usage", null, xyplotNetwork, true);
+        XYPlot xyplotNetworkSend = new XYPlot(networkDataset, xAxisNetwork, yAxisNetwork, networkSendRenderer);
+        networkChart = new JFreeChart("Network Usage", null, xyplotNetworkSend, true);
 
         JPanel networkPanel = new ChartPanel(networkChart);
         networkPanel.setBounds(0,600,width-20,300);
@@ -167,6 +179,14 @@ public class PerformanceProfiler {
         frame.setVisible(true);
     }
 
+    public ProfilerUpdate getProfilerUpdate(){
+        long freeMemory = Runtime.getRuntime().freeMemory();
+        long totalMemory = Runtime.getRuntime().totalMemory();
+        long usedMemory = totalMemory - freeMemory;
+        double cpuUsage = osBean.getProcessCpuLoad();
+        return new ProfilerUpdate((int) usedMemory,cpuUsage);
+    }
+
     public void start() {
         scheduler.scheduleAtFixedRate(() -> {
             try {
@@ -174,13 +194,6 @@ public class PerformanceProfiler {
                 long freeMemory = Runtime.getRuntime().freeMemory();
                 long totalMemory = Runtime.getRuntime().totalMemory();
                 long usedMemory = totalMemory - freeMemory;
-
-                if(bytesToMB(usedMemory) > 50) {
-                    System.gc();
-                    freeMemory = Runtime.getRuntime().freeMemory();
-                    totalMemory = Runtime.getRuntime().totalMemory();
-                    usedMemory = totalMemory - freeMemory;
-                }
 
                 // Get CPU usage
                 double cpuUsage = osBean.getProcessCpuLoad();
@@ -193,7 +206,7 @@ public class PerformanceProfiler {
             } catch (Exception e) {
                 e.printStackTrace();
             }
-        }, 0, 1, TimeUnit.SECONDS);
+        }, 0, measureEveryMS, TimeUnit.MILLISECONDS);
     }
 
     public void stop() {
@@ -206,16 +219,24 @@ public class PerformanceProfiler {
             double x = item.getXValue();
             double y = item.getYValue();
             memorySeries.remove(i);
-            if(x-1>=-120) memorySeries.add(x-1,y);
+            if(x-1>=-120) memorySeries.add(x-(measureEveryMS/1000.0),y);
             //if(x-1>=-120)networkSeries.add(x-1,y);
         }
 
-        for (int i = 0; i < networkSeries.getItemCount(); i++) {
-            XYDataItem item = networkSeries.getDataItem(i);
+        for (int i = 0; i < networkSeriesSend.getItemCount(); i++) {
+            XYDataItem item = networkSeriesSend.getDataItem(i);
             double x = item.getXValue();
             double y = item.getYValue();
-            networkSeries.remove(i);
-            if(x-1>=-120) networkSeries.add(x-1,y);
+            networkSeriesSend.remove(i);
+            if(x-1>=-120) networkSeriesSend.add(x-(measureEveryMS/1000.0),y);
+            //if(x-1>=-120)networkSeries.add(x-1,y);
+        }
+        for (int i = 0; i < networkSeriesRecieve.getItemCount(); i++) {
+            XYDataItem item = networkSeriesRecieve.getDataItem(i);
+            double x = item.getXValue();
+            double y = item.getYValue();
+            networkSeriesRecieve.remove(i);
+            if(x-1>=-120) networkSeriesRecieve.add(x-(measureEveryMS/1000.0),y);
             //if(x-1>=-120)networkSeries.add(x-1,y);
         }
 
@@ -224,16 +245,18 @@ public class PerformanceProfiler {
             double x = item.getXValue();
             double y = item.getYValue();
             cpuSeries.remove(i);
-            if(x-1>=-120) cpuSeries.add(x-1,y);
+            if(x-1>=-120) cpuSeries.add(x-(measureEveryMS/1000.0),y);
             //if(x-1>=-120)cpuSeries.add(x-1,y);
         }
 
         memorySeries.add(0, bytesToMB(usedMemory));
         cpuSeries.add(0, cpuUsage*100);
-        if(type.equals("Server")) networkSeries.add(0, ServerMain.packetsrecieved+ServerMain.packetsSent);
-        if(type.equals("Client")) networkSeries.add(0, Client.packetsRecieved+Client.packetsSent);
+        if(type.equals("Server")) networkSeriesRecieve.add(0, ServerMain.packetsrecieved);
+        if(type.equals("Client")) networkSeriesRecieve.add(0, Client.packetsRecieved);
+        if(type.equals("Server")) networkSeriesSend.add(0, ServerMain.packetsSent);
+        if(type.equals("Client")) networkSeriesSend.add(0, Client.packetsSent);
 
-        yAxisNetwork.setRange(0.0,Math.max(networkSeries.getMaxY(),10));
+        yAxisNetwork.setRange(0.0,Math.max(Math.max(networkSeriesRecieve.getMaxY(),10),networkSeriesSend.getMaxY()));
 
         memoryChart.setTitle("Memory Usage " + bytesToMB(usedMemory) + "MB");
         cpuChart.setTitle("Cpu Usage " + String.format("%.2f",cpuUsage*100) + "%, Active Threads: " + Thread.activeCount());
@@ -249,6 +272,10 @@ public class PerformanceProfiler {
         if(type.equals("Server")) ServerMain.packetsrecieved = 0;
         if(type.equals("Client")) Client.packetsSent = 0;
         if(type.equals("Client")) Client.packetsRecieved = 0;
+
+        memoryChart.fireChartChanged();
+        cpuChart.fireChartChanged();
+        networkChart.fireChartChanged();
     }
 
     public static long bytesToMB(long memory){

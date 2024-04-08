@@ -7,6 +7,7 @@ import me.redstoner2019.main.data.Card;
 import me.redstoner2019.main.data.CardColor;
 import me.redstoner2019.main.data.CardType;
 import me.redstoner2019.main.data.packets.gamepackets.*;
+import me.redstoner2019.main.data.packets.generalpackets.ProfilerUpdate;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.*;
 import me.redstoner2019.serverhandling.*;
@@ -321,6 +322,7 @@ public class GUI extends Client {
                 connect(serversJList.getSelectedValue(),8008);
                 LoginPacket o = new LoginPacket(usernameField.getText(),passwordField.getText(),null);
                 sendObject(o);
+                sendObject(new Ping(System.currentTimeMillis()));
                 sendObject(new RequestLobbiesPacket());
                 clientData.put("username",usernameField.getText());
                 clientData.put("password",passwordField.getText());
@@ -802,6 +804,7 @@ public class GUI extends Client {
         }
 
         BufferedImage finalImage = image;
+        final long[] ping = {0};
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -829,7 +832,6 @@ public class GUI extends Client {
                 BufferedImage blurredBackground = convolutionOp.filter(finalImage, null);
 
                 boolean previousMode = !darkMode;
-
                 while (true) {
                     long renderStart = System.currentTimeMillis();
 
@@ -1181,7 +1183,7 @@ public class GUI extends Client {
                         }
                     }
                     if(System.currentTimeMillis() - lastUpdateFPS >= 1000){
-                        frame.setTitle(baseTitle + " " + frames + " FPS");
+                        frame.setTitle(baseTitle + " ping " + ping[0] + " ms " + frames + " FPS");
                         lastUpdateFPS = System.currentTimeMillis();
                         frames = 0;
                         //frame.setIconImage(image2);
@@ -1274,11 +1276,21 @@ public class GUI extends Client {
                     }
                     if(packet instanceof Ping p){
                         if(System.currentTimeMillis() - lastPingUpdate[0] > 1000) {
-                            frame.setTitle("UNO - " + Main.getVersion() + " " + (System.currentTimeMillis() - p.getTime() + " ms ping"));
+                            ping[0] = System.currentTimeMillis() - p.getTime();
                             lastPingUpdate[0] = System.currentTimeMillis();
                         }
-                        //sendObject(new Ping(System.currentTimeMillis()));
-
+                        Thread thread = new Thread(new Runnable() {
+                            @Override
+                            public void run() {
+                                try {
+                                    Thread.sleep(3000);
+                                    sendObject(new Ping(System.currentTimeMillis()));
+                                } catch (InterruptedException e) {
+                                    throw new RuntimeException(e);
+                                }
+                            }
+                        });
+                        thread.start();
                     }
                     if(packet instanceof LobbiesPacket p){
                         lobbies.setListData(p.getLobbies());
@@ -1287,6 +1299,9 @@ public class GUI extends Client {
                     if(packet instanceof GameStartPacket p){
                         System.out.println("Game start");
                         gui = "game-main";
+                    }
+                    if(packet instanceof ProfilerUpdate p){
+                        System.out.println(p);
                     }
                     if(packet instanceof GameEndPacket p){
                         System.out.println("Game end");

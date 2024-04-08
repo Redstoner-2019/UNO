@@ -1,2 +1,5 @@
-8 Apr 2024 10:53:27 GMT [ERROR] Socket not connected
-8 Apr 2024 10:53:27 GMT [ERROR] Socket closed
+Exception in thread "Thread-0" 8 Apr 2024 13:35:49 GMT [ERROR] java.util.ConcurrentModificationException
+8 Apr 2024 13:35:49 GMT [ERROR] 	at java.base/java.util.HashMap$HashIterator.nextNode(HashMap.java:1597)
+8 Apr 2024 13:35:49 GMT [ERROR] 	at java.base/java.util.HashMap$KeyIterator.next(HashMap.java:1620)
+8 Apr 2024 13:35:49 GMT [ERROR] 	at me.redstoner2019.main.serverstuff.ServerMain$2.run(ServerMain.java:235)
+8 Apr 2024 13:35:49 GMT [ERROR] 	at java.base/java.lang.Thread.run(Thread.java:833)

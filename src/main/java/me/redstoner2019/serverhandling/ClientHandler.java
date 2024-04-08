@@ -71,7 +71,7 @@ public class ClientHandler {
                         }
                         if(toSend.isEmpty()) {
                             try {
-                                REFERENCE.wait(100);
+                                REFERENCE.wait(1);
                             } catch (InterruptedException e) {
                                 throw new RuntimeException(e);
                             }
