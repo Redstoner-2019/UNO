@@ -185,7 +185,7 @@ public class ServerMain extends Server {
                         }
                     }
                 });
-                while (handler.isConnected()){
+                while (!handler.getSocket().isConnected()){
                     Game game = games.getOrDefault(player.getGameID(),null);
                     if(game == null) continue;
                     //handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.getUsername().equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
@@ -204,14 +204,14 @@ public class ServerMain extends Server {
                     e.printStackTrace();
                 }
                 while (true){
-                    //Iterator<String> it = games.keySet().iterator();
-                    //while (it.hasNext()){
-                    //    String s = it.next();
-                    //    Game game = games.get(s);
-                    //    if(game.getPlayers().isEmpty()){
-                    //        //games.remove(s);
-                    //    }
-                    //}
+                    Iterator<String> it = games.keySet().iterator();
+                    while (it.hasNext()){
+                        String s = it.next();
+                        Game game = games.get(s);
+                        if(game.getPlayers().isEmpty()){
+                            games.remove(s);
+                        }
+                    }
                 }
 
             }

@@ -16,24 +16,13 @@ public class ClientHandler {
     private ObjectInputStream in;
     private ObjectOutputStream out;
     private Socket socket;
-    private String username;
     private boolean connected = true;
-    public String currentlySelectedChat = null;
     private List<Object> toSend = new ArrayList<>();
 
-    public ClientHandler(ObjectInputStream in, ObjectOutputStream out, Socket socket, String username) {
+    public ClientHandler(ObjectInputStream in, ObjectOutputStream out, Socket socket) {
         this.in = in;
         this.out = out;
         this.socket = socket;
-        this.username = username;
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public void setUsername(String username) {
-        this.username = username;
     }
 
     public ObjectInputStream getIn() {
@@ -76,26 +65,37 @@ public class ClientHandler {
             public void run() {
                 while (true){
                     synchronized (REFERENCE){
-                        if(!isConnected()) {
+                        if(!isConnected() || socket.isClosed()) {
                             toSend.clear();
+                            break;
+                        }
+                        if(toSend.isEmpty()) {
+                            try {
+                                REFERENCE.wait(100);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
+                            }
                             continue;
                         }
-                        if(toSend.isEmpty()) continue;
-                        Object o = toSend.get(0);
-                        toSend.remove(0);
-                        if(o == null) continue;
-                        Packet p = (Packet) o;
-                        p.setVersion(Main.getVersion());
-                        o = p;
-                        try {
-                            out.writeObject(o);
-                            out.flush();
-                            ServerMain.packetsSent++;
-                        } catch (IOException e) {
-                            e.printStackTrace();
+                        while (!toSend.isEmpty()){
+                            Object o = toSend.get(0);
+                            toSend.remove(0);
+                            if(o == null) continue;
+                            Packet p = (Packet) o;
+                            p.setVersion(Main.getVersion());
+                            o = p;
+                            try {
+                                out.writeObject(o);
+                                out.flush();
+                                ServerMain.packetsSent++;
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
                         }
                     }
                 }
+                System.out.println("Sender closed");
+                Thread.currentThread().interrupt();
             }
         });
         t.start();

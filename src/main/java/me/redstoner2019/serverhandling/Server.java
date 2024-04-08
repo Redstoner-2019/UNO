@@ -47,13 +47,14 @@ public class Server {
                     @Override
                     public void run() {
                         try {
-                            ClientHandler handler = new ClientHandler(in,out,socket,"");
+                            ClientHandler handler = new ClientHandler(in,out,socket);
                             clients.add(handler);
                             if(clientConnectEvent != null) clientConnectEvent.connectEvent(handler);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
-                    }});t.start();
+                    }});
+                t.start();
                 //Util.log("A client has connected! " + socket.getInetAddress());
             }catch (Exception ignored){
                 ignored.printStackTrace();

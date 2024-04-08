@@ -101,11 +101,11 @@ public class Client {
         } catch (SocketException e) {
             if(connectionFailEvent != null) connectionFailEvent.onConnectionFailedEvent(e);
             System.err.println("Couldnt connect, socket exception!");
-            e.printStackTrace();
+            System.out.println(e.getLocalizedMessage());
         } catch (UnknownHostException e) {
             if(connectionFailEvent != null) connectionFailEvent.onConnectionFailedEvent(e);
             System.err.println("Unknown Host");
-            e.printStackTrace();
+            System.out.println(e.getLocalizedMessage());
         } catch (IOException e) {
             if(connectionFailEvent != null) connectionFailEvent.onConnectionFailedEvent(e);
             e.printStackTrace();

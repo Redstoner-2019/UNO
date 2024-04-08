@@ -1,8 +1,17 @@
-7 Apr 2024 21:24:37 GMT [INFO]  Init complete
-7 Apr 2024 21:24:37 GMT [INFO]  Starting Server on Port 192.168.138.173:8008
-7 Apr 2024 21:24:37 GMT [INFO]  Waiting for connection...
-7 Apr 2024 21:25:06 GMT [INFO]  Waiting for connection...
-7 Apr 2024 21:25:06 GMT [INFO]  Client has connected /127.0.0.1
-7 Apr 2024 21:25:06 GMT [INFO]  Started Packet Listener
-7 Apr 2024 21:25:06 GMT [INFO]  Login success
-7 Apr 2024 21:25:08 GMT [INFO]  3B2PH
+8 Apr 2024 10:53:14 GMT [INFO]  Init complete
+8 Apr 2024 10:53:15 GMT [INFO]  file:/C:/Users/l.paepke/Downloads/UNO/target/classes/textures/texture.png
+8 Apr 2024 10:53:15 GMT [INF8 Apr 2024 10:53:21 GMT [INFO]  Waiting for connection...
+8 Apr 2024 10:53:21 GMT [INFO]  Client has connected /127.08 Apr 2024 10:53:21 GMT [INFO]  []
+8 Apr 2024 10:53:23 GMT [INFO]  [WN6Z4]
+8 Apr 2024 10:53:29 GMT [INFO]  []
+pr 2024 10:53:23 GMT [INFO]  WN6Z4
+8 Apr 2024 10:53:27 GMT [INFO]  EOFException
+8 Apr 2024 10:53:27 GMT [INFO]  Reset unsuccesful
+8 Apr 2024 10:53:27 GMT [INFO]  Sender closed
+8 Apr 2024 10:53:28 GMT [INFO]  Waiting for connection...
+8 Apr 2024 10:53:28 GMT [INFO]  Client has connected /127.0.0.1
+8 Apr 2024 10:53:28 GMT [INFO]  Started Packet Listener
+8 Apr 2024 10:53:28 GMT [INFO]  Login success
+8 Apr 2024 10:53:34 GMT [INFO]  Connection reset
+8 Apr 2024 10:53:34 GMT [INFO]  Client disconnected
+8 Apr 2024 10:53:34 GMT [INFO]  Sender closed

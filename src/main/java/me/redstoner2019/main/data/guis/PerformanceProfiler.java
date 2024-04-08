@@ -200,6 +200,7 @@ public class PerformanceProfiler {
         scheduler.shutdown();
     }
     public void updateGUI(long usedMemory, double cpuUsage, long networkUsage) {
+
         for (int i = 0; i < memorySeries.getItemCount(); i++) {
             XYDataItem item = memorySeries.getDataItem(i);
             double x = item.getXValue();
@@ -235,7 +236,7 @@ public class PerformanceProfiler {
         yAxisNetwork.setRange(0.0,Math.max(networkSeries.getMaxY(),10));
 
         memoryChart.setTitle("Memory Usage " + bytesToMB(usedMemory) + "MB");
-        cpuChart.setTitle("Cpu Usage " + String.format("%.2f",cpuUsage*100) + "%");
+        cpuChart.setTitle("Cpu Usage " + String.format("%.2f",cpuUsage*100) + "%, Active Threads: " + Thread.activeCount());
         if(type.equals("Server")) {
             int packetsBuffered = 0;
             for(ClientHandler c : ServerMain.getClients()) packetsBuffered+=c.packetsInBuffer();

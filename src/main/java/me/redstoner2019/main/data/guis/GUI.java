@@ -128,8 +128,11 @@ public class GUI extends Client {
         if(Main.password.isEmpty()) Main.password = clientData.getString("password");
         if(Main.username.isEmpty()) Main.username = clientData.getString("username");
 
-        JSONArray serverList = clientData.getJSONArray("servers");
+        JSONArray serverList;
+        if(clientData.has("servers")) serverList = clientData.getJSONArray("servers"); else serverList = new JSONArray();
         if(clientData.has("dark-mode")) darkMode = clientData.getBoolean("dark-mode");
+
+        forceUpdate = true;
 
         /**
          * Main Menu
@@ -308,6 +311,7 @@ public class GUI extends Client {
             public void actionPerformed(ActionEvent e) {
                 String ip = JOptionPane.showInputDialog("Enter IP");
                 serverList.put(ip);
+                forceUpdate = true;
             }
         });
 
@@ -358,6 +362,7 @@ public class GUI extends Client {
             public void actionPerformed(ActionEvent e) {
                 serverList.remove(serversJList.getSelectedIndex());
                 if(serverList.isEmpty()) serverList.put("localhost");
+                serversJList.setSelectedIndex(0);
                 forceUpdate = true;
             }
         });
@@ -823,63 +828,70 @@ public class GUI extends Client {
 
                 BufferedImage blurredBackground = convolutionOp.filter(finalImage, null);
 
+                boolean previousMode = !darkMode;
+
                 while (true) {
                     long renderStart = System.currentTimeMillis();
 
-                    if(darkMode){
-                        for(Component c : panel.getComponents()){
-                            if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.WHITE);
-                            if(!(c instanceof JLabel)) c.setBackground(Color.DARK_GRAY);
-                            //if(c instanceof JCheckBox) c.setBackground(new Color(Color.OPAQUE));
+                    if(previousMode != darkMode){
+                        if(darkMode){
+                            for(Component c : panel.getComponents()){
+                                if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.WHITE);
+                                if(!(c instanceof JLabel)) c.setBackground(Color.DARK_GRAY);
+                            }
+
+                            serversJList.setForeground(Color.WHITE);
+                            serversJList.setBackground(Color.DARK_GRAY);
+
+                            lobbies.setForeground(Color.WHITE);
+                            lobbies.setBackground(Color.DARK_GRAY);
+
+                            lobbyPlayers.setForeground(Color.WHITE);
+                            lobbyPlayers.setBackground(Color.DARK_GRAY);
+                        } else {
+                            for(Component c : panel.getComponents()){
+                                if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.BLACK);
+                                if(!(c instanceof JLabel)) c.setBackground(Color.WHITE);
+                            }
+
+                            serversJList.setForeground(Color.BLACK);
+                            serversJList.setBackground(Color.WHITE);
+
+                            lobbies.setForeground(Color.BLACK);
+                            lobbies.setBackground(Color.WHITE);
+
+                            lobbyPlayers.setForeground(Color.BLACK);
+                            lobbyPlayers.setBackground(Color.WHITE);
                         }
 
-                        serversJList.setForeground(Color.WHITE);
-                        serversJList.setBackground(Color.DARK_GRAY);
+                        if(darkMode) {
+                            BufferedImage backgImage = new BufferedImage(width, height, 1);
 
-                        lobbies.setForeground(Color.WHITE);
-                        lobbies.setBackground(Color.DARK_GRAY);
+                            Graphics2D g2 = backgImage.createGraphics();
 
-                        lobbyPlayers.setForeground(Color.WHITE);
-                        lobbyPlayers.setBackground(Color.DARK_GRAY);
-                    } else {
-                        for(Component c : panel.getComponents()){
-                            if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.BLACK);
-                            if(!(c instanceof JLabel)) c.setBackground(Color.WHITE);
+                            g2.drawImage(blurredBackground, null, -2, -2);
+
+                            g2.dispose();
+
+                            panel.setIcon(new ImageIcon(backgImage));
+                        } else {
+                            BufferedImage backgImage = new BufferedImage(width, height, 1);
+
+                            Graphics2D g2 = backgImage.createGraphics();
+
+                            g2.setColor(Color.WHITE);
+
+                            g2.fillRect(0,0,width,height);
+
+                            g2.dispose();
+
+                            panel.setIcon(new ImageIcon(backgImage));
                         }
-
-                        serversJList.setForeground(Color.BLACK);
-                        serversJList.setBackground(Color.WHITE);
-
-                        lobbies.setForeground(Color.BLACK);
-                        lobbies.setBackground(Color.WHITE);
-
-                        lobbyPlayers.setForeground(Color.BLACK);
-                        lobbyPlayers.setBackground(Color.WHITE);
                     }
 
-                    if(darkMode) {
-                        BufferedImage backgImage = new BufferedImage(width, height, 1);
+                    previousMode = darkMode;
 
-                        Graphics2D g2 = backgImage.createGraphics();
 
-                        g2.drawImage(blurredBackground, null, -2, -2);
-
-                        g2.dispose();
-
-                        panel.setIcon(new ImageIcon(backgImage));
-                    } else {
-                        BufferedImage backgImage = new BufferedImage(width, height, 1);
-
-                        Graphics2D g2 = backgImage.createGraphics();
-
-                        g2.setColor(Color.WHITE);
-
-                        g2.fillRect(0,0,width,height);
-
-                        g2.dispose();
-
-                        panel.setIcon(new ImageIcon(backgImage));
-                    }
                     switch (gui){
                         case "main-menu": {
                             List<Component> components = List.of(mainMenuTitleLabel,mainMenuPlayButton,mainMenuSettingsButton,mainMenuSubTitleLabel);
@@ -901,7 +913,7 @@ public class GUI extends Client {
                                 c.setVisible(components.contains(c));
                             }
 
-                            if(System.currentTimeMillis() - lastUpdate > 100 || forceUpdate){
+                            if(forceUpdate){
                                 forceUpdate = false;
 
                                 int selectedIndex = Math.max(serversJList.getSelectedIndex(),0);
@@ -959,13 +971,17 @@ public class GUI extends Client {
                             nextUpLabel.setVisible(true);
                             backButton.setVisible(false);
 
-                            image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
+                            Kernel dKernel = new Kernel(1, 1, new float[]{1f});
+                            ConvolveOp dconvolutionOp = new ConvolveOp(dKernel, ConvolveOp.EDGE_NO_OP, null);
+                            image2 = dconvolutionOp.filter(finalImage, null);
+
+                            /**
+                             * TODO: Accelerate copy of finalImage
+                             */
 
                             Graphics2D g = image2.createGraphics();
 
                             BufferedImage card = getCard(lastCardPut);
-
-                            g.drawImage(finalImage,null,0,0);
 
                             g.drawImage(card,null,((frame.getWidth() - card.getWidth())/2) - 100,(frame.getHeight() - card.getHeight())/2 - 200);
 
@@ -979,6 +995,7 @@ public class GUI extends Client {
                                 if(p != null){
                                     int posX = p.x -50;
                                     indexSelected = posX / spacing;
+                                    if(indexSelected > deck.size()) indexSelected = deck.size()-1;
                                     if(p.y > frame.getHeight() - 300 && p.y < frame.getHeight() - 100){
                                         shift = true;
                                     } else {
@@ -1006,7 +1023,14 @@ public class GUI extends Client {
 
                             g.dispose();
 
-                            draw.setIcon(new ImageIcon(image2));
+                            BufferedImage finalImage1 = image2;
+                            Thread t = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    draw.setIcon(new ImageIcon(finalImage1));
+                                }
+                            });
+                            t.start();
                             break;
                         }
                         case "game-main-select-color": {
@@ -1157,10 +1181,10 @@ public class GUI extends Client {
                         }
                     }
                     if(System.currentTimeMillis() - lastUpdateFPS >= 1000){
-                        //frame.setTitle(baseTitle + " " + frames + " FPS");
+                        frame.setTitle(baseTitle + " " + frames + " FPS");
                         lastUpdateFPS = System.currentTimeMillis();
                         frames = 0;
-                        frame.setIconImage(image2);
+                        //frame.setIconImage(image2);
                     }
                     frames++;
                     long renderTime = (System.currentTimeMillis())-renderStart;
@@ -1333,14 +1357,15 @@ public class GUI extends Client {
         if(buffer.containsKey(c.getExact())){
             return buffer.get(c.getExact());
         }
+        System.out.println("Couldnt find " + c + " in Buffer");
         String filename = "";
 
         if(c.getColor().equals(SPECIAL) && c.getOverrideColor() == null){
-            filename = "textures/SPECIAL/" + c.getNum() + ".png";
+            filename = "/textures/SPECIAL/" + c.getNum() + ".png";
         } else if (c.getColor().equals(SPECIAL) && c.getOverrideColor() != null){
-            filename = "textures/" + c.getOverrideColor() + "/" + c.getNum().name() + ".png";
+            filename = "/textures/" + c.getOverrideColor() + "/" + c.getNum().name() + ".png";
         } else if(!c.getColor().equals(SPECIAL)) {
-            filename = "textures/" + c.getColor().name() + "/" + c.getNum().name() + ".png";
+            filename = "/textures/" + c.getColor().name() + "/" + c.getNum().name() + ".png";
         } else {
             System.out.println("Broken Card " + c);
         }
