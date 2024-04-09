@@ -984,6 +984,7 @@ public class GUI extends Client {
                             unoButton.setVisible(true);
                             nextUpLabel.setVisible(true);
                             backButton.setVisible(false);
+                            leaveGameButton.setVisible(true);
 
                             Kernel dKernel = new Kernel(1, 1, new float[]{1f});
                             ConvolveOp dconvolutionOp = new ConvolveOp(dKernel, ConvolveOp.EDGE_NO_OP, null);
@@ -1117,6 +1118,7 @@ public class GUI extends Client {
                             unoButton.setVisible(false);
                             nextUpLabel.setVisible(false);
                             backButton.setVisible(false);
+                            leaveGameButton.setVisible(false);
 
                             draw.setIcon(new ImageIcon(image2));
                             break;
@@ -1132,6 +1134,7 @@ public class GUI extends Client {
                             skipButton.setVisible(false);
                             unoButton.setVisible(false);
                             nextUpLabel.setVisible(false);
+                            leaveGameButton.setVisible(false);
 
                             image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
 
