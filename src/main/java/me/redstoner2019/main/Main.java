@@ -18,15 +18,18 @@ import static me.redstoner2019.main.data.CardColor.*;
 
 public class Main {
     public static final boolean TEST_MODE = false;
-    private static final String VERSION = "v1.4.2";
+    private static final String VERSION = "v1.5.0-alpha.1";
     public static String username = "";
     public static String password = "";
+    public static String packVersion = "1";
+    public static String getPackVersion(){
+        return packVersion;
+    }
     public static String getVersion(){
         return VERSION;
     }
     static BufferedImage cards;
     public static void main(String[] args) throws Exception {
-        //System.out.printf("%f%%%n",Math.pow(1.0/36.0,5)*100);
         if(args.length == 3){
             if(args[0].equals("client")) {
                 username = args[1];
@@ -46,6 +49,12 @@ public class Main {
             }
         }
         LoggerDump.initialize();
+
+        File resourcePacks = new File("texturepacks");
+
+        if(!resourcePacks.exists()){
+            resourcePacks.mkdirs();
+        }
         //generateTextures();
 
         //ImageIO.write(Util.resize(ImageIO.read(new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png")),1280,720),"PNG",new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png"));

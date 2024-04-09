@@ -42,6 +42,21 @@ public class Card extends Packet implements Comparable<Card>{
                 new Card(color, DRAW,null), //DRAW
                 new Card(color, DRAW,null));
     }
+    public static List<Card> getFromOneColor(CardColor color){
+        return List.of(new Card(color, ZERO,null),
+                new Card(color, ONE,null),
+                new Card(color, TWO,null),
+                new Card(color, THREE,null),
+                new Card(color, FOUR,null),
+                new Card(color, FIVE,null),
+                new Card(color, SIX,null),
+                new Card(color, SEVEN,null),
+                new Card(color, EIGHT,null),
+                new Card(color, NINE,null),
+                new Card(color, SKIP,null),
+                new Card(color, REVERSE,null),
+                new Card(color, DRAW,null));
+    }
 
     public Card(CardColor color, CardType num, CardColor overrideColor) {
         this.color = color;

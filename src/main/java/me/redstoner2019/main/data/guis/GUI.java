@@ -61,6 +61,9 @@ public class GUI extends Client {
     public static int maxFPS = 1000;
     public static int minMS = 1000/maxFPS;
     public static boolean darkMode = false;
+    public static String customTexture = "";
+    public static boolean reloadTextures = false;
+    public static int viewCard = 0;
     public GUI() throws Exception {
         initialize();
     }
@@ -69,8 +72,6 @@ public class GUI extends Client {
         loadingGUI[0].setMax(10);
         loadingGUI[0].setValue(0);
         //gui = "game-main-game-end";
-
-        String customTexture = "";
 
 
         System.out.println(Main.class.getResource("/textures/texture.png"));
@@ -99,11 +100,11 @@ public class GUI extends Client {
         panel.setBounds(0,0,width,height);
         pan.add(panel);
 
-        BufferedImage image = new BufferedImage(1920, 1080, 1);
+        final BufferedImage[] image = {new BufferedImage(1920, 1080, 1)};
 
         try {
             System.out.println("Loading texture");
-            image = ImageIO.read(GUI.class.getResource("/background.png"));
+            image[0] = ImageIO.read(GUI.class.getResource("/background.png"));
             System.out.println("Loaded texture");
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -121,6 +122,7 @@ public class GUI extends Client {
             servers.put("localhost");
             freshData.put("servers",servers);
             freshData.put("dark-mode",false);
+            freshData.put("texturepack","");
             Util.writeStringToFile(Util.prettyJSON(freshData.toString()),new File("client.properties"));
         }
 
@@ -132,6 +134,24 @@ public class GUI extends Client {
         JSONArray serverList;
         if(clientData.has("servers")) serverList = clientData.getJSONArray("servers"); else serverList = new JSONArray();
         if(clientData.has("dark-mode")) darkMode = clientData.getBoolean("dark-mode");
+        String texturePack = "";
+        if(clientData.has("texturepack")) texturePack = clientData.getString("texturepack");
+
+        File resourcePack = new File("texturepacks/" + texturePack + "/pack.properties");
+
+        try{
+            if(resourcePack.exists()){
+                JSONObject packData = new JSONObject(Util.readFile(resourcePack));
+                String packVersion = "";
+                if(packData.has("version")) packVersion = packData.getString("version");
+                if(packVersion.equals(Main.getPackVersion())) customTexture = "texturepacks/" + texturePack;
+                System.out.println("Loading Background");
+                image[0] = Util.resize(ImageIO.read(new File("texturepacks/" + texturePack + "/textures/background.png")),1280,720);
+                System.out.println("Loaded Background");
+                Util.writeStringToFile(Util.prettyJSON(packData.toString()),resourcePack);
+            }
+        }catch (Exception ignored){
+        }
 
         forceUpdate = true;
 
@@ -187,12 +207,24 @@ public class GUI extends Client {
         JButton settingsMainMenuButton = new JButton("MAIN MENU");
         JButton startPerformanceProfiler = new JButton("Start Performance Profiler");
         JButton toggleDarkMode = new JButton("Toggle Dark Mode");
+        JTextField resourcePackTextField = new JTextField();
+        JButton applyTexturepackButton = new JButton("Apply Texturepack");
+        JLabel texturePackLoadResult = new JLabel();
+        JLabel cardPreview = new JLabel();
+        JButton cardSwitchLeft = new JButton("-");
+        JButton cardSwitchRight = new JButton("+");
 
         settingsTitleLabel.setBounds((frame.getWidth()-400)/2,30,400,80);
         settingsSubTitleLabel.setBounds((frame.getWidth()-300)/2,100,300,50);
         settingsMainMenuButton.setBounds((frame.getWidth()-300)/2,frame.getHeight()-100,300,40);
         startPerformanceProfiler.setBounds((frame.getWidth()-300)/2,150,300,40);
         toggleDarkMode.setBounds((frame.getWidth()-300)/2,200,300,40);
+        resourcePackTextField.setBounds((frame.getWidth()-300)/2,300,300,40);
+        applyTexturepackButton.setBounds((frame.getWidth()-300)/2,350,300,40);
+        texturePackLoadResult.setBounds((frame.getWidth()-300)/2,400,300,40);
+        cardPreview.setBounds((frame.getWidth()-200),170,128,200);
+        cardSwitchLeft.setBounds(frame.getWidth()-200,392,64,20);
+        cardSwitchRight.setBounds(frame.getWidth()-200+64,392,64,20);
 
         settingsTitleLabel.setHorizontalAlignment(JLabel.CENTER);
         settingsTitleLabel.setVerticalAlignment(JLabel.CENTER);
@@ -204,12 +236,115 @@ public class GUI extends Client {
         settingsMainMenuButton.setFont(new Font("Arial", Font.PLAIN,20));
         startPerformanceProfiler.setFont(new Font("Arial", Font.PLAIN,20));
         toggleDarkMode.setFont(new Font("Arial", Font.PLAIN,20));
+        resourcePackTextField.setFont(new Font("Arial", Font.PLAIN,20));
+        applyTexturepackButton.setFont(new Font("Arial", Font.PLAIN,20));
+        texturePackLoadResult.setFont(new Font("Arial", Font.PLAIN,20));
 
         panel.add(settingsTitleLabel);
         panel.add(settingsSubTitleLabel);
         panel.add(settingsMainMenuButton);
         panel.add(startPerformanceProfiler);
         panel.add(toggleDarkMode);
+        panel.add(resourcePackTextField);
+        panel.add(applyTexturepackButton);
+        panel.add(texturePackLoadResult);
+        panel.add(cardPreview);
+        panel.add(cardSwitchLeft);
+        panel.add(cardSwitchRight);
+
+        cardPreview.setIcon(new ImageIcon(getCard(new Card(RED,CardType.ZERO))));
+        cardSwitchLeft.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                viewCard--;
+                List<Card> cards = new ArrayList<>();
+                cards.addAll(Card.getFromOneColor(CardColor.RED));
+                cards.addAll(Card.getFromOneColor(GREEN));
+                cards.addAll(Card.getFromOneColor(BLUE));
+                cards.addAll(Card.getFromOneColor(YELLOW));
+                cards.add(new Card(SPECIAL,PLUS_4));
+                cards.add(new Card(SPECIAL,PLUS_4,RED));
+                cards.add(new Card(SPECIAL,PLUS_4,GREEN));
+                cards.add(new Card(SPECIAL,PLUS_4,BLUE));
+                cards.add(new Card(SPECIAL,PLUS_4,YELLOW));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR,RED));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR,GREEN));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR,BLUE));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR,YELLOW));
+                if(viewCard < 0){
+                    viewCard = cards.size()-1;
+                }
+                cardPreview.setIcon(new ImageIcon(getCard(cards.get(viewCard))));
+            }
+        });
+        cardSwitchRight.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                viewCard++;
+                List<Card> cards = new ArrayList<>();
+                cards.addAll(Card.getFromOneColor(CardColor.RED));
+                cards.addAll(Card.getFromOneColor(GREEN));
+                cards.addAll(Card.getFromOneColor(BLUE));
+                cards.addAll(Card.getFromOneColor(YELLOW));
+                cards.add(new Card(SPECIAL,PLUS_4));
+                cards.add(new Card(SPECIAL,PLUS_4,RED));
+                cards.add(new Card(SPECIAL,PLUS_4,GREEN));
+                cards.add(new Card(SPECIAL,PLUS_4,BLUE));
+                cards.add(new Card(SPECIAL,PLUS_4,YELLOW));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR,RED));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR,GREEN));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR,BLUE));
+                cards.add(new Card(SPECIAL,CHANGE_COLOR,YELLOW));
+                if(viewCard >= cards.size()){
+                    viewCard = 0;
+                }
+                cardPreview.setIcon(new ImageIcon(getCard(cards.get(viewCard))));
+            }
+        });
+
+        applyTexturepackButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                clientData.put("texturepack",resourcePackTextField.getText());
+
+                String texturePack = clientData.getString("texturepack");
+
+                System.out.println("Loading texturepack");
+
+                File resourcePack = new File("texturepacks/" + texturePack + "/pack.properties");
+
+                try{
+                    if(resourcePack.exists()){
+                        JSONObject packData = new JSONObject(Util.readFile(resourcePack));
+                        String packVersion = "";
+                        if(packData.has("version")) packVersion = packData.getString("version");
+                        if(packVersion.equals(Main.getPackVersion())) customTexture = "texturepacks/" + texturePack; else {
+                            texturePackLoadResult.setText("Invalid pack version");
+                            return;
+                        }
+                        System.out.println("Loading Background");
+                        image[0] = Util.resize(ImageIO.read(new File("texturepacks/" + texturePack + "/textures/background.png")),1280,720);
+                        System.out.println("Loaded Background");
+                        Util.writeStringToFile(Util.prettyJSON(packData.toString()),resourcePack);
+                        texturePackLoadResult.setText("Success");
+                        reloadTextures = true;
+                    } else {
+                        texturePackLoadResult.setText("Couldnt find texturepack");
+                        GUI.customTexture = "";
+                        System.out.println("Loading texture");
+                        image[0] = ImageIO.read(GUI.class.getResource("/background.png"));
+                        System.out.println("Loaded texture");
+                        reloadTextures = true;
+                    }
+                }catch (Exception ex){
+                    texturePackLoadResult.setText(ex.getLocalizedMessage());
+                }
+
+
+            }
+        });
 
         startPerformanceProfiler.addActionListener(new ActionListener() {
             @Override
@@ -715,7 +850,7 @@ public class GUI extends Client {
         draw.add(nextUpLabel);
         draw.add(leaveGameButton);
 
-        draw.setIcon(new ImageIcon(Util.resize(image,frame.getWidth(),frame.getHeight())));
+        draw.setIcon(new ImageIcon(Util.resize(image[0],frame.getWidth(),frame.getHeight())));
 
         deck.add(new Card(RED, CardType.ZERO));
         deck.add(new Card(CardColor.GREEN, CardType.ZERO));
@@ -815,7 +950,7 @@ public class GUI extends Client {
             throw new RuntimeException(ex);
         }
 
-        BufferedImage finalImage = image;
+        BufferedImage finalImage = image[0];
         final long[] ping = {0};
         Thread t = new Thread(new Runnable() {
             @Override
@@ -846,6 +981,12 @@ public class GUI extends Client {
                 boolean previousMode = !darkMode;
                 while (true) {
                     long renderStart = System.currentTimeMillis();
+
+                    if(reloadTextures){
+                        blurredBackground = convolutionOp.filter(image[0], null);
+                        previousMode = !darkMode;
+                        reloadTextures = false;
+                    }
 
                     if(previousMode != darkMode){
                         if(darkMode){
@@ -915,7 +1056,7 @@ public class GUI extends Client {
                             break;
                         }
                         case "settings-gui": {
-                            List<Component> components = List.of(settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton,startPerformanceProfiler,toggleDarkMode);
+                            List<Component> components = List.of(cardSwitchRight,cardSwitchLeft,cardPreview,texturePackLoadResult,applyTexturepackButton,resourcePackTextField,settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton,startPerformanceProfiler,toggleDarkMode);
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
@@ -1387,26 +1528,37 @@ public class GUI extends Client {
     public static HashMap<String, BufferedImage> buffer = new HashMap<>();
 
     public static BufferedImage getCard(Card c){
-        if(buffer.containsKey(c.getExact())){
-            return buffer.get(c.getExact());
+        if(buffer.containsKey(c.getExact() + "-" + customTexture) && !gui.contains("settings")){
+            return buffer.get(c.getExact() + "-" + customTexture);
         }
-        System.out.println("Couldnt find " + c + " in Buffer");
-        String filename = "";
+        String filename = "" + customTexture;
 
         if(c.getColor().equals(SPECIAL) && c.getOverrideColor() == null){
-            filename = "/textures/SPECIAL/" + c.getNum() + ".png";
+            filename += "/textures/SPECIAL/" + c.getNum() + ".png";
         } else if (c.getColor().equals(SPECIAL) && c.getOverrideColor() != null){
-            filename = "/textures/" + c.getOverrideColor() + "/" + c.getNum().name() + ".png";
+            filename += "/textures/" + c.getOverrideColor() + "/" + c.getNum().name() + ".png";
         } else if(!c.getColor().equals(SPECIAL)) {
-            filename = "/textures/" + c.getColor().name() + "/" + c.getNum().name() + ".png";
+            filename += "/textures/" + c.getColor().name() + "/" + c.getNum().name() + ".png";
         } else {
             System.out.println("Broken Card " + c);
         }
+        System.out.println(filename);
         try {
-            BufferedImage finalImage = ImageIO.read(GUI.class.getResource(filename));
-            buffer.put(c.getExact(),finalImage);
-            return finalImage;
-        } catch (IOException e) {
+            if(customTexture.isEmpty()) {
+                BufferedImage finalImage = ImageIO.read(GUI.class.getResource(filename));
+                buffer.put(c.getExact() + "-" + customTexture, finalImage);
+                return finalImage;
+            } else if(!new File(filename).exists()){
+                System.out.println(filename.substring(("texturepacks" + customTexture).length()));
+                BufferedImage finalImage = ImageIO.read(GUI.class.getResource(filename.substring(("texturepacks" + customTexture).length())));
+                buffer.put(c.getExact() + "-" + customTexture, finalImage);
+                return finalImage;
+            }else {
+                BufferedImage finalImage = ImageIO.read(new File(filename));
+                buffer.put(c.getExact() + "-" + customTexture, finalImage);
+                return finalImage;
+            }
+        } catch (Exception e) {
             System.out.println("Couldnt read " + filename);
         }
         return cards.getSubimage(0,0,128,192);
