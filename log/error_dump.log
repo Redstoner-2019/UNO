@@ -1,20 +1,133 @@
-9 Apr 2024 09:03:24 GMT [INFO]  Init complete
-9 Apr 2024 09:03:24 GMT [INFO]  file:/C:/Users/l.paepke/Downloads/UNO/target/classes/textures/texture.png
-9 Apr 2024 09:03:24 GMT [INFO]  Loading texture
-9 Apr 2024 09:03:24 GMT [INFO]  Loaded texture
-9 Apr 2024 09:03:24 GMT [INFO]  Textures loaded
-9 Apr 2024 09:03:24 GMT [INFO]  Loading Background
-9 Apr 2024 09:03:25 GMT [INFO]  Loaded Background
-9 Apr 2024 09:03:25 GMT [INFO]  texturepacks/test/textures/RED/ZERO.png
-9 Apr 2024 09:03:29 GMT [INFO]  Loading texturepack
-9 Apr 2024 09:03:29 GMT [INFO]  Loading texture
-9 Apr 2024 09:03:29 GMT [INFO]  Loaded texture
-9 Apr 2024 09:03:30 GMT [INFO]  /textures/YELLOW/CHANGE_COLOR.png
-9 Apr 2024 09:03:31 GMT [INFO]  /textures/RED/ZERO.png
-9 Apr 2024 09:03:34 GMT [INFO]  Loading texturepack
-9 Apr 2024 09:03:34 GMT [INFO]  Loading Background
-9 Apr 2024 09:03:34 GMT [INFO]  Loaded Background
-9 Apr 2024 09:03:36 GMT [INFO]  texturepacks/test/textures/RED/ONE.png
-9 Apr 2024 09:03:36 GMT [INFO]  D/ONE.png
-9 Apr 2024 09:03:36 GMT [INFO]  Couldnt read texturepacks/test/textures/RED/ONE.png
-9 Apr 2024 09:03:36 GMT [INFO]  texturepacks/test/textures/RED/ZERO.png
+10 Apr 2024 07:25:43 GMT [INFO]  Init complete
+10 Apr 2024 07:25:44 GMT [INFO]  file:/C:/Users/l.paepke/Downloads/UNO/target/classes/textures/texture.png
+10 Apr 2024 07:25:44 GMT [INF10 Apr 2024 07:25:49 GMT [INFO]  Waiting for connection...
+10 Apr 2024 07:25:49 GMT [INFO]  Client has connected /127.0.0.1
+10 Apr 2024 07:25:49 GMT [INFO]  Started Packet Listener
+10 Apr 2024 07:25:49 GMT [INFO]  Server v1.5.0-alpha.1
+10 Apr 2024 07:25:49 GMT [INFO]  Client v1.5.0-alpha.1
+10 Apr 2024 07:25:49 GMT [INFO]  Login success
+10 Apr 2024 07:25:51 GMT [INFO]  HUEDZ
+10 Apr 2024 07:25:54 GMT [INFO]  Starting gmae
+10 Apr 2024 07:25:54 GMT [INFO]  Game Start
+10 Apr 2024 07:25:54 GMT [INFO]  Send Game Start
+10 Apr 2024 07:25:54 GMT [INFO]  7 cards/player
+10 Apr 2024 07:25:55 GMT [INFO]  Halil placed card Card{color=BLUE, num=ZERO, overrideColor=null}
+10 Apr 2024 07:25:55 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:25:55 GMT [INFO]  Halil placed card Card{color=RED, num=ONE, overrideColor=null}
+10 Apr 2024 07:25:55 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:25:56 GMT [INFO]  Halil placed card Card{color=YELLOW, num=DRAW, overrideColor=null}
+10 Apr 2024 07:25:56 GMT [INFO]  Couldnt draw
+10 Apr 2024 07:25:56 GMT [INFO]  Halil placed card Card{color=GREEN, num=SIX, overrideColor=null}
+10 Apr 2024 07:25:56 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:25:56 GMT [INFO]  Halil placed card Card{color=YELLOW, num=THREE, overrideColor=null}
+10 Apr 2024 07:25:56 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:25:58 GMT [INFO]  Halil: UNO!
+10 Apr 2024 07:25:59 GMT [INFO]  Halil placed card Card{color=YELLOW, num=FOUR, overrideColor=null}
+10 Apr 2024 07:25:59 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:25:59 GMT [INFO]  Halil placed card Card{color=YELLOW, num=TWO, overrideColor=null}
+10 Apr 2024 07:25:59 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:25:59 GMT [INFO]  Halil has won
+10 Apr 2024 07:26:00 GMT [INFO]  Game end
+10 Apr 2024 07:26:00 GMT [INFO]  {"halil":{"password":"test","displayname":"Halil","plus-4-placed":1,"games-played":5,"games-won":5,"username":"halil"},"test":{"password":"test","displayname":"Test","plus-4-placed":0,"games-played":0,"games-won":0,"username":"test"},"lukas":{"password":"test","displayname":"Lukas","plus-4-placed":0,"games-played":0,"games-won":0,"username":"lukas"}}
+10 Apr 2024 07:26:04 GMT [INFO]  Player halil left lobby HUEDZ
+10 Apr 2024 07:26:04 GMT [INFO]  Removing lobby HUEDZ
+10 Apr 2024 07:26:05 GMT [INFO]  EOFException
+10 Apr 2024 07:26:05 GMT [INFO]  Reset unsuccesful
+10 Apr 2024 07:26:05 GMT [INFO]  Sender closed
+10 Apr 2024 07:26:14 GMT [INFO]  Waiting for connection...
+10 Apr 2024 07:26:14 GMT [INFO]  Client has connected /127.0.0.1
+10 Apr 2024 07:26:14 GMT [INFO]  Started Packet Listener
+10 Apr 2024 07:26:14 GMT [INFO]  Server v1.5.0-alpha.1
+10 Apr 2024 07:26:14 GMT [INFO]  Client v1.5.0-alpha.1
+10 Apr 2024 07:26:14 GMT [INFO]  Login success
+10 Apr 2024 07:26:17 GMT [INFO]  57WQ4
+10 Apr 2024 07:26:19 GMT [INFO]  Starting gmae
+10 Apr 2024 07:26:19 GMT [INFO]  Game Start
+10 Apr 2024 07:26:19 GMT [INFO]  Send Game Start
+10 Apr 2024 07:26:20 GMT [INFO]  7 cards/player
+10 Apr 2024 07:26:21 GMT [INFO]  Lukas placed card Card{color=YELLOW, num=REVERSE, overrideColor=null}
+10 Apr 2024 07:26:21 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:26:21 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:26:22 GMT [INFO]  Lukas placed card Card{color=BLUE, num=NINE, overrideColor=null}
+10 Apr 2024 07:26:22 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:26:23 GMT [INFO]  Lukas placed card Card{color=SPECIAL, num=CHANGE_COLOR, overrideColor=GREEN}
+10 Apr 2024 07:26:23 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:26:24 GMT [INFO]  Lukas placed card Card{color=RED, num=EIGHT, overrideColor=null}
+10 Apr 2024 07:26:24 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:26:24 GMT [INFO]  Lukas placed card Card{color=YELLOW, num=THREE, overrideColor=null}
+10 Apr 2024 07:26:24 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:26:27 GMT [INFO]  Lukas: UNO!
+10 Apr 2024 07:26:27 GMT [INFO]  Lukas placed card Card{color=YELLOW, num=TWO, overrideColor=null}
+10 Apr 2024 07:26:27 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:26:28 GMT [INFO]  Lukas placed card Card{color=RED, num=ONE, overrideColor=null}
+10 Apr 2024 07:26:28 GMT [INFO]  Checking invalid uno false
+10 Apr 2024 07:26:28 GMT [INFO]  Lukas has won
+10 Apr 2024 07:26:29 GMT [INFO]  Game end
+10 Apr 2024 07:26:29 GMT [INFO]  {"halil":{"password":"test","displayname":"Halil","plus-4-placed":1,"games-played":5,"games-won":5,"username":"halil"},"test":{"password":"test","displayname":"Test","plus-4-placed":0,"games-played":0,"games-won":0,"username":"test"},"lukas":{"password":"test","displayname":"Lukas","plus-4-placed":0,"games-played":1,"games-won":1,"username":"lukas"}}
+10 Apr 2024 07:26:45 GMT [INFO]  Player lukas left lobby 57WQ4
+10 Apr 2024 07:26:45 GMT [INFO]  Removing lobby 57WQ4
+10 Apr 2024 07:28:03 GMT [INFO]  EOFException
+10 Apr 2024 07:28:03 GMT [INFO]  Reset unsuccesful
+10 Apr 2024 07:28:03 GMT [INFO]  Sender closed
+extures/SPECIAL/CHANGE_COLOR.png
+10 Apr 2024 07:26:20 GMT [INFO]  /textures/SPECIAL/CHANGE_COLOR.png
+10 Apr 2024 07:26:20 GMT [INFO]  texturepacks/test
+10 Apr 2024 07:26:20 GMT [INFO]  texturepacks/test/textures/RED/EIGHT.png
+10 Apr 2024 07:26:20 GMT [INFO]  /textures/RED/EIGHT.png
+10 Apr 2024 07:26:20 GMT [INFO]  ProfilerUpdate{memoryUsage=17, cpuUsage=8.664683944543167}
+10 Apr 2024 07:26:21 GMT [INFO]  texturepacks/test
+10 Apr 2024 07:26:21 GMT [INFO]  texturepacks/test/textures/YELLOW/REVERSE.png
+10 Apr 2024 07:26:21 GMT [INFO]  /textures/YELLOW/REVERSE.png
+10 Apr 2024 07:26:22 GMT [INFO]  texturepacks/test
+10 Apr 2024 07:26:22 GMT [INFO]  texturepacks/test/textures/BLUE/NINE.png
+10 Apr 2024 07:26:22 GMT [INFO]  /textures/BLUE/NINE.png
+10 Apr 2024 07:26:22 GMT [INFO]  texturepacks/test
+10 Apr 2024 07:26:22 GMT [INFO]  texturepacks/test/textures/GREEN/ZERO.png
+10 Apr 2024 07:26:22 GMT [INFO]  /textures/GREEN/ZERO.png
+10 Apr 2024 07:26:22 GMT [INFO]  texturepacks/test
+10 Apr 2024 07:26:22 GMT [INFO]  texturepacks/test/textures/YELLOW/ZERO.png
+10 Apr 2024 07:26:22 GMT [INFO]  /textures/YELLOW/ZERO.png
+10 Apr 2024 07:26:23 GMT [INFO]  ProfilerUpdate{memoryUsage=37, cpuUsage=8.77844362355451}
+10 Apr 2024 07:26:23 GMT [INFO]  texturepacks/test
+10 Apr 2024 07:26:23 GMT [INFO]  texturepacks/test/textures/GREEN/CHANGE_COLOR.png
+10 Apr 2024 07:26:23 GMT [INFO]  /textures/GREEN/CHANGE_COLOR.png
+10 Apr 2024 07:26:24 GMT [INFO]  texturepacks/test
+10 Apr 2024 07:26:24 GMT [INFO]  texturepacks/test/textures/RED/EIGHT.png
+10 Apr 2024 07:26:24 GMT [INFO]  /textures/RED/EIGHT.png
+10 Apr 2024 07:26:26 GMT [INFO]  ProfilerUpdate{memoryUsage=14, cpuUsage=9.402578703595516}
+10 Apr 2024 07:26:29 GMT [INFO]  Game end
+10 Apr 2024 07:26:29 GMT [INFO]  ProfilerUpdate{memoryUsage=9, cpuUsage=9.260345498747876}
+10 Apr 2024 07:26:32 GMT [INFO]  ProfilerUpdate{memoryUsage=18, cpuUsage=8.637619962168275}
+10 Apr 2024 07:26:35 GMT [INFO]  ProfilerUpdate{memoryUsage=27, cpuUsage=8.629271764976853}
+10 Apr 2024 07:26:38 GMT [INFO]  ProfilerUpdate{memoryUsage=23, cpuUsage=8.429216593212004}
+10 Apr 2024 07:26:41 GMT [INFO]  ProfilerUpdate{memoryUsage=13, cpuUsage=7.77359239271522}
+10 Apr 2024 07:26:44 GMT [INFO]  ProfilerUpdate{memoryUsage=37, cpuUsage=8.518679315821633}
+10 Apr 2024 07:26:47 GMT [INFO]  ProfilerUpdate{memoryUsage=22, cpuUsage=8.43223866706293}
+10 Apr 2024 07:26:50 GMT [INFO]  ProfilerUpdate{memoryUsage=7, cpuUsage=8.698540658220493}
+10 Apr 2024 07:26:53 GMT [INFO]  ProfilerUpdate{memoryUsage=15, cpuUsage=8.32717360652245}
+10 Apr 2024 07:26:56 GMT [INFO]  ProfilerUpdate{memoryUsage=34, cpuUsage=8.506964861160112}
+10 Apr 2024 07:26:59 GMT [INFO]  ProfilerUpdate{memoryUsage=6, cpuUsage=8.325148325005133}
+10 Apr 2024 07:27:02 GMT [INFO]  ProfilerUpdate{memoryUsage=34, cpuUsage=8.480680624618063}
+10 Apr 2024 07:27:05 GMT [INFO]  ProfilerUpdate{memoryUsage=18, cpuUsage=8.273724731920563}
+10 Apr 2024 07:27:08 GMT [INFO]  ProfilerUpdate{memoryUsage=31, cpuUsage=9.062103046933442}
+10 Apr 2024 07:27:11 GMT [INFO]  ProfilerUpdate{memoryUsage=27, cpuUsage=8.717722399766838}
+10 Apr 2024 07:27:14 GMT [INFO]  ProfilerUpdate{memoryUsage=18, cpuUsage=8.349168270703682}
+10 Apr 2024 07:27:17 GMT [INFO]  ProfilerUpdate{memoryUsage=43, cpuUsage=9.01462633941121}
+10 Apr 2024 07:27:20 GMT [INFO]  ProfilerUpdate{memoryUsage=5, cpuUsage=8.606801752079246}
+10 Apr 2024 07:27:23 GMT [INFO]  ProfilerUpdate{memoryUsage=5, cpuUsage=8.706560014456445}
+10 Apr 2024 07:27:26 GMT [INFO]  ProfilerUpdate{memoryUsage=46, cpuUsage=8.327705747379447}
+10 Apr 2024 07:27:29 GMT [INFO]  ProfilerUpdate{memoryUsage=40, cpuUsage=8.455974928101986}
+10 Apr 2024 07:27:32 GMT [INFO]  ProfilerUpdate{memoryUsage=43, cpuUsage=8.657445370882522}
+10 Apr 2024 07:27:35 GMT [INFO]  ProfilerUpdate{memoryUsage=23, cpuUsage=8.356422836048585}
+10 Apr 2024 07:27:38 GMT [INFO]  ProfilerUpdate{memoryUsage=15, cpuUsage=9.121815376598285}
+10 Apr 2024 07:27:41 GMT [INFO]  ProfilerUpdate{memoryUsage=47, cpuUsage=8.677674222333673}
+10 Apr 2024 07:27:44 GMT [INFO]  ProfilerUpdate{memoryUsage=16, cpuUsage=8.31393747147488}
+10 Apr 2024 07:27:47 GMT [INFO]  ProfilerUpdate{memoryUsage=28, cpuUsage=8.62481957328197}
+10 Apr 2024 07:27:50 GMT [INFO]  ProfilerUpdate{memoryUsage=45, cpuUsage=8.840926200890674}
+10 Apr 2024 07:27:53 GMT [INFO]  ProfilerUpdate{memoryUsage=12, cpuUsage=8.876120299740121}
+10 Apr 2024 07:27:56 GMT [INFO]  ProfilerUpdate{memoryUsage=28, cpuUsage=8.660630908088407}
+10 Apr 2024 07:27:59 GMT [INFO]  ProfilerUpdate{memoryUsage=40, cpuUsage=8.388918689095552}
+10 Apr 2024 07:28:02 GMT [INFO]  ProfilerUpdate{memoryUsage=7, cpuUsage=8.842355931848497}
+10 Apr 2024 07:28:10 GMT [INFO]  Loading texturepack
+10 Apr 2024 07:28:10 GMT [INFO]  Loading texture
+10 Apr 2024 07:28:10 GMT [INFO]  Loaded texture

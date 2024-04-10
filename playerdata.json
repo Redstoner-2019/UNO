@@ -2,9 +2,9 @@
   "halil" : {
     "password" : "test",
     "displayname" : "Halil",
-    "plus-4-placed" : 0,
-    "games-played" : 0,
-    "games-won" : 0,
+    "plus-4-placed" : 1,
+    "games-played" : 5,
+    "games-won" : 5,
     "username" : "halil"
   },
   "test" : {
@@ -19,8 +19,8 @@
     "password" : "test",
     "displayname" : "Lukas",
     "plus-4-placed" : 0,
-    "games-played" : 0,
-    "games-won" : 0,
+    "games-played" : 1,
+    "games-won" : 1,
     "username" : "lukas"
   }
 }

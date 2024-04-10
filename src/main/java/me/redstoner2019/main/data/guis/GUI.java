@@ -329,6 +329,7 @@ public class GUI extends Client {
                         System.out.println("Loaded Background");
                         Util.writeStringToFile(Util.prettyJSON(packData.toString()),resourcePack);
                         texturePackLoadResult.setText("Success");
+                        clientData.put("texturepack",texturePack);
                         reloadTextures = true;
                     } else {
                         texturePackLoadResult.setText("Couldnt find texturepack");
@@ -342,7 +343,11 @@ public class GUI extends Client {
                     texturePackLoadResult.setText(ex.getLocalizedMessage());
                 }
 
-
+                try {
+                    Util.writeStringToFile(clientData.toString(),new File("client.properties"));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
             }
         });
 
@@ -543,6 +548,7 @@ public class GUI extends Client {
         JButton serverMainDisconnectButton = new JButton("DISCONNECT");
         JList<String> lobbies = new JList<>();
         JScrollPane lobbiesScrollPane = new JScrollPane(lobbies);
+        JLabel statsField = new JLabel();
 
         serverConnectedTo.setBounds(0,0,frame.getWidth(),50);
         joinLobby.setBounds((frame.getWidth()-400) / 2, 200, 400,40);
@@ -550,7 +556,8 @@ public class GUI extends Client {
         joinResult.setBounds((frame.getWidth()-800) / 2, 320, 800,40);
         createLobby.setBounds((frame.getWidth()-400) / 2, 380, 400,40);
         serverMainDisconnectButton.setBounds((frame.getWidth()-400) / 2, 440, 400,40);
-        lobbiesScrollPane.setBounds(0,0,200,frame.getHeight()-100);
+        lobbiesScrollPane.setBounds(50,50,300,frame.getHeight()-150);
+        statsField.setBounds(frame.getWidth()-350,50,400,frame.getHeight()-150);
 
         serverConnectedTo.setFont(new Font("Arial", Font.BOLD,40));
         joinLobby.setFont(new Font("Arial", Font.BOLD,30));
@@ -558,6 +565,8 @@ public class GUI extends Client {
         joinResult.setFont(new Font("Arial", Font.BOLD,30));
         createLobby.setFont(new Font("Arial", Font.BOLD,30));
         serverMainDisconnectButton.setFont(new Font("Arial", Font.BOLD,30));
+        lobbies.setFont(new Font("Arial", Font.BOLD,20));
+        statsField.setFont(new Font("Arial", Font.BOLD,30));
 
         serverConnectedTo.setHorizontalAlignment(JLabel.CENTER);
         serverConnectedTo.setVerticalAlignment(JLabel.CENTER);
@@ -634,6 +643,7 @@ public class GUI extends Client {
         panel.add(codeField);
         panel.add(serverMainDisconnectButton);
         panel.add(lobbiesScrollPane);
+        panel.add(statsField);
         loadingGUI[0].increaseValue();
 
         /**
@@ -1089,7 +1099,7 @@ public class GUI extends Client {
                             break;
                         }
                         case "server-main": {
-                            List<Component> components = List.of(serverConnectedTo,joinLobby,joinResult,createLobby,codeField,serverMainDisconnectButton,lobbiesScrollPane);
+                            List<Component> components = List.of(statsField,serverConnectedTo,joinLobby,joinResult,createLobby,codeField,serverMainDisconnectButton,lobbiesScrollPane);
                             serverConnectedTo.setText("Server connected to: " + serversJList.getSelectedValue());
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
@@ -1378,6 +1388,10 @@ public class GUI extends Client {
                         disconnect();
                         return;
                     }
+                    if(packet instanceof StatsPacket p){
+                        String stats = "<html>Games Played: " + p.getGamesPlayed() + "<br>Games Lost: " + (p.getGamesPlayed()-p.getGamesWon()) + "<br>Games Won: " + p.getGamesWon() + "<br>+4 Placed: " + p.getPlaced4() + "</html>";
+                        statsField.setText(stats);
+                    }
                     if(packet instanceof LoginSuccessPacket){
                         gui = "server-main";
                     }
@@ -1533,6 +1547,8 @@ public class GUI extends Client {
         }
         String filename = "" + customTexture;
 
+        System.out.println(customTexture);
+
         if(c.getColor().equals(SPECIAL) && c.getOverrideColor() == null){
             filename += "/textures/SPECIAL/" + c.getNum() + ".png";
         } else if (c.getColor().equals(SPECIAL) && c.getOverrideColor() != null){
@@ -1549,18 +1565,19 @@ public class GUI extends Client {
                 buffer.put(c.getExact() + "-" + customTexture, finalImage);
                 return finalImage;
             } else if(!new File(filename).exists()){
-                System.out.println(filename.substring(("texturepacks" + customTexture).length()));
-                BufferedImage finalImage = ImageIO.read(GUI.class.getResource(filename.substring(("texturepacks" + customTexture).length())));
+                System.out.println(filename.substring((customTexture).length()));
+                BufferedImage finalImage = ImageIO.read(GUI.class.getResource(filename.substring((customTexture).length())));
                 buffer.put(c.getExact() + "-" + customTexture, finalImage);
                 return finalImage;
             }else {
                 BufferedImage finalImage = ImageIO.read(new File(filename));
                 buffer.put(c.getExact() + "-" + customTexture, finalImage);
-                return finalImage;
+                return Util.resize(finalImage,128,192);
             }
         } catch (Exception e) {
             System.out.println("Couldnt read " + filename);
         }
+        System.out.println("Default path " + filename.substring((customTexture).length()));
         return cards.getSubimage(0,0,128,192);
     }
     public static BufferedImage toGrayscale(BufferedImage image, float grayscaleFactor) {

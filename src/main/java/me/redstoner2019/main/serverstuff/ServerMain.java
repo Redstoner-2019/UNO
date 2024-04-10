@@ -149,6 +149,7 @@ public class ServerMain extends Server {
                                 i++;
                             }
                             handler.sendObject(new LobbiesPacket(lobbies));
+                            handler.sendObject(new StatsPacket(player.getUserdata().getGamesPlayed(),player.getUserdata().getGamesWon(),player.getUserdata().getPlus4Placed()));
                         }
                         if(packet instanceof Ping){
                             handler.sendObject(packet);

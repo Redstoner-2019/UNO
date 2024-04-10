@@ -1,6 +1,7 @@
 package me.redstoner2019.main.data;
 
 import me.redstoner2019.main.data.packets.gamepackets.*;
+import me.redstoner2019.main.data.packets.lobbypackets.StatsPacket;
 import me.redstoner2019.main.data.packets.loginpackets.Ping;
 import me.redstoner2019.main.serverstuff.ServerMain;
 import me.redstoner2019.serverhandling.Packet;
@@ -21,6 +22,7 @@ public class Game {
     private String winner;
     private List<String> leaderboard;
     private Queue<Card> DECK;
+    private HashMap<String, Integer> cardsPlaced = new HashMap<>();
 
     public boolean isRunning() {
         return running;
@@ -231,6 +233,7 @@ public class Game {
                             System.out.println(player.getDisplayName() + " placed card " + p.getCard());
                             if(lastCardPlaced.canBePlayed(p.getCard())){
                                 DECK.add(lastCardPlaced);
+                                cardsPlaced.put(player.getUsername(),cardsPlaced.getOrDefault(player.getUsername(),0)+1);
                                 lastCardPlaced = p.getCard();
                                 player.removeCard(p.getCard());
                                 if(player.getCards().size() == 1 && !player.isUNO()){
@@ -241,6 +244,7 @@ public class Game {
                                 if(player.getCards().size() == 1) player.setUNO(false);
                                 if(lastCardPlaced.getOverrideColor() == null) lastCardPlaced.setOverrideColor(CardColor.RED);
                                 if(lastCardPlaced.getNum().equals(CardType.PLUS_4)){
+                                    player.getUserdata().setPlus4Placed(player.getUserdata().getPlus4Placed()+1);
                                     if(!(players.size() > 1)) {
                                         System.out.println("Couldnt draw");
                                         continue;
@@ -307,6 +311,7 @@ public class Game {
                             if(p.getCards().isEmpty()){
                                 gameRunning = false;
                                 winner = p.getDisplayName();
+                                p.getUserdata().setGamesWon(p.getUserdata().getGamesWon()+1);
                                 players.sort(new Comparator<Player>() {
                                     @Override
                                     public int compare(Player o1, Player o2) {
@@ -316,7 +321,7 @@ public class Game {
                                 int place = 1;
                                 leaderboard = new ArrayList<>();
                                 for(Player pl : players){
-                                    leaderboard.add(place + ". " + pl.getDisplayName() + " -> " + pl.getCards().size() + " cards left");
+                                    leaderboard.add(place + ". " + pl.getDisplayName() + " -> " + pl.getCards().size() + " cards left, " + cardsPlaced.get(pl.getUsername()) + " cards placed");
                                     place++;
                                 }
                                 System.out.println(p.getDisplayName() + " has won");
@@ -341,7 +346,10 @@ public class Game {
                  */
                 System.out.println("Game end");
                 for(Player p : players){
+                    p.getUserdata().setGamesPlayed(p.getUserdata().getGamesPlayed()+1);
                     p.getHandler().sendObject(new GameEndPacket(winner, leaderboard));
+                    p.getHandler().sendObject(new StatsPacket(p.getUserdata().getGamesPlayed(),p.getUserdata().getGamesWon(),p.getUserdata().getPlus4Placed()));
+                    p.save();
                     p.getCards().clear();
                 }
                 running = false;
