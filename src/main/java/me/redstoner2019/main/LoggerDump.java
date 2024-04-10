@@ -1,5 +1,9 @@
 package me.redstoner2019.main;
 
+import me.redstoner2019.main.data.packets.remoteconsole.NewConsoleLinePacket;
+import me.redstoner2019.main.serverstuff.ServerMain;
+import me.redstoner2019.serverhandling.ClientHandler;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.util.Arrays;
@@ -139,6 +143,12 @@ class DoubleWriteStream extends PrintStream {
             p2.println(x);
         }
         lastMessage = x;
+        for(ClientHandler h : ServerMain.consoleClients){
+            if(!h.isConnected()){
+                continue;
+            }
+            h.sendObject(new NewConsoleLinePacket(new Date().toGMTString() + " " + prefix + " " + x));
+        }
     }
 
     @Override

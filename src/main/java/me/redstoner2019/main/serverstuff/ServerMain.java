@@ -11,6 +11,8 @@ import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.generalpackets.ProfilerUpdate;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.*;
+import me.redstoner2019.main.data.packets.remoteconsole.InitializeConsoleClientPacket;
+import me.redstoner2019.main.data.packets.remoteconsole.RunCommandPacket;
 import me.redstoner2019.serverhandling.*;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
@@ -31,6 +33,7 @@ public class ServerMain extends Server {
     public static List<Player> players = new ArrayList<>();
     public static int packetsSent = 0;
     public static int packetsrecieved = 0;
+    public static List<ClientHandler> consoleClients = new ArrayList<>();
     public static void main(String[] args) throws Exception {
         boolean nogui = args.length > 0 && args[0].equals("nogui");
         osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
@@ -43,6 +46,7 @@ public class ServerMain extends Server {
         setClientConnectEvent(new ClientConnectEvent() {
             @Override
             public void connectEvent(ClientHandler handler) throws Exception {
+                final boolean[] consoleClient = {false};
                 System.out.println("Client has connected " + handler.getSocket().getInetAddress());
                 Player player = new Player();
                 handler.startPacketSender();
@@ -58,6 +62,16 @@ public class ServerMain extends Server {
                             handler.sendObject(new DisconnectPacket("Invalid Version. \nServer " + Main.getVersion() + "\nClient " + ((Packet) packet).getVersion(),401));
                             return;
                         }
+                        if(packet instanceof RunCommandPacket p){
+                            /**
+                             * TODO: Implement commands
+                             */
+                        }
+                        if(packet instanceof InitializeConsoleClientPacket){
+                            consoleClients.add(handler);
+                            consoleClient[0] = true;
+                        }
+                        if(consoleClient[0]) return;
                         if(packet instanceof LoginPacket p){
                             if(player.isLoggedIn()) return;
                             System.out.println("Server " + Main.getVersion());
@@ -71,6 +85,7 @@ public class ServerMain extends Server {
                             if(userdata == null){
                                 System.out.println("Account doesnt exist");
                                 handler.sendObject(new DisconnectPacket("Account doesnt exist",404));
+                                return;
                             } else {
                                 if(!userdata.getPassword().equals(password)){
                                     System.out.println("Incorrect password");

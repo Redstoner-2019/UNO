@@ -10,6 +10,7 @@ import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.generalpackets.ProfilerUpdate;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
 import me.redstoner2019.main.data.packets.loginpackets.*;
+import me.redstoner2019.main.data.packets.remoteconsole.NewConsoleLinePacket;
 import me.redstoner2019.serverhandling.*;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -1472,14 +1473,15 @@ public class GUI extends Client {
                     }
                     if(packet instanceof LobbiesPacket p){
                         lobbies.setListData(p.getLobbies());
-                        System.out.println(Arrays.toString(p.getLobbies()));
                     }
                     if(packet instanceof GameStartPacket p){
-                        System.out.println("Game start");
                         gui = "game-main";
                     }
                     if(packet instanceof ProfilerUpdate p){
-                        System.out.println(p);
+                        //System.out.println(p);
+                    }
+                    if(packet instanceof NewConsoleLinePacket p){
+                        System.out.println("[Server Console]" + p);
                     }
                     if(packet instanceof GameEndPacket p){
                         System.out.println("Game end");
@@ -1552,8 +1554,6 @@ public class GUI extends Client {
         }
         String filename = "" + customTexture;
 
-        System.out.println(customTexture);
-
         if(c.getColor().equals(SPECIAL) && c.getOverrideColor() == null){
             filename += "/textures/SPECIAL/" + c.getNum() + ".png";
         } else if (c.getColor().equals(SPECIAL) && c.getOverrideColor() != null){
@@ -1563,14 +1563,12 @@ public class GUI extends Client {
         } else {
             System.out.println("Broken Card " + c);
         }
-        System.out.println(filename);
         try {
             if(customTexture.isEmpty()) {
                 BufferedImage finalImage = ImageIO.read(GUI.class.getResource(filename));
                 buffer.put(c.getExact() + "-" + customTexture, finalImage);
                 return finalImage;
             } else if(!new File(filename).exists()){
-                System.out.println(filename.substring((customTexture).length()));
                 BufferedImage finalImage = ImageIO.read(GUI.class.getResource(filename.substring((customTexture).length())));
                 buffer.put(c.getExact() + "-" + customTexture, finalImage);
                 return finalImage;
@@ -1582,7 +1580,6 @@ public class GUI extends Client {
         } catch (Exception e) {
             System.out.println("Couldnt read " + filename);
         }
-        System.out.println("Default path " + filename.substring((customTexture).length()));
         return cards.getSubimage(0,0,128,192);
     }
     public static BufferedImage toGrayscale(BufferedImage image, float grayscaleFactor) {

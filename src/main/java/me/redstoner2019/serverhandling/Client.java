@@ -73,7 +73,7 @@ public class Client {
                         } catch (SocketException ignored){
                             System.err.println("Socket not connected");
                             System.err.println(ignored.getLocalizedMessage());
-                            connectionLostEvent.onConnectionLostEvent(ignored.getLocalizedMessage());
+                            if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent(ignored.getLocalizedMessage());
                             break;
                         } catch (EOFException ignored){
                             //System.err.println("EOFException");
@@ -145,6 +145,8 @@ public class Client {
                             out.writeObject(o);
                             out.flush();
                             packetsSent++;
+                        } catch (SocketException ignored){
+
                         } catch (IOException e) {
                             e.printStackTrace();
                         }

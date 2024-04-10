@@ -230,8 +230,8 @@ public class Game {
                                 System.out.println(player.getUsername() + " does not have card " + p.getCard());
                                 continue;
                             }
-                            System.out.println(player.getDisplayName() + " placed card " + p.getCard());
                             if(lastCardPlaced.canBePlayed(p.getCard())){
+                                System.out.println(player.getDisplayName() + " placed card " + p.getCard());
                                 DECK.add(lastCardPlaced);
                                 cardsPlaced.put(player.getUsername(),cardsPlaced.getOrDefault(player.getUsername(),0)+1);
                                 lastCardPlaced = p.getCard();
@@ -335,6 +335,7 @@ public class Game {
                         System.out.println("Removing player(s) " + toRemove);
                     }
                     players.removeAll(toRemove);
+                    cardsPlaced = new HashMap<>();
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
@@ -371,12 +372,10 @@ public class Game {
     }
     private void nextPlayer(){
         Player tempPlayer = players.get(0);
-        System.out.println("Checking invalid uno " + tempPlayer.isUNO());
         if(tempPlayer.isUNO()){
             tempPlayer.addCard(DECK.poll());
             tempPlayer.addCard(DECK.poll());
             tempPlayer.setUNO(false);
-            System.out.println(tempPlayer.getUsername() + " - invalid UNO, drawn +2 Cards");
         }
         tempPlayer.setCanDraw(false);
         tempPlayer.setCanSkip(false);
