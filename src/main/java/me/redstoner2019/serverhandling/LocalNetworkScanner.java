@@ -11,7 +11,7 @@ public class LocalNetworkScanner {
     private static final int TIMEOUT = 100;
     private static final Object LOCK = new Object();
 
-    public static void scan(List<String> serverList) throws IOException {
+    public static void scan(List<String> serverList, int port) throws IOException {
         //List<String> serverList = new ArrayList<>();
         serverList.clear();
         System.out.println(InetAddress.getLocalHost().getHostAddress().replace(".", "-"));
@@ -28,7 +28,7 @@ public class LocalNetworkScanner {
                         threadsStarted[0]++;
                         String ip = ipArr[0] + "." + ipArr[1] + "." + ipArr[2] + "." + finalI;
                         //System.out.println("Scanning " + ip);
-                        if (isReachable(ip) && isOpen(ip, PORT)) {
+                        if (isReachable(ip) && isOpen(ip, port)) {
                             serverList.add(ip);
                         }
                         ipsScanned[0]++;

@@ -34,6 +34,11 @@ public class ServerMain extends Server {
     public static void main(String[] args) throws Exception {
         boolean nogui = args.length > 0 && args[0].equals("nogui");
         osBean = ManagementFactory.getPlatformMXBean(OperatingSystemMXBean.class);
+        String latestVersion = Main.getLatestVersion();
+        if(!latestVersion.equals(Main.getVersion())){
+            System.err.println("Newer Version on github: " + latestVersion + " > " + Main.getVersion());
+            System.err.println("Download at https://github.com/Redstoner-2019/UNO/releases/tag/"+latestVersion);
+        }
         LoggerDump.initialize();
         setClientConnectEvent(new ClientConnectEvent() {
             @Override

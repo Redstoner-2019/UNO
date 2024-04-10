@@ -163,8 +163,13 @@ public class GUI extends Client {
         JButton mainMenuPlayButton = new JButton("PLAY");
         JButton mainMenuSettingsButton = new JButton("SETTINGS");
 
+        String latestVersion = Main.getLatestVersion();
+        if(!latestVersion.equals(Main.getVersion())){
+            mainMenuSubTitleLabel.setText(mainMenuSubTitleLabel.getText() + " (Latest on github " + latestVersion + ")");
+        }
+
         mainMenuTitleLabel.setBounds((frame.getWidth()-400)/2,30,400,80);
-        mainMenuSubTitleLabel.setBounds((frame.getWidth()-300)/2,100,300,50);
+        mainMenuSubTitleLabel.setBounds((frame.getWidth()-800)/2,100,800,50);
         mainMenuPlayButton.setBounds(frame.getWidth()-500,300,300,80);
         mainMenuSettingsButton.setBounds(200,300,300,80);
 
@@ -480,7 +485,7 @@ public class GUI extends Client {
             public void actionPerformed(ActionEvent e) {
                 List<String> addresses = new ArrayList<>();
                 try {
-                    LocalNetworkScanner.scan(addresses);
+                    LocalNetworkScanner.scan(addresses,8008);
                 } catch (IOException ex) {
                     throw new RuntimeException(ex);
                 }

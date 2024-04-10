@@ -7,10 +7,8 @@ import me.redstoner2019.main.serverstuff.ServerMain;
 import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Queue;
 
 public class ClientHandler {
     private ObjectInputStream in;

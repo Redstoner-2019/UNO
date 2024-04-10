@@ -6,19 +6,28 @@ import me.redstoner2019.main.data.CardType;
 import me.redstoner2019.main.data.guis.GUI;
 import me.redstoner2019.main.serverstuff.ServerMain;
 import me.redstoner2019.serverhandling.Util;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.util.HashMap;
+import java.util.List;
 
 import static me.redstoner2019.main.data.CardColor.*;
 
 public class Main {
     public static final boolean TEST_MODE = false;
-    private static final String VERSION = "v1.5.0";
+    private static final String VERSION = "v1.5.1";
     public static String username = "";
     public static String password = "";
     public static String packVersion = "1";
@@ -29,6 +38,27 @@ public class Main {
         return VERSION;
     }
     static BufferedImage cards;
+    public static String getLatestVersion() throws IOException {
+        String repoOwner = "Redstoner-2019";
+        String repoName = "UNO";
+
+        URL url = new URL("https://api.github.com/repos/" + repoOwner + "/" + repoName + "/tags");
+        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Accept", "application/vnd.github+json");
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+        StringBuilder stringBuilder = new StringBuilder();
+        String line;
+        while ((line = reader.readLine()) != null) {
+            stringBuilder.append(line);
+        }
+        reader.close();
+
+        JSONArray tags = new JSONArray(stringBuilder.toString());
+
+        return tags.getJSONObject(0).getString("name");
+    }
     public static void main(String[] args) throws Exception {
         if(args.length == 3){
             if(args[0].equals("client")) {
@@ -183,5 +213,23 @@ public class Main {
         }
         return subImage;
         //return cards.getSubimage(x0 + (cWidth * number),y0 + (cHeight * color),cWidth,cHeight);
+    }
+    private static int compareVersions(String version1, String version2) {
+        /*String[] parts1 = version1.split("\\.");
+        String[] parts2 = version2.split("\\.");
+
+        int length = Math.max(parts1.length, parts2.length);
+        for (int i = 0; i < length; i++) {
+            int num1 = i < parts1.length ? Integer.parseInt(parts1[i]) : 0;
+            int num2 = i < parts2.length ? Integer.parseInt(parts2[i]) : 0;
+
+            if (num1 < num2) {
+                return -1;
+            } else if (num1 > num2) {
+                return 1;
+            }
+        }*/
+
+        return 0;
     }
 }

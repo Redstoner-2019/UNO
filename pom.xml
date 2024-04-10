@@ -29,6 +29,7 @@
             <artifactId>jfreechart</artifactId>
             <version>1.5.3</version>
         </dependency>
+        <!-- https://mvnrepository.com/artifact/org.eclipse.jgit/org.eclipse.jgit -->
     </dependencies>
 
 </project>
