@@ -29,3 +29,9 @@ ted Packet Listener
 10 Apr 2024 12:15:03 GMT [INFO]  Lukas has won
 10 Apr 2024 12:15:03 GMT [INFO]  Game end
 10 Apr 2024 12:15:03 GMT [INFO]  {"halil":{"password":"test","displayname":"Halil","plus-4-placed":1,"games-played":6,"games-won":5,"username":"halil"},"Halil":{"password":"test","displayname":"HaLuLzEn","plus-4-placed":1,"games-played":2,"games-won":2,"username":"Halil"},"test":{"password":"test","displayname":"Test","plus-4-placed":0,"games-played":0,"games-won":0,"username":"test"},"lukas":{"password":"test","displayname":"Lukas","plus-4-placed":2,"games-played":6,"games-won":4,"username":"lukas"},"Marcel":{"password":"1234","displayname":"Marcel","plus-4-placed":1,"games-played":1,"games-won":0,"username":"Marcel"}}
+10 Apr 2024 12:19:10 GMT [INFO]  Connection reset
+10 Apr 2024 12:19:10 GMT [INFO]  Client disconnected
+10 Apr 2024 12:19:10 GMT [INFO]  Sender closed
+10 Apr 2024 12:19:11 GMT [INFO]  Connection reset
+10 Apr 2024 12:19:11 GMT [INFO]  Client disconnected
+10 Apr 2024 12:19:11 GMT [INFO]  Sender closed
