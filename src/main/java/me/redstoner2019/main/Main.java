@@ -27,7 +27,7 @@ import static me.redstoner2019.main.data.CardColor.*;
 
 public class Main {
     public static final boolean TEST_MODE = false;
-    private static final String VERSION = "v1.5.2";
+    private static final String VERSION = "v1.5.3";
     public static String username = "";
     public static String password = "";
     public static String packVersion = "1";

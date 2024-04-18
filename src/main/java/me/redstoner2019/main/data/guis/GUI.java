@@ -35,6 +35,8 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.text.NumberFormat;
 import java.util.*;
 import java.util.List;
@@ -200,6 +202,19 @@ public class GUI extends Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gui = "server-selector";
+            }
+        });
+
+        mainMenuSubTitleLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (Desktop.isDesktopSupported()) {
+                    try {
+                        Desktop.getDesktop().browse(new URI("https://github.com/Redstoner-2019/UNO/releases/tag/" + latestVersion));
+                    } catch (IOException | URISyntaxException ex) {
+                        ex.printStackTrace();
+                    }
+                }
             }
         });
         loadingGUI[0].increaseValue();
@@ -666,6 +681,7 @@ public class GUI extends Client {
         JCheckBox lobbyStacking = new JCheckBox("Stacking");
         JCheckBox lobbySevenSwap = new JCheckBox("Seven Swap");
         JCheckBox lobbyJumpIn = new JCheckBox("Jump-In");
+        JCheckBox lobbyIngameChat = new JCheckBox("Chat");
 
         lobbyStacking.setOpaque(true);
 
@@ -678,13 +694,14 @@ public class GUI extends Client {
         lobbyCode.setBounds(0,10,frame.getWidth(),40);
         lobbyPlayersScrollPane.setBounds(50,50,(frame.getWidth()/2)-50,frame.getHeight()-140);
         lobbyStart.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-140,400,50);
-        leaveLobby.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-220,400,50);
+        leaveLobby.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-210,400,50);
         lobbySettingsLabel.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-620,400,50);
         lobbyCardsPerPlayer.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-540,400,50);
         lobbyDecks.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-480,400,50);
-        lobbyStacking.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-420,400,50);
-        lobbySevenSwap.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-360,400,50);
-        lobbyJumpIn.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-310,400,50);
+        lobbyStacking.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-430,400,50);
+        lobbySevenSwap.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-380,400,50);
+        lobbyJumpIn.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-330,400,50);
+        lobbyIngameChat.setBounds((frame.getWidth()/2) + 100,frame.getHeight()-280,400,50);
 
         lobbyCode.setFont(new Font("Arial", Font.BOLD,30));
         lobbyPlayers.setFont(new Font("Arial", Font.BOLD,30));
@@ -694,6 +711,7 @@ public class GUI extends Client {
         lobbyStacking.setFont(new Font("Arial", Font.BOLD,30));
         lobbySevenSwap.setFont(new Font("Arial", Font.BOLD,30));
         lobbyJumpIn.setFont(new Font("Arial", Font.BOLD,30));
+        lobbyIngameChat.setFont(new Font("Arial", Font.BOLD,30));
 
         Font font = lobbySettingsLabel.getFont();
         Map attributes = font.getAttributes();
@@ -720,14 +738,6 @@ public class GUI extends Client {
             }
         });
 
-        /*lobbyDecks.addPropertyChangeListener(new PropertyChangeListener() {
-            @Override
-            public void propertyChange(PropertyChangeEvent evt) {
-                System.out.println("Test");
-                //sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
-            }
-        });*/
-
         panel.add(lobbyCode);
         panel.add(lobbyPlayersScrollPane);
         panel.add(lobbyStart);
@@ -738,6 +748,7 @@ public class GUI extends Client {
         panel.add(lobbySevenSwap);
         panel.add(lobbyJumpIn);
         panel.add(leaveLobby);
+        panel.add(lobbyIngameChat);
         loadingGUI[0].increaseValue();
 
         /**
@@ -887,7 +898,7 @@ public class GUI extends Client {
             @Override
             public void actionPerformed(ActionEvent e) {
                 gui = "game-lobby";
-                sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
+                sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected(),lobbyIngameChat.isSelected()));
             }
         });
         draw.add(backButton);
@@ -1120,7 +1131,7 @@ public class GUI extends Client {
                             break;
                         }
                         case "game-lobby": {
-                            List<Component> components = List.of(lobbyDecks,lobbyStacking,lobbySevenSwap,lobbyJumpIn,lobbyCardsPerPlayer,lobbySettingsLabel,lobbyCode,lobbyPlayersScrollPane,lobbyStart,leaveLobby);
+                            List<Component> components = List.of(lobbyDecks,lobbyStacking,lobbySevenSwap,lobbyJumpIn,lobbyCardsPerPlayer,lobbySettingsLabel,lobbyCode,lobbyPlayersScrollPane,lobbyStart,leaveLobby,lobbyIngameChat);
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
@@ -1412,6 +1423,7 @@ public class GUI extends Client {
                         }
                     }
                     if(packet instanceof LobbyInfoPacket p){
+                        System.out.println(p);
                         try{
                             gui = "game-lobby";
                             lobbyCode.setText("Lobby: " + p.getCode());
@@ -1426,28 +1438,32 @@ public class GUI extends Client {
 
                             lobbyCardsPerPlayer.setEditable(p.isOwner());
                             lobbyDecks.setEditable(p.isOwner());
-                        /*lobbyStacking.setEnabled(p.isOwner());
-                        lobbySevenSwap.setEnabled(p.isOwner());
-                        lobbyJumpIn.setEnabled(p.isOwner());*/
 
-                            lobbyStacking.setEnabled(false);
+                            lobbyStacking.setEnabled(p.isOwner());
+                            lobbySevenSwap.setEnabled(p.isOwner());
+                            lobbyJumpIn.setEnabled(p.isOwner());
+                            lobbyIngameChat.setEnabled(p.isOwner());
+
+                            /*lobbyStacking.setEnabled(false);
                             lobbySevenSwap.setEnabled(false);
                             lobbyJumpIn.setEnabled(false);
+                            lobbyIngameChat.setEnabled(false);*/
 
 
 
                             if(!p.isOwner()) lobbyCardsPerPlayer.setText(p.getCardsPerPlayer() + "");
                             if(!p.isOwner()) lobbyDecks.setText(p.getDecks() + "");
-                            //if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
-                            //if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
-                            //if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
+                            if(!p.isOwner()) lobbyStacking.setSelected(p.isStacking());
+                            if(!p.isOwner()) lobbySevenSwap.setSelected(p.isSevenSwap());
+                            if(!p.isOwner()) lobbyJumpIn.setSelected(p.isJumpIn());
+                            if(!p.isOwner()) lobbyIngameChat.setSelected(p.isChat());
 
                             Thread.sleep(100);
                             if(p.isOwner()){
-                                sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));
+                                sendObject(new UpdateLobbyPacket(Integer.parseInt(lobbyCardsPerPlayer.getText()),Integer.parseInt(lobbyDecks.getText()), lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected(),lobbyIngameChat.isSelected()));
                             } /*else sendObject(new UpdateLobbyPacket(0,0, lobbyStacking.isSelected(), lobbySevenSwap.isSelected(), lobbyJumpIn.isSelected()));*/
                         }catch (Exception e){
-                            sendObject(new UpdateLobbyPacket(7,2, false, false, false));
+                            sendObject(new UpdateLobbyPacket(7,2, false, false, false,false));
                             //e.printStackTrace();
                         }
 

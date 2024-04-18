@@ -1,37 +1,14 @@
-10 Apr 2024 12:13:48 GMT [INFO]  Init complete
-10 Apr 2024 12:13:48 GMT [INFO]  Starting Server on Port 172.20.150.45:8008
-10 Apr 2024 12:13:48 GMT [INFO]  Waiting for connection...
-10 Apr 2024 12:14:23 GMT [INFO]  Waiting for connection...
-10 Apr 2024 12:14:23 GMT [INFO]  Client has connected /127.010 Apr 2024 12:15:03 GMT [INFO]  Game end
-ted Packet Listener
-10 Apr 2024 12:14:23 GMT [INFO]  Server v1.5.2
-10 Apr 2024 12:14:23 GMT [INFO]  Client v1.5.2
-10 Apr 2024 12:14:23 GMT [INFO]  Login success
-10 Apr 2024 12:14:28 GMT [INFO]  Waiting for connection...
-10 Apr 2024 12:14:28 GMT [INFO]  Client has connected /127.0.0.1
-10 Apr 2024 12:14:28 GMT [INFO]  Started Packet Listener
-10 Apr 2024 12:14:33 GMT [INFO]  1BRW5
-10 Apr 2024 12:14:35 GMT [INFO]  Starting gmae
-10 Apr 2024 12:14:35 GMT [INFO]  Game Start
-10 Apr 2024 12:14:35 GMT [INFO]  Send Game Start
-10 Apr 2024 12:14:35 GMT [INFO]  7 cards/player
-10 Apr 2024 12:14:43 GMT [INFO]  Lukas placed card Card{color=GREEN, num=EIGHT, overrideColor=null}
-10 Apr 2024 12:14:50 GMT [INFO]  Lukas placed card Card{color=SPECIAL, num=CHANGE_COLOR, overrideColor=YELLOW}
-10 Apr 2024 12:14:50 GMT [INFO]  Lukas placed card Card{color=YELLOW, num=TWO, overrideColor=null}
-10 Apr 2024 12:14:51 GMT [INFO]  Lukas placed card Card{color=YELLOW, num=THREE, overrideColor=null}
-10 Apr 2024 12:14:52 GMT [INFO]  Lukas placed card Card{color=RED, num=THREE, overrideColor=null}
-10 Apr 2024 12:14:53 GMT [INFO]  Lukas placed card Card{color=RED, num=SIX, overrideColor=null}
-10 Apr 2024 12:14:53 GMT [INFO]  lukas forgot to say UNO
-10 Apr 2024 12:14:58 GMT [INFO]  Lukas placed card Card{color=RED, num=SKIP, overrideColor=null}
-10 Apr 2024 12:14:59 GMT [INFO]  Lukas: UNO!
-10 Apr 2024 12:15:02 GMT [INFO]  Lukas placed card Card{color=SPECIAL, num=CHANGE_COLOR, overrideColor=BLUE}
-10 Apr 2024 12:15:03 GMT [INFO]  Lukas placed card Card{color=BLUE, num=REVERSE, overrideColor=null}
-10 Apr 2024 12:15:03 GMT [INFO]  Lukas has won
-10 Apr 2024 12:15:03 GMT [INFO]  Game end
-10 Apr 2024 12:15:03 GMT [INFO]  {"halil":{"password":"test","displayname":"Halil","plus-4-placed":1,"games-played":6,"games-won":5,"username":"halil"},"Halil":{"password":"test","displayname":"HaLuLzEn","plus-4-placed":1,"games-played":2,"games-won":2,"username":"Halil"},"test":{"password":"test","displayname":"Test","plus-4-placed":0,"games-played":0,"games-won":0,"username":"test"},"lukas":{"password":"test","displayname":"Lukas","plus-4-placed":2,"games-played":6,"games-won":4,"username":"lukas"},"Marcel":{"password":"1234","displayname":"Marcel","plus-4-placed":1,"games-played":1,"games-won":0,"username":"Marcel"}}
-10 Apr 2024 12:19:10 GMT [INFO]  Connection reset
-10 Apr 2024 12:19:10 GMT [INFO]  Client disconnected
-10 Apr 2024 12:19:10 GMT [INFO]  Sender closed
-10 Apr 2024 12:19:11 GMT [INFO]  Connection reset
-10 Apr 2024 12:19:11 GMT [INFO]  Client disconnected
-10 Apr 2024 12:19:11 GMT [INFO]  Sender closed
+11 Apr 2024 12:10:35 GMT [INFO]  Init complete
+11 Apr 2024 12:10:35 GMT [INFO]  file:/C:/Projects/UNO/target/classes/textures/texture.png
+11 Apr 2024 12:10:36 GMT [INFO]  Loading textu11 Apr 2024 12:10:42 GMT [INFO]  New Client 127.0.0.1 has connected
+11 Apr 2024 12:10:42 GMT [INFO]  Waiting for connection...
+11 Apr 2024 12:10:42 GMT [INFO]  Client has connected /127.0.0.1
+11 Apr 2024 12:10:42 GMT [INFO]  Started Packet Listener
+11 Apr 2024 12:10:42 GMT [INFO]  Server v1.5.3
+11 Apr 2024 12:10:42 GMT [INFO]  Client v1.5.3
+11 Apr 2024 12:10:42 GMT [INFO]  Login success
+11 Apr 2024 13:13:23 GMT [INFO]  Connection reset
+11 Apr 2024 13:13:23 GMT [INFO]  Client disconnected
+11 Apr 2024 13:13:23 GMT [INFO]  Sender closed
+11 Apr 2024 16:56:46 GMT [INFO]  New Client 49.51.142.139 has connected
+11 Apr 2024 16:56:46 GMT [INFO]  Waiting for connection...

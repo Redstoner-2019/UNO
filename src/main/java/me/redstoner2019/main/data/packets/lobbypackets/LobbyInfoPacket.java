@@ -13,6 +13,15 @@ public class LobbyInfoPacket extends Packet {
     private boolean stacking;
     private boolean sevenSwap;
     private boolean jumpIn;
+    private boolean chat;
+
+    public boolean isChat() {
+        return chat;
+    }
+
+    public void setChat(boolean chat) {
+        this.chat = chat;
+    }
 
     @Override
     public String toString() {
@@ -25,10 +34,11 @@ public class LobbyInfoPacket extends Packet {
                 ", stacking=" + stacking +
                 ", sevenSwap=" + sevenSwap +
                 ", jumpIn=" + jumpIn +
+                ", chat=" + chat +
                 '}';
     }
 
-    public LobbyInfoPacket(String code, boolean owner, HashMap<String, String> players, int cardsPerPlayer, int decks, boolean stacking, boolean sevenSwap, boolean jumpIn) {
+    public LobbyInfoPacket(String code, boolean owner, HashMap<String, String> players, int cardsPerPlayer, int decks, boolean stacking, boolean sevenSwap, boolean jumpIn, boolean chat) {
         this.code = code;
         this.owner = owner;
         this.players = players;
@@ -37,6 +47,7 @@ public class LobbyInfoPacket extends Packet {
         this.stacking = stacking;
         this.sevenSwap = sevenSwap;
         this.jumpIn = jumpIn;
+        this.chat = chat;
     }
 
     public String getCode() {

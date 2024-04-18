@@ -41,6 +41,7 @@ public class Server {
             Util.log("Waiting for connection...");
             try{
                 final Socket socket = serverSocket.accept();
+                System.out.println("New Client " + socket.getInetAddress().getHostAddress() + " has connected");
                 final ObjectOutputStream out = new ObjectOutputStream(socket.getOutputStream());
                 final ObjectInputStream in = new ObjectInputStream(socket.getInputStream());
                 Thread t = new Thread(new Runnable() {

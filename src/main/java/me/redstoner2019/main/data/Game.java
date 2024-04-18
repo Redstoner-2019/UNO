@@ -23,6 +23,16 @@ public class Game {
     private List<String> leaderboard;
     private Queue<Card> DECK;
     private HashMap<String, Integer> cardsPlaced = new HashMap<>();
+    private List<String> chats = new ArrayList<>();
+    private boolean chatEnabled = false;
+
+    public boolean isChatEnabled() {
+        return chatEnabled;
+    }
+
+    public void setChatEnabled(boolean chatEnabled) {
+        this.chatEnabled = chatEnabled;
+    }
 
     public boolean isRunning() {
         return running;
@@ -133,6 +143,13 @@ public class Game {
     public void addPlayer(Player p){
         if(!players.contains(p)) players.add(p);
     }
+    public void addChat(String msg){
+        chats.add(msg);
+    }
+
+    public List<String> getChats() {
+        return chats;
+    }
 
     public static Game createGame(String forceCode){
         char[] chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray();
@@ -184,6 +201,7 @@ public class Game {
                         p.addCard(DECK.poll());
                     }
                 }
+                chats = new ArrayList<>();
                 while (gameRunning){
                     updatePlayers();
                     while (!queue.isEmpty()){

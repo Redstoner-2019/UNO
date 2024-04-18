@@ -1,0 +1,5 @@
+11 Apr 2024 16:56:46 GMT [ERROR] java.io.StreamCorruptedException: invalid stream header: 16030100
+11 Apr 2024 16:56:46 GMT [ERROR] 	at java.base/java.io.ObjectInputStream.readStreamHeader(ObjectInputStream.java:963)
+11 Apr 2024 16:56:46 GMT [ERROR] 	at java.base/java.io.ObjectInputStream.<init>(ObjectInputStream.java:397)
+11 Apr 2024 16:56:46 GMT [ERROR] 	at me.redstoner2019.serverhandling.Server.start(Server.java:46)
+11 Apr 2024 16:56:46 GMT [ERROR] 	at me.redstoner2019.main.serverstuff.ServerMain.main(ServerMain.java:303)

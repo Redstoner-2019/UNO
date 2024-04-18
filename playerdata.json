@@ -10,9 +10,9 @@
   "Halil" : {
     "password" : "test",
     "displayname" : "HaLuLzEn",
-    "plus-4-placed" : 1,
-    "games-played" : 2,
-    "games-won" : 2,
+    "plus-4-placed" : 2,
+    "games-played" : 4,
+    "games-won" : 3,
     "username" : "Halil"
   },
   "test" : {
@@ -27,8 +27,8 @@
     "password" : "test",
     "displayname" : "Lukas",
     "plus-4-placed" : 2,
-    "games-played" : 6,
-    "games-won" : 4,
+    "games-played" : 8,
+    "games-won" : 5,
     "username" : "lukas"
   },
   "Marcel" : {

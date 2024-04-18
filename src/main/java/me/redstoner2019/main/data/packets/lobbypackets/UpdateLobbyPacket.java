@@ -8,6 +8,7 @@ public class UpdateLobbyPacket extends Packet {
     private boolean stacking;
     private boolean sevenSwap;
     private boolean jumpIn;
+    private boolean chat;
 
     @Override
     public String toString() {
@@ -60,11 +61,20 @@ public class UpdateLobbyPacket extends Packet {
         this.jumpIn = jumpIn;
     }
 
-    public UpdateLobbyPacket(int cardsPerPlayer, int decks, boolean stacking, boolean sevenSwap, boolean jumpIn) {
+    public boolean isChat() {
+        return chat;
+    }
+
+    public void setChat(boolean chat) {
+        this.chat = chat;
+    }
+
+    public UpdateLobbyPacket(int cardsPerPlayer, int decks, boolean stacking, boolean sevenSwap, boolean jumpIn, boolean chat) {
         this.cardsPerPlayer = cardsPerPlayer;
         this.decks = decks;
         this.stacking = stacking;
         this.sevenSwap = sevenSwap;
         this.jumpIn = jumpIn;
+        this.chat = chat;
     }
 }

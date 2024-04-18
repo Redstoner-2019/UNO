@@ -87,7 +87,7 @@ public class Client {
                             System.err.println("Lukas du hurensohn was hast du getan dass dies ausgegeben wird");
                             System.err.println("Localized message: " + e.getLocalizedMessage());
                             e.printStackTrace();
-                            if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent(e.getLocalizedMessage());
+                            if(connectionLostEvent != null) connectionLostEvent.onConnectionLostEvent(e.getClass() + " " + e.getLocalizedMessage());
                             try {
                                 out.flush();
                             } catch (IOException ex) {}

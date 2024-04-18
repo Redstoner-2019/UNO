@@ -118,7 +118,7 @@ public class ServerMain extends Server {
 
                             games.put(game.getGameCode(),game);
                             handler.sendObject(new LobbyJoinResultPacket(200,"Created Lobby"));
-                            handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
+                            handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn(),game.isChatEnabled()));
                             String[] lobbies = new String[games.keySet().size()];
                             Iterator<String> it = games.keySet().iterator();
                             int i = 0;
@@ -144,7 +144,7 @@ public class ServerMain extends Server {
                             player.setGameID(game.getGameCode());
                             game.addPlayer(player);
                             handler.sendObject(new LobbyJoinResultPacket(200,"Joined Lobby"));
-                            handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn()));
+                            handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()),game.getPlayerHashMap(),game.getCardsPerPlayer(),game.getDecks(),game.isStacking(),game.isSevenSwap(),game.isJumpIn(),game.isChatEnabled()));
                         }
                         if(packet instanceof UpdateLobbyPacket p){
                             Game game = games.getOrDefault(player.getGameID(),null);
@@ -154,9 +154,12 @@ public class ServerMain extends Server {
                                 game.setStacking(p.isStacking());
                                 game.setSevenSwap(p.isSevenSwap());
                                 game.setJumpIn(p.isJumpIn());
+                                game.setChatEnabled(p.isChat());
                             }
                             if(game != null && !game.isRunning()) {
-                                handler.sendObject(new LobbyInfoPacket(game.getGameCode(), player.equals(game.getOwner()), game.getPlayerHashMap(), game.getCardsPerPlayer(), game.getDecks(), game.isStacking(), game.isSevenSwap(), game.isJumpIn()));
+                                for (Player pl : game.getPlayers()) {
+                                    pl.getHandler().sendObject(new LobbyInfoPacket(game.getGameCode(), pl.equals(game.getOwner()), game.getPlayerHashMap(), game.getCardsPerPlayer(), game.getDecks(), game.isStacking(), game.isSevenSwap(), game.isJumpIn(), game.isChatEnabled()));
+                                }
                             }
                         }
                         if(packet instanceof RequestLobbiesPacket){
