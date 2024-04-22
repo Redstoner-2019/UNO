@@ -11,13 +11,13 @@ public class SQL {
     public static List<Integer> shorts = List.of(1,6,7,8,9,10);
 
     public static void main(String[] args) {
-        connect("192.168.178.24","3306","myDatabase","Redstoner","OD2023");
+        connect("localhost","3306","myDatabase","Redstoner","OD2023");
         try {
             recreateUserTable();
             for(String username : List.of("redstoner_2019","halulzen","nicocruw","phillipgiovannielberfeld","sprayD","myuutivated","asfalt","angefraggt","phillikulli")){
                 Random random = new Random(username.hashCode());
                 newEntry("username",username);
-                setString(username,"password",Password.hashPassword("Eisenbahn.24"));
+                setString(username,"password",Password.hashPassword("OD2023"));
                 setString(username,"displayname",username);
                 setString(username,"gamesPlayed","0");
                 setString(username,"gamesWon","0");

@@ -22,10 +22,7 @@ import org.jfree.data.xy.XYSeriesCollection;
 
 import javax.swing.*;
 import java.lang.management.ManagementFactory;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class ServerMain extends Server {
     private static OperatingSystemMXBean osBean;
@@ -66,6 +63,12 @@ public class ServerMain extends Server {
                             /**
                              * TODO: Implement commands
                              */
+                        }
+                        if(packet instanceof ChatPacket p){
+                            Calendar calendar = Calendar.getInstance();
+                            for(Player pl : games.get(player.getGameID()).getPlayers()){
+                                pl.getHandler().sendObject(new ChatPacket(String.format("%02d:%02d:%02d ",calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND)) + player.getDisplayName() + ": " + p.getMessage()));
+                            }
                         }
                         if(packet instanceof InitializeConsoleClientPacket){
                             consoleClients.add(handler);

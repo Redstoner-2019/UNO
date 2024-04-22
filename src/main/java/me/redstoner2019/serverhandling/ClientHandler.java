@@ -86,6 +86,10 @@ public class ClientHandler {
                                 out.writeObject(o);
                                 out.flush();
                                 ServerMain.packetsSent++;
+                                if(o instanceof DisconnectPacket){
+                                    connected = false;
+                                    return;
+                                }
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }

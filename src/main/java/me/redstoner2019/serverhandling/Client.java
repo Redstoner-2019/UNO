@@ -1,6 +1,7 @@
 package me.redstoner2019.serverhandling;
 
 import me.redstoner2019.main.Main;
+import me.redstoner2019.main.data.packets.gamepackets.ChatPacket;
 
 import java.io.*;
 import java.net.Socket;
@@ -122,13 +123,14 @@ public class Client {
         }
     }
     public static void startSender() throws Exception {
+        System.out.println("Started sender");
         final Object REFERENCE = new Object();
         Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (true){
                     synchronized (REFERENCE){
-                        if(!isConnected) {
+                        if(!isConnected()) {
                             toSend.clear();
                             continue;
                         }

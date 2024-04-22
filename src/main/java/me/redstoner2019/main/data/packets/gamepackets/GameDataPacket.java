@@ -13,6 +13,15 @@ public class GameDataPacket extends Packet {
     private List<String> nextPlayers;
     private Card lastPlaced;
     private List<Card> ownDeck;
+    private int cardsDue;
+
+    public int getCardsDue() {
+        return cardsDue;
+    }
+
+    public void setCardsDue(int cardsDue) {
+        this.cardsDue = cardsDue;
+    }
 
     public boolean isCanSkip() {
         return canSkip;
@@ -70,7 +79,7 @@ public class GameDataPacket extends Packet {
         this.ownDeck = ownDeck;
     }
 
-    public GameDataPacket(boolean canSkip, boolean canDraw, boolean canUNO, boolean isTurn, List<String> nextPlayers, Card lastPlaced, List<Card> ownDeck) {
+    public GameDataPacket(boolean canSkip, boolean canDraw, boolean canUNO, boolean isTurn, List<String> nextPlayers, Card lastPlaced, List<Card> ownDeck, int cardsDue) {
         this.canSkip = canSkip;
         this.canDraw = canDraw;
         this.canUNO = canUNO;
@@ -78,5 +87,6 @@ public class GameDataPacket extends Packet {
         this.nextPlayers = nextPlayers;
         this.lastPlaced = lastPlaced;
         this.ownDeck = ownDeck;
+        this.cardsDue = cardsDue;
     }
 }

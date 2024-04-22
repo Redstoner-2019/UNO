@@ -67,6 +67,7 @@ public class GUI extends Client {
     public static String customTexture = "";
     public static boolean reloadTextures = false;
     public static int viewCard = 0;
+    public static List<String> chatMessages = new ArrayList<>();
     public GUI() throws Exception {
         initialize();
     }
@@ -668,6 +669,59 @@ public class GUI extends Client {
         loadingGUI[0].increaseValue();
 
         /**
+         * chat-gui
+         */
+
+        JLabel chatArea = new JLabel("");
+        JScrollPane chatScroll = new JScrollPane(chatArea);
+        JTextArea messageInput = new JTextArea();
+        JButton sendMessageButton = new JButton("Send");
+
+        chatArea.setBounds(50,50,panel.getWidth()-100,panel.getHeight()-200);
+        messageInput.setBounds(50,panel.getHeight()-120,panel.getWidth()-320,50);
+        sendMessageButton.setBounds(panel.getWidth()-250,panel.getHeight()-120,200,50);
+
+        chatArea.setVerticalAlignment(JLabel.TOP);
+        chatScroll.setBackground(Color.DARK_GRAY);
+
+        messageInput.addKeyListener(new KeyListener() {
+            @Override
+            public void keyTyped(KeyEvent e) {
+
+            }
+
+            @Override
+            public void keyPressed(KeyEvent e) {
+                e.consume();
+                System.out.println("test");
+                if(e.getKeyCode() == KeyEvent.VK_ENTER){
+                    if(messageInput.getText().isEmpty()) return;
+                    sendObject(new ChatPacket(messageInput.getText()));
+                    messageInput.setText("");
+                }
+            }
+
+            @Override
+            public void keyReleased(KeyEvent e) {
+
+            }
+        });
+
+        sendMessageButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(messageInput.getText().isEmpty()) return;
+                sendObject(new ChatPacket(messageInput.getText()));
+                messageInput.setText("");
+            }
+        });
+
+        panel.add(chatArea);
+        panel.add(messageInput);
+        panel.add(sendMessageButton);
+
+
+        /**
          * game-lobby
          */
         JLabel lobbyCode = new JLabel();
@@ -755,6 +809,24 @@ public class GUI extends Client {
          * game-main
          */
 
+        KeyStroke keyStroke = KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0);
+        Action action = new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.out.println(gui);
+                if(gui.equals("game-main")){
+                    gui = "chat-gui";
+                    System.out.println(1);
+                }else if(gui.equals("chat-gui")){
+                    gui = "game-main";
+                    System.out.println(2);
+                }
+                System.out.println("Key event fired!");
+            }
+        };
+        panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke,"escapeKey");
+        panel.getActionMap().put("escapeKey",action);
+
         JLabel draw = new JLabel();
         JButton drawButton = new JButton("DRAW");
         JButton skipButton = new JButton("SKIP");
@@ -766,10 +838,17 @@ public class GUI extends Client {
         nextUpLabel.setVerticalAlignment(JLabel.TOP);
 
         draw.setBounds(0,0,frame.getWidth(),frame.getHeight());
+
         drawButton.setBounds(frame.getWidth()-400,50,300,40);
         skipButton.setBounds(frame.getWidth()-400,100,300,40);
         unoButton.setBounds(frame.getWidth()-400,150,300,40);
         leaveGameButton.setBounds(frame.getWidth()-400,200,300,40);
+
+        drawButton.setBounds(frame.getWidth()-300,frame.getHeight()-300,250,40);
+        skipButton.setBounds(frame.getWidth()-300,frame.getHeight()-250,250,40);
+        unoButton.setBounds(frame.getWidth()-300,frame.getHeight()-200,250,40);
+        leaveGameButton.setBounds(frame.getWidth()-300,frame.getHeight()-150,250,40);
+
         nextUpLabel.setBounds(50,50,300,600);
 
         drawButton.setBackground(Color.DARK_GRAY);
@@ -1073,7 +1152,6 @@ public class GUI extends Client {
 
                     previousMode = darkMode;
 
-
                     switch (gui){
                         case "main-menu": {
                             List<Component> components = List.of(mainMenuTitleLabel,mainMenuPlayButton,mainMenuSettingsButton,mainMenuSubTitleLabel);
@@ -1084,6 +1162,16 @@ public class GUI extends Client {
                         }
                         case "settings-gui": {
                             List<Component> components = List.of(cardSwitchRight,cardSwitchLeft,cardPreview,texturePackLoadResult,applyTexturepackButton,resourcePackTextField,settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton,startPerformanceProfiler,toggleDarkMode);
+                            for(Component c : panel.getComponents()){
+                                c.setVisible(components.contains(c));
+                            }
+                            break;
+                        }
+                        case "chat-gui": {
+                            List<Component> components = List.of(chatArea,messageInput,sendMessageButton);
+                            messageInput.requestFocus();
+                            messageInput.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+                            messageInput.setCaretColor(Color.WHITE);
                             for(Component c : panel.getComponents()){
                                 c.setVisible(components.contains(c));
                             }
@@ -1105,7 +1193,7 @@ public class GUI extends Client {
                                 String[] data = new String[len];
 
                                 for (int i = 0; i < len; i++) {
-                                    data[i] = (serverList.getString(i));
+                                    try{data[i] = (serverList.getString(i));} catch (Exception e){}
                                 }
 
                                 serversJList.setListData(data);
@@ -1169,7 +1257,7 @@ public class GUI extends Client {
                             g.drawImage(card,null,((frame.getWidth() - card.getWidth())/2) - 100,(frame.getHeight() - card.getHeight())/2 - 200);
 
                             if(!deck.isEmpty()){
-                                int spacing = (frame.getWidth() - 200) / deck.size();
+                                int spacing = (draw.getWidth() - 400) / deck.size();
 
                                 Point p = draw.getMousePosition();
 
@@ -1423,7 +1511,6 @@ public class GUI extends Client {
                         }
                     }
                     if(packet instanceof LobbyInfoPacket p){
-                        System.out.println(p);
                         try{
                             gui = "game-lobby";
                             lobbyCode.setText("Lobby: " + p.getCode());
@@ -1495,6 +1582,18 @@ public class GUI extends Client {
                     }
                     if(packet instanceof ProfilerUpdate p){
                         //System.out.println(p);
+                    }
+                    if(packet instanceof ChatPacket p){
+                        chatMessages.add(0,p.getMessage());
+
+                        String text = "<html><h1>";
+
+                        for(String msg : chatMessages){
+                            text+=msg+"<br>";
+                        }
+
+                        text+="</h1></html>";
+                        chatArea.setText(text);
                     }
                     if(packet instanceof NewConsoleLinePacket p){
                         System.out.println("[Server Console]" + p);

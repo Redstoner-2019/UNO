@@ -18,6 +18,7 @@ public class Game {
     private boolean jumpIn = false;
     private Player owner = null;
     private boolean running = false;
+    private int cardsDue = 0;
     public Queue<GamePacket> queue = new ArrayDeque<>();
     private String winner;
     private List<String> leaderboard;
@@ -202,9 +203,13 @@ public class Game {
                     }
                 }
                 chats = new ArrayList<>();
+
+                long lastCardPlacedTimestamp = System.currentTimeMillis();
+
                 while (gameRunning){
                     updatePlayers();
                     while (!queue.isEmpty()){
+                        boolean stackingAccepted = System.currentTimeMillis() - lastCardPlacedTimestamp <= 2000;
                         GamePacket gamePacket = queue.poll();
                         Player player = gamePacket.getPlayer();
                         Packet packet = gamePacket.getPacket();
@@ -218,6 +223,12 @@ public class Game {
                             if(p.getAmount() == 1){
                                 player.setCanSkip(true);
                                 player.setCanDraw(false);
+                            }
+                            if(cardsDue > 0 && isStacking()) {
+                                p.setAmount(cardsDue);
+                                cardsDue = 0;
+                                player.setCanSkip(false);
+                                player.setCanDraw(true);
                             }
                             for (int i = 0; i < p.getAmount(); i++) {
                                 Card card = DECK.poll();
@@ -251,7 +262,9 @@ public class Game {
                             if(lastCardPlaced.canBePlayed(p.getCard())){
                                 System.out.println(player.getDisplayName() + " placed card " + p.getCard());
                                 DECK.add(lastCardPlaced);
+                                System.out.println(cardsPlaced.get(player.getUsername()) + player.getUsername());
                                 cardsPlaced.put(player.getUsername(),cardsPlaced.getOrDefault(player.getUsername(),0)+1);
+                                System.out.println(cardsPlaced.get(player.getUsername()) + player.getUsername());
                                 lastCardPlaced = p.getCard();
                                 player.removeCard(p.getCard());
                                 if(player.getCards().size() == 1 && !player.isUNO()){
@@ -261,29 +274,21 @@ public class Game {
                                 }
                                 if(player.getCards().size() == 1) player.setUNO(false);
                                 if(lastCardPlaced.getOverrideColor() == null) lastCardPlaced.setOverrideColor(CardColor.RED);
+
+
                                 if(lastCardPlaced.getNum().equals(CardType.PLUS_4)){
                                     player.getUserdata().setPlus4Placed(player.getUserdata().getPlus4Placed()+1);
-                                    if(!(players.size() > 1)) {
-                                        System.out.println("Couldnt draw");
-                                        continue;
+                                    cardsDue+=4;
+                                }else if(lastCardPlaced.getNum().equals(CardType.DRAW)){
+                                    cardsDue+=2;
+                                } else if(cardsDue > 0 && isStacking()){
+                                    System.out.println("Drawing " + cardsDue + " cards");
+                                    for (int i = 0; i < cardsDue; i++) {
+                                        player.addCard(DECK.poll());
                                     }
-                                    for (int i = 0; i < 4; i++) {
-                                        Card card = DECK.poll();
-                                        players.get(1).addCard(card);
-                                        System.out.println(players.get(1).getDisplayName() + " has drawn " + card);
-                                    }
+                                    cardsDue = 0;
                                 }
-                                if(lastCardPlaced.getNum().equals(CardType.DRAW)){
-                                    if(!(players.size() > 1)) {
-                                        System.out.println("Couldnt draw");
-                                        continue;
-                                    }
-                                    for (int i = 0; i < 2; i++) {
-                                        Card card = DECK.poll();
-                                        players.get(1).addCard(card);
-                                        System.out.println(players.get(1).getDisplayName() + " has drawn " + card);
-                                    }
-                                }
+
                                 if(lastCardPlaced.getNum().equals(CardType.SKIP)){
                                     nextPlayer();
                                 }
@@ -292,6 +297,12 @@ public class Game {
                                     nextPlayer();
                                 }
                                 nextPlayer();
+                                if(!isStacking()){
+                                    for (int i = 0; i < cardsDue; i++) {
+                                        players.get(0).addCard(DECK.poll());
+                                    }
+                                    cardsDue = 0;
+                                }
                             }
                         }
                     }
@@ -324,7 +335,7 @@ public class Game {
                                 boolean canDraw = isTurn && p.isCanDraw();
                                 boolean canUNO = isTurn && p.isCanUNO();
 
-                                p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, List.copyOf(p.getCards())));
+                                p.getHandler().sendObject(new GameDataPacket(canSkip, canDraw, canUNO, isTurn, nextPlayers, lastCardPlaced, List.copyOf(p.getCards()),cardsDue));
                             //}
                             if(p.getCards().isEmpty()){
                                 gameRunning = false;
@@ -339,7 +350,7 @@ public class Game {
                                 int place = 1;
                                 leaderboard = new ArrayList<>();
                                 for(Player pl : players){
-                                    leaderboard.add(place + ". " + pl.getDisplayName() + " -> " + pl.getCards().size() + " cards left, " + cardsPlaced.get(pl.getUsername()) + " cards placed");
+                                    leaderboard.add(place + ". " + pl.getDisplayName() + " -> " + pl.getCards().size() + " cards left, " + cardsPlaced.getOrDefault(pl.getUsername(),0) + " cards placed");
                                     place++;
                                 }
                                 System.out.println(p.getDisplayName() + " has won");
