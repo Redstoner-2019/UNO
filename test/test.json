@@ -1,0 +1,27 @@
+{
+  "uno" : {
+    "1.0" : {
+      "server" : {
+        "file" : "path/to/file.jar",
+        "size" : 123456,
+        "changes" : "none",
+        "title" : "Update 1.0"
+      },
+      "client" : {
+        "file" : "path/to/file.jar",
+        "size" : 123456,
+        "changes" : "none",
+        "title" : "Update 1.0"
+      }
+    },
+    "1.1" : {
+      "server" : {
+        "file" : "path/to/file.jar",
+        "size" : 123456,
+        "changes" : "none",
+        "title" : "Update 1.0"
+      }
+    },
+    "versions" : [ "1.1" ]
+  }
+}
