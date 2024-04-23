@@ -6,6 +6,7 @@ import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Card;
 import me.redstoner2019.main.data.CardColor;
 import me.redstoner2019.main.data.CardType;
+import me.redstoner2019.main.data.data.ActionMessage;
 import me.redstoner2019.main.data.packets.gamepackets.*;
 import me.redstoner2019.main.data.packets.generalpackets.ProfilerUpdate;
 import me.redstoner2019.main.data.packets.lobbypackets.*;
@@ -68,13 +69,15 @@ public class GUI extends Client {
     public static boolean reloadTextures = false;
     public static int viewCard = 0;
     public static List<String> chatMessages = new ArrayList<>();
+    public static List<ActionMessage> actionMessages = new ArrayList<>();
     public GUI() throws Exception {
         initialize();
     }
     private void initialize() throws Exception {
         final LoadingGUI[] loadingGUI = {new LoadingGUI()};
-        loadingGUI[0].setMax(10);
+        loadingGUI[0].setMax(14);
         loadingGUI[0].setValue(0);
+        loadingGUI[0].increaseValue();
         //gui = "game-main-game-end";
 
 
@@ -104,16 +107,17 @@ public class GUI extends Client {
         panel.setBounds(0,0,width,height);
         pan.add(panel);
 
-        final BufferedImage[] image = {new BufferedImage(1920, 1080, 1)};
+        final BufferedImage[] image = {null};
 
         try {
             System.out.println("Loading texture");
             image[0] = ImageIO.read(GUI.class.getResource("/background.png"));
             System.out.println("Loaded texture");
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
 
+        loadingGUI[0].increaseValue();
 
         System.out.println("Textures loaded");
 
@@ -141,6 +145,8 @@ public class GUI extends Client {
         String texturePack = "";
         if(clientData.has("texturepack")) texturePack = clientData.getString("texturepack");
 
+        loadingGUI[0].increaseValue();
+
         File resourcePack = new File("texturepacks/" + texturePack + "/pack.properties");
 
         try{
@@ -158,6 +164,7 @@ public class GUI extends Client {
         }
 
         forceUpdate = true;
+        loadingGUI[0].increaseValue();
 
         /**
          * Main Menu
@@ -167,10 +174,23 @@ public class GUI extends Client {
         JButton mainMenuPlayButton = new JButton("PLAY");
         JButton mainMenuSettingsButton = new JButton("SETTINGS");
 
-        String latestVersion = Main.getLatestVersion();
-        if(!latestVersion.equals(Main.getVersion())){
-            mainMenuSubTitleLabel.setText(mainMenuSubTitleLabel.getText() + " (Latest on github " + latestVersion + ")");
-        }
+        final String[] latestVersion = {""};
+        Thread thread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    latestVersion[0] = Main.getLatestVersion();
+                    if(!latestVersion[0].equals(Main.getVersion())){
+                        mainMenuSubTitleLabel.setText(mainMenuSubTitleLabel.getText() + " (Latest on github " + latestVersion[0] + ")");
+                    }
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        });
+        thread.start();
+
+
 
         mainMenuTitleLabel.setBounds((frame.getWidth()-400)/2,30,400,80);
         mainMenuSubTitleLabel.setBounds((frame.getWidth()-800)/2,100,800,50);
@@ -211,7 +231,7 @@ public class GUI extends Client {
             public void mouseClicked(MouseEvent e) {
                 if (Desktop.isDesktopSupported()) {
                     try {
-                        Desktop.getDesktop().browse(new URI("https://github.com/Redstoner-2019/UNO/releases/tag/" + latestVersion));
+                        Desktop.getDesktop().browse(new URI("https://github.com/Redstoner-2019/UNO/releases/tag/" + latestVersion[0]));
                     } catch (IOException | URISyntaxException ex) {
                         ex.printStackTrace();
                     }
@@ -481,19 +501,31 @@ public class GUI extends Client {
         serverGuiJoinServerButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                connect(serversJList.getSelectedValue(),8008);
-                LoginPacket o = new LoginPacket(usernameField.getText(),passwordField.getText(),null);
-                sendObject(o);
-                sendObject(new Ping(System.currentTimeMillis()));
-                sendObject(new RequestLobbiesPacket());
-                clientData.put("username",usernameField.getText());
-                clientData.put("password",passwordField.getText());
-                clientData.put("servers",serverList);
-                try {
-                    Util.writeStringToFile(Util.prettyJSON(clientData.toString()),new File("client.properties"));
-                } catch (IOException ex) {
-                    throw new RuntimeException(ex);
-                }
+                serverGuiJoinServerButton.setEnabled(false);
+                serverGuiJoinServerButton.setText("Connecting...");
+                Thread t = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        connect(serversJList.getSelectedValue(),8008);
+                        LoginPacket o = new LoginPacket(usernameField.getText(),passwordField.getText(),null);
+                        sendObject(o);
+                        sendObject(new Ping(System.currentTimeMillis()));
+                        sendObject(new RequestLobbiesPacket());
+                        clientData.put("username",usernameField.getText());
+                        clientData.put("password",passwordField.getText());
+                        clientData.put("servers",serverList);
+                        try {
+                            Util.writeStringToFile(Util.prettyJSON(clientData.toString()),new File("client.properties"));
+                        } catch (IOException ex) {
+                            serverGuiJoinServerButton.setEnabled(true);
+                            serverGuiJoinServerButton.setText("JOIN SERVER");
+                            throw new RuntimeException(ex);
+                        }
+                        serverGuiJoinServerButton.setEnabled(true);
+                        serverGuiJoinServerButton.setText("JOIN SERVER");
+                    }
+                });
+                t.start();
             }
         });
 
@@ -699,6 +731,15 @@ public class GUI extends Client {
                     sendObject(new ChatPacket(messageInput.getText()));
                     messageInput.setText("");
                 }
+                if(e.getKeyCode() == KeyEvent.VK_ESCAPE){
+                    if(gui.equals("game-main")){
+                        gui = "chat-gui";
+                        System.out.println(1);
+                    }else if(gui.equals("chat-gui")){
+                        gui = "game-main";
+                        System.out.println(2);
+                    }
+                }
             }
 
             @Override
@@ -813,7 +854,6 @@ public class GUI extends Client {
         Action action = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                System.out.println(gui);
                 if(gui.equals("game-main")){
                     gui = "chat-gui";
                     System.out.println(1);
@@ -821,7 +861,6 @@ public class GUI extends Client {
                     gui = "game-main";
                     System.out.println(2);
                 }
-                System.out.println("Key event fired!");
             }
         };
         panel.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke,"escapeKey");
@@ -896,41 +935,47 @@ public class GUI extends Client {
             CardColor colorChosen = null;
             @Override
             public void mousePressed(MouseEvent e) {
-                switch (gui){
-                    case "game-main" :{
-                        if(indexSelected < 0) return;
-                        if(deck.size()>0) {
-                            Card c = deck.get(indexSelected);
-                            if (!c.getColor().equals(SPECIAL)) sendObject(new PlaceCardPacket(c));
-                            else gui = "game-main-select-color";
+                try{
+                    switch (gui){
+                        case "game-main" :{
+                            if(indexSelected < 0) return;
+                            if(deck.size()>0) {
+                                Card c = deck.get(indexSelected);
+                                if (!c.getColor().equals(SPECIAL)) sendObject(new PlaceCardPacket(c));
+                                else gui = "game-main-select-color";
+                            }
+                            break;
                         }
-                        break;
+                        case "game-main-select-color" :{
+                            colorChosen = null;
+                            if(BoundsCheck.within(e.getX(),e.getY(),200,200,128,192)){
+                                colorChosen = RED;
+                            }
+                            if(BoundsCheck.within(e.getX(),e.getY(),440,200,128,192)){
+                                colorChosen = GREEN;
+                            }
+                            if(BoundsCheck.within(e.getX(),e.getY(),680,200,128,192)){
+                                colorChosen = BLUE;
+                            }
+                            if(BoundsCheck.within(e.getX(),e.getY(),920,200,128,192)){
+                                colorChosen = YELLOW;
+                            }
+                            if(colorChosen != null){
+                                Card c = deck.get(indexSelected);
+                                c.setOverrideColor(colorChosen);
+                                sendObject(new PlaceCardPacket(c));
+                                gui = "game-main";
+                            }
+                            break;
+                        }
+                        case "game-main-game-end" :{
+                            break;
+                        }
                     }
-                    case "game-main-select-color" :{
-                        if(BoundsCheck.within(e.getX(),e.getY(),200,200,128,192)){
-                            colorChosen = RED;
-                        }
-                        if(BoundsCheck.within(e.getX(),e.getY(),440,200,128,192)){
-                            colorChosen = GREEN;
-                        }
-                        if(BoundsCheck.within(e.getX(),e.getY(),680,200,128,192)){
-                            colorChosen = BLUE;
-                        }
-                        if(BoundsCheck.within(e.getX(),e.getY(),920,200,128,192)){
-                            colorChosen = YELLOW;
-                        }
-                        if(colorChosen != null){
-                            Card c = deck.get(indexSelected);
-                            c.setOverrideColor(colorChosen);
-                            sendObject(new PlaceCardPacket(c));
-                            gui = "game-main";
-                        }
-                        break;
-                    }
-                    case "game-main-game-end" :{
-                        break;
-                    }
+                }catch (Exception ex){
+
                 }
+
             }
 
             @Override
@@ -1085,395 +1130,420 @@ public class GUI extends Client {
                 BufferedImage blurredBackground = convolutionOp.filter(finalImage, null);
 
                 boolean previousMode = !darkMode;
-                while (true) {
-                    long renderStart = System.currentTimeMillis();
+                    while (true) try{
+                        long renderStart = System.currentTimeMillis();
 
-                    if(reloadTextures){
-                        blurredBackground = convolutionOp.filter(image[0], null);
-                        previousMode = !darkMode;
-                        reloadTextures = false;
-                    }
-
-                    if(previousMode != darkMode){
-                        if(darkMode){
-                            for(Component c : panel.getComponents()){
-                                if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.WHITE);
-                                if(!(c instanceof JLabel)) c.setBackground(Color.DARK_GRAY);
-                            }
-
-                            serversJList.setForeground(Color.WHITE);
-                            serversJList.setBackground(Color.DARK_GRAY);
-
-                            lobbies.setForeground(Color.WHITE);
-                            lobbies.setBackground(Color.DARK_GRAY);
-
-                            lobbyPlayers.setForeground(Color.WHITE);
-                            lobbyPlayers.setBackground(Color.DARK_GRAY);
-                        } else {
-                            for(Component c : panel.getComponents()){
-                                if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.BLACK);
-                                if(!(c instanceof JLabel)) c.setBackground(Color.WHITE);
-                            }
-
-                            serversJList.setForeground(Color.BLACK);
-                            serversJList.setBackground(Color.WHITE);
-
-                            lobbies.setForeground(Color.BLACK);
-                            lobbies.setBackground(Color.WHITE);
-
-                            lobbyPlayers.setForeground(Color.BLACK);
-                            lobbyPlayers.setBackground(Color.WHITE);
+                        if(reloadTextures){
+                            blurredBackground = convolutionOp.filter(image[0], null);
+                            previousMode = !darkMode;
+                            reloadTextures = false;
                         }
 
-                        if(darkMode) {
-                            BufferedImage backgImage = new BufferedImage(width, height, 1);
-
-                            Graphics2D g2 = backgImage.createGraphics();
-
-                            g2.drawImage(blurredBackground, null, -2, -2);
-
-                            g2.dispose();
-
-                            panel.setIcon(new ImageIcon(backgImage));
-                        } else {
-                            BufferedImage backgImage = new BufferedImage(width, height, 1);
-
-                            Graphics2D g2 = backgImage.createGraphics();
-
-                            g2.setColor(Color.WHITE);
-
-                            g2.fillRect(0,0,width,height);
-
-                            g2.dispose();
-
-                            panel.setIcon(new ImageIcon(backgImage));
-                        }
-                    }
-
-                    previousMode = darkMode;
-
-                    switch (gui){
-                        case "main-menu": {
-                            List<Component> components = List.of(mainMenuTitleLabel,mainMenuPlayButton,mainMenuSettingsButton,mainMenuSubTitleLabel);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
-                            }
-                            break;
-                        }
-                        case "settings-gui": {
-                            List<Component> components = List.of(cardSwitchRight,cardSwitchLeft,cardPreview,texturePackLoadResult,applyTexturepackButton,resourcePackTextField,settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton,startPerformanceProfiler,toggleDarkMode);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
-                            }
-                            break;
-                        }
-                        case "chat-gui": {
-                            List<Component> components = List.of(chatArea,messageInput,sendMessageButton);
-                            messageInput.requestFocus();
-                            messageInput.setBorder(BorderFactory.createLineBorder(Color.WHITE));
-                            messageInput.setCaretColor(Color.WHITE);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
-                            }
-                            break;
-                        }
-                        case "server-selector": {
-                            List<Component> components = List.of(serverSelectorLabel,serverGuiMenuButton,serverScrollPane,serverGuiJoinServerButton,serverGuiAddServer,serverGuiSearchLocalServersButton,serverConnectionInfo,usernameField,passwordField,serverGuiDeleteServer,serverGuiCreateAccount,serverGuiManageAccount);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
-                            }
-
-                            if(forceUpdate){
-                                forceUpdate = false;
-
-                                int selectedIndex = Math.max(serversJList.getSelectedIndex(),0);
-
-                                int len = serverList.length();
-
-                                String[] data = new String[len];
-
-                                for (int i = 0; i < len; i++) {
-                                    try{data[i] = (serverList.getString(i));} catch (Exception e){}
+                        if(previousMode != darkMode){
+                            if(darkMode){
+                                for(Component c : panel.getComponents()){
+                                    if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.WHITE);
+                                    if(!(c instanceof JLabel)) c.setBackground(Color.DARK_GRAY);
                                 }
 
-                                serversJList.setListData(data);
-                                serversJList.setSelectedIndex(selectedIndex);
+                                serversJList.setForeground(Color.WHITE);
+                                serversJList.setBackground(Color.DARK_GRAY);
 
-                                lastUpdate = System.currentTimeMillis();
-                            }
-                            break;
-                        }
-                        case "server-main": {
-                            List<Component> components = List.of(statsField,serverConnectedTo,joinLobby,joinResult,createLobby,codeField,serverMainDisconnectButton,lobbiesScrollPane);
-                            serverConnectedTo.setText("Server connected to: " + serversJList.getSelectedValue());
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
-                            }
-                            /*if(codeField.getText() != null && codeField.getText().length() == 5){
-                                joinLobby.setEnabled(true);
-                                createLobby.setEnabled(false);
+                                lobbies.setForeground(Color.WHITE);
+                                lobbies.setBackground(Color.DARK_GRAY);
+
+                                lobbyPlayers.setForeground(Color.WHITE);
+                                lobbyPlayers.setBackground(Color.DARK_GRAY);
                             } else {
-                                joinLobby.setEnabled(false);
-                                createLobby.setEnabled(true);
-                            }*/
-                            break;
-                        }
-                        case "game-lobby": {
-                            List<Component> components = List.of(lobbyDecks,lobbyStacking,lobbySevenSwap,lobbyJumpIn,lobbyCardsPerPlayer,lobbySettingsLabel,lobbyCode,lobbyPlayersScrollPane,lobbyStart,leaveLobby,lobbyIngameChat);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
-                            }
-                            break;
-                        }
-                        case "game-main": {
-                            List<Component> components = List.of(draw);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
+                                for(Component c : panel.getComponents()){
+                                    if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.BLACK);
+                                    if(!(c instanceof JLabel)) c.setBackground(Color.WHITE);
+                                }
+
+                                serversJList.setForeground(Color.BLACK);
+                                serversJList.setBackground(Color.WHITE);
+
+                                lobbies.setForeground(Color.BLACK);
+                                lobbies.setBackground(Color.WHITE);
+
+                                lobbyPlayers.setForeground(Color.BLACK);
+                                lobbyPlayers.setBackground(Color.WHITE);
                             }
 
-                            drawButton.setEnabled(canDraw);
-                            skipButton.setEnabled(canSkip);
-                            unoButton.setEnabled(canUNO);
+                            if(darkMode) {
+                                BufferedImage backgImage = new BufferedImage(width, height, 1);
 
-                            drawButton.setVisible(true);
-                            skipButton.setVisible(true);
-                            unoButton.setVisible(true);
-                            nextUpLabel.setVisible(true);
-                            backButton.setVisible(false);
-                            leaveGameButton.setVisible(true);
+                                Graphics2D g2 = backgImage.createGraphics();
 
-                            Kernel dKernel = new Kernel(1, 1, new float[]{1f});
-                            ConvolveOp dconvolutionOp = new ConvolveOp(dKernel, ConvolveOp.EDGE_NO_OP, null);
-                            image2 = dconvolutionOp.filter(finalImage, null);
+                                g2.drawImage(blurredBackground, null, -2, -2);
 
-                            /**
-                             * TODO: Accelerate copy of finalImage
-                             */
+                                g2.dispose();
 
-                            Graphics2D g = image2.createGraphics();
+                                panel.setIcon(new ImageIcon(backgImage));
+                            } else {
+                                BufferedImage backgImage = new BufferedImage(width, height, 1);
 
-                            BufferedImage card = getCard(lastCardPut);
+                                Graphics2D g2 = backgImage.createGraphics();
 
-                            g.drawImage(card,null,((frame.getWidth() - card.getWidth())/2) - 100,(frame.getHeight() - card.getHeight())/2 - 200);
+                                g2.setColor(Color.WHITE);
 
-                            if(!deck.isEmpty()){
-                                int spacing = (draw.getWidth() - 400) / deck.size();
+                                g2.fillRect(0,0,width,height);
 
-                                Point p = draw.getMousePosition();
+                                g2.dispose();
 
-                                boolean shift = false;
+                                panel.setIcon(new ImageIcon(backgImage));
+                            }
+                        }
 
-                                if(p != null){
-                                    int posX = p.x -50;
-                                    indexSelected = posX / spacing;
-                                    if(indexSelected > deck.size()) indexSelected = deck.size()-1;
-                                    if(p.y > frame.getHeight() - 300 && p.y < frame.getHeight() - 100){
-                                        shift = true;
+                        previousMode = darkMode;
+
+                        switch (gui){
+                            case "main-menu": {
+                                List<Component> components = List.of(mainMenuTitleLabel,mainMenuPlayButton,mainMenuSettingsButton,mainMenuSubTitleLabel);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
+                                break;
+                            }
+                            case "settings-gui": {
+                                List<Component> components = List.of(cardSwitchRight,cardSwitchLeft,cardPreview,texturePackLoadResult,applyTexturepackButton,resourcePackTextField,settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton,startPerformanceProfiler,toggleDarkMode);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
+                                break;
+                            }
+                            case "chat-gui": {
+                                List<Component> components = List.of(chatArea,messageInput,sendMessageButton);
+                                messageInput.requestFocus();
+                                messageInput.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+                                messageInput.setCaretColor(Color.WHITE);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
+                                break;
+                            }
+                            case "server-selector": {
+                                List<Component> components = List.of(serverSelectorLabel,serverGuiMenuButton,serverScrollPane,serverGuiJoinServerButton,serverGuiAddServer,serverGuiSearchLocalServersButton,serverConnectionInfo,usernameField,passwordField,serverGuiDeleteServer,serverGuiCreateAccount,serverGuiManageAccount);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
+
+                                if(forceUpdate){
+                                    forceUpdate = false;
+
+                                    int selectedIndex = Math.max(serversJList.getSelectedIndex(),0);
+
+                                    int len = serverList.length();
+
+                                    String[] data = new String[len];
+
+                                    for (int i = 0; i < len; i++) {
+                                        try{data[i] = (serverList.getString(i));} catch (Exception e){}
+                                    }
+
+                                    serversJList.setListData(data);
+                                    serversJList.setSelectedIndex(selectedIndex);
+
+                                    lastUpdate = System.currentTimeMillis();
+                                }
+                                break;
+                            }
+                            case "server-main": {
+                                List<Component> components = List.of(statsField,serverConnectedTo,joinLobby,joinResult,createLobby,codeField,serverMainDisconnectButton,lobbiesScrollPane);
+                                serverConnectedTo.setText("Server connected to: " + serversJList.getSelectedValue());
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
+                                /*if(codeField.getText() != null && codeField.getText().length() == 5){
+                                    joinLobby.setEnabled(true);
+                                    createLobby.setEnabled(false);
+                                } else {
+                                    joinLobby.setEnabled(false);
+                                    createLobby.setEnabled(true);
+                                }*/
+                                break;
+                            }
+                            case "game-lobby": {
+                                List<Component> components = List.of(lobbyDecks,lobbyStacking,lobbySevenSwap,lobbyJumpIn,lobbyCardsPerPlayer,lobbySettingsLabel,lobbyCode,lobbyPlayersScrollPane,lobbyStart,leaveLobby,lobbyIngameChat);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
+                                break;
+                            }
+                            case "game-main": {
+                                List<Component> components = List.of(draw);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
+
+                                drawButton.setEnabled(canDraw);
+                                skipButton.setEnabled(canSkip);
+                                unoButton.setEnabled(canUNO);
+
+                                drawButton.setVisible(true);
+                                skipButton.setVisible(true);
+                                unoButton.setVisible(true);
+                                nextUpLabel.setVisible(true);
+                                backButton.setVisible(false);
+                                leaveGameButton.setVisible(true);
+
+                                Kernel dKernel = new Kernel(1, 1, new float[]{1f});
+                                ConvolveOp dconvolutionOp = new ConvolveOp(dKernel, ConvolveOp.EDGE_NO_OP, null);
+                                image2 = dconvolutionOp.filter(finalImage, null);
+
+                                /**
+                                 * TODO: Accelerate copy of finalImage
+                                 */
+
+                                Graphics2D g = image2.createGraphics();
+
+                                BufferedImage card = getCard(lastCardPut);
+
+                                g.drawImage(card,null,((frame.getWidth() - card.getWidth())/2) - 100,(frame.getHeight() - card.getHeight())/2 - 200);
+
+                                if(!deck.isEmpty()){
+                                    int spacing = (draw.getWidth() - 400) / deck.size();
+
+                                    Point p = draw.getMousePosition();
+
+                                    boolean shift = false;
+
+                                    if(p != null){
+                                        int posX = p.x -50;
+                                        indexSelected = posX / spacing;
+                                        if(indexSelected > deck.size()) indexSelected = deck.size()-1;
+                                        if(p.y > frame.getHeight() - 300 && p.y < frame.getHeight() - 100){
+                                            shift = true;
+                                        } else {
+                                            indexSelected = -1;
+                                        }
+                                        boolean hovers = p.y > 50 && p.y < 90;
                                     } else {
                                         indexSelected = -1;
                                     }
-                                    boolean hovers = p.y > 50 && p.y < 90;
-                                } else {
-                                    indexSelected = -1;
-                                }
-                                int x = 0;
-                                int i = 0;
+                                    int x = 0;
+                                    int i = 0;
 
-                                for(Card c : deck){
-                                    card = getCard(c);
+                                    for(Card c : deck){
+                                        card = getCard(c);
 
-                                    int y = 0;
-                                    if(i == indexSelected && shift){
-                                        y = 100;
+                                        int y = 0;
+                                        if(i == indexSelected && shift){
+                                            y = 100;
+                                        }
+                                        g.drawImage(card,null,x+50,(frame.getHeight() - 300 - y));
+                                        i++;
+                                        x+=spacing;
                                     }
-                                    g.drawImage(card,null,x+50,(frame.getHeight() - 300 - y));
-                                    i++;
-                                    x+=spacing;
                                 }
-                            }
-
-                            g.dispose();
-
-                            BufferedImage finalImage1 = image2;
-                            Thread t = new Thread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    draw.setIcon(new ImageIcon(finalImage1));
+                                if(!actionMessages.isEmpty()){
+                                    int MAX_AGE_MS = 8000;
+                                    Iterator<ActionMessage> iterator = actionMessages.iterator();
+                                    int y0 = 20;
+                                    g.setFont(new Font("Arial",Font.BOLD,15));
+                                    while (iterator.hasNext()){
+                                        ActionMessage msg = iterator.next();
+                                        if(System.currentTimeMillis()-msg.getAge() > MAX_AGE_MS){
+                                            iterator.remove();
+                                        } else {
+                                            double age = (System.currentTimeMillis()-msg.getAge());
+                                            age-=MAX_AGE_MS-1000;
+                                            double alpha = (double) ((age/ 1000.0) * 255.0);
+                                            if(alpha<0) alpha = 0; else if(alpha >255) alpha = 255;
+                                            g.setColor(new Color(255,0,0, (int) (255.0-alpha)));
+                                            if(msg.getOffset() > 0){
+                                                msg.setOffset(msg.getOffset() - 1);
+                                            }
+                                            g.drawString(msg.getText(),width-450,y0+ msg.getOffset());
+                                            y0+=20;
+                                        }
+                                    }
                                 }
-                            });
-                            t.start();
-                            break;
-                        }
-                        case "game-main-select-color": {
-                            List<Component> components = List.of(draw);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
+
+                                g.dispose();
+
+                                BufferedImage finalImage1 = image2;
+                                Thread t = new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        draw.setIcon(new ImageIcon(finalImage1));
+                                    }
+                                });
+                                t.start();
+                                break;
                             }
-
-                            backButton.setVisible(false);
-
-                            image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
-
-                            Graphics2D g = image2.createGraphics();
-
-                            g.drawImage(blurredBackground,null,-2,-2);
-
-                            if(!deck.isEmpty()){
-
-                                BufferedImage card;
-                                int spacing = (frame.getWidth() - 200) / deck.size();
-
-                                boolean shift = false;
-
-                                int x = 0;
-                                int i = 0;
-
-                                Kernel dKernel = new Kernel(1, 1, darkenKernel);
-                                ConvolveOp dconvolutionOp = new ConvolveOp(dKernel, ConvolveOp.EDGE_NO_OP, null);
-
-                                for(Card c : deck){
-                                    card = getCard(c);
-                                    card = dconvolutionOp.filter(card, null);
-                                    int y = 0;
-                                    g.drawImage(card,null,x+50,(frame.getHeight() - 300 - y));
-                                    i++;
-                                    x+=spacing;
+                            case "game-main-select-color": {
+                                List<Component> components = List.of(draw);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
                                 }
+
+                                backButton.setVisible(false);
+
+                                image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
+
+                                Graphics2D g = image2.createGraphics();
+
+                                g.drawImage(blurredBackground,null,-2,-2);
+
+                                if(!deck.isEmpty()){
+
+                                    BufferedImage card;
+                                    int spacing = (frame.getWidth() - 200) / deck.size();
+
+                                    boolean shift = false;
+
+                                    int x = 0;
+                                    int i = 0;
+
+                                    Kernel dKernel = new Kernel(1, 1, darkenKernel);
+                                    ConvolveOp dconvolutionOp = new ConvolveOp(dKernel, ConvolveOp.EDGE_NO_OP, null);
+
+                                    for(Card c : deck){
+                                        card = getCard(c);
+                                        card = dconvolutionOp.filter(card, null);
+                                        int y = 0;
+                                        g.drawImage(card,null,x+50,(frame.getHeight() - 300 - y));
+                                        i++;
+                                        x+=spacing;
+                                    }
+                                }
+
+                                g.setFont(new Font("Arial", Font.BOLD,50));
+                                FontMetrics fm = g.getFontMetrics(g.getFont());
+                                g.drawString("Choose Color",(width-fm.stringWidth("Choose Color")) / 2,200-150);
+
+                                Point p = draw.getMousePosition();
+
+                                int selected = 0;
+
+                                if(p != null && BoundsCheck.within(p.getX(),p.getY(),200,200,128,192)){
+                                    selected = 1;
+                                }
+                                if(p != null && BoundsCheck.within(p.getX(),p.getY(),440,200,128,192)){
+                                    selected = 2;
+                                }
+                                if(p != null && BoundsCheck.within(p.getX(),p.getY(),680,200,128,192)){
+                                    selected = 3;
+                                }
+                                if(p != null && BoundsCheck.within(p.getX(),p.getY(),920,200,128,192)){
+                                    selected = 4;
+                                }
+
+                                if(selected == 1) g.drawImage(Util.resize(getCard(new Card(RED,ZERO)),148,212),null,190,340-150); else g.drawImage(getCard(new Card(RED,ZERO)),null,200,350-150);
+                                if(selected == 2) g.drawImage(Util.resize(getCard(new Card(GREEN,ZERO)),148,212),null,430,340-150); else g.drawImage(getCard(new Card(GREEN,ZERO)),null,440,350-150);
+                                if(selected == 3) g.drawImage(Util.resize(getCard(new Card(BLUE,ZERO)),148,212),null,670,340-150); else g.drawImage(getCard(new Card(BLUE,ZERO)),null,680,350-150);
+                                if(selected == 4) g.drawImage(Util.resize(getCard(new Card(YELLOW,ZERO)),148,212),null,910,340-150); else g.drawImage(getCard(new Card(YELLOW,ZERO)),null,920,350-150);
+
+                                g.dispose();
+
+                                drawButton.setVisible(false);
+                                skipButton.setVisible(false);
+                                unoButton.setVisible(false);
+                                nextUpLabel.setVisible(false);
+                                backButton.setVisible(false);
+                                leaveGameButton.setVisible(false);
+
+                                draw.setIcon(new ImageIcon(image2));
+                                break;
                             }
+                            case "game-main-game-end": {
+                                List<Component> components = List.of(draw);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
 
-                            g.setFont(new Font("Arial", Font.BOLD,50));
-                            FontMetrics fm = g.getFontMetrics(g.getFont());
-                            g.drawString("Choose Color",(width-fm.stringWidth("Choose Color")) / 2,200-150);
+                                backButton.setVisible(true);
+                                drawButton.setVisible(false);
+                                skipButton.setVisible(false);
+                                unoButton.setVisible(false);
+                                nextUpLabel.setVisible(false);
+                                leaveGameButton.setVisible(false);
 
-                            Point p = draw.getMousePosition();
+                                image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
 
-                            int selected = 0;
+                                Graphics2D g = image2.createGraphics();
 
-                            if(p != null && BoundsCheck.within(p.getX(),p.getY(),200,200,128,192)){
-                                selected = 1;
+                                g.drawImage(blurredBackground,null,-2,-2);
+
+                                g.setFont(new Font("Arial", Font.BOLD,80));
+                                FontMetrics fm = g.getFontMetrics(g.getFont());
+                                g.drawString("Game Ended",(width-fm.stringWidth("Game Ended")) / 2,100);
+
+                                int y0 = 90;
+
+                                g.setFont(new Font("Arial", Font.BOLD,60));
+                                fm = g.getFontMetrics(g.getFont());
+
+                                g.drawString("Winner: " + winner,(width-fm.stringWidth("Winner: " + winner)) / 2,100 + y0);
+
+                                y0+=30;
+
+                                if(!leaderboard.isEmpty()) g.setFont(new Font("Arial", Font.PLAIN,Math.min(270/leaderboard.size(),40)));
+                                fm = g.getFontMetrics(g.getFont());
+
+                                for(String s : leaderboard) {
+                                    y0+=g.getFont().getSize()+5;
+                                    g.drawString(s, (width-fm.stringWidth(s))/2, 100 + y0);
+                                }
+
+                                g.setFont(new Font("Arial", Font.BOLD,30));
+                                fm = g.getFontMetrics(g.getFont());
+
+                                //g.drawString("Press SPACE to continue",(width-fm.stringWidth("Press SPACE to continue")) / 2,600);
+
+
+                                g.dispose();
+
+                                drawButton.setVisible(false);
+                                skipButton.setVisible(false);
+                                unoButton.setVisible(false);
+                                nextUpLabel.setVisible(false);
+
+                                draw.setIcon(new ImageIcon(image2));
+                                break;
                             }
-                            if(p != null && BoundsCheck.within(p.getX(),p.getY(),440,200,128,192)){
-                                selected = 2;
+                            case "manage-account" :{
+                                List<Component> components = List.of(draw);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }
+                                break;
                             }
-                            if(p != null && BoundsCheck.within(p.getX(),p.getY(),680,200,128,192)){
-                                selected = 3;
+                            case "create-account" :
+                                List<Component> components = List.of(createAccountTitleLabel, createAccountUsername, createAccountDisplayName, createAccountPasswordField, createAccountConfirmPassword, createAccountCreateButton, createAccountBackButton, createAccountLabel);
+                                for(Component c : panel.getComponents()){
+                                    c.setVisible(components.contains(c));
+                                }{
+                                break;
                             }
-                            if(p != null && BoundsCheck.within(p.getX(),p.getY(),920,200,128,192)){
-                                selected = 4;
+                            default: {
+                                System.out.println("Invalid gui " + gui);
                             }
-
-                            if(selected == 1) g.drawImage(Util.resize(getCard(new Card(RED,ZERO)),148,212),null,190,340-150); else g.drawImage(getCard(new Card(RED,ZERO)),null,200,350-150);
-                            if(selected == 2) g.drawImage(Util.resize(getCard(new Card(GREEN,ZERO)),148,212),null,430,340-150); else g.drawImage(getCard(new Card(GREEN,ZERO)),null,440,350-150);
-                            if(selected == 3) g.drawImage(Util.resize(getCard(new Card(BLUE,ZERO)),148,212),null,670,340-150); else g.drawImage(getCard(new Card(BLUE,ZERO)),null,680,350-150);
-                            if(selected == 4) g.drawImage(Util.resize(getCard(new Card(YELLOW,ZERO)),148,212),null,910,340-150); else g.drawImage(getCard(new Card(YELLOW,ZERO)),null,920,350-150);
-
-                            g.dispose();
-
-                            drawButton.setVisible(false);
-                            skipButton.setVisible(false);
-                            unoButton.setVisible(false);
-                            nextUpLabel.setVisible(false);
-                            backButton.setVisible(false);
-                            leaveGameButton.setVisible(false);
-
-                            draw.setIcon(new ImageIcon(image2));
-                            break;
                         }
-                        case "game-main-game-end": {
-                            List<Component> components = List.of(draw);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
+                        if(System.currentTimeMillis() - lastUpdateFPS >= 1000){
+                            frame.setTitle(baseTitle + " ping " + ping[0] + " ms " + frames + " FPS");
+                            lastUpdateFPS = System.currentTimeMillis();
+                            frames = 0;
+                            //frame.setIconImage(image2);
+                        }
+                        frames++;
+                        long renderTime = (System.currentTimeMillis())-renderStart;
+                        /*if(renderTime < minMS){
+                            try {
+                                Thread.sleep(minMS-renderTime);
+                            } catch (InterruptedException e) {
+                                throw new RuntimeException(e);
                             }
-
-                            backButton.setVisible(true);
-                            drawButton.setVisible(false);
-                            skipButton.setVisible(false);
-                            unoButton.setVisible(false);
-                            nextUpLabel.setVisible(false);
-                            leaveGameButton.setVisible(false);
-
-                            image2 = new BufferedImage(frame.getWidth(), frame.getHeight(), 1);
-
-                            Graphics2D g = image2.createGraphics();
-
-                            g.drawImage(blurredBackground,null,-2,-2);
-
-                            g.setFont(new Font("Arial", Font.BOLD,80));
-                            FontMetrics fm = g.getFontMetrics(g.getFont());
-                            g.drawString("Game Ended",(width-fm.stringWidth("Game Ended")) / 2,100);
-
-                            int y0 = 90;
-
-                            g.setFont(new Font("Arial", Font.BOLD,60));
-                            fm = g.getFontMetrics(g.getFont());
-
-                            g.drawString("Winner: " + winner,(width-fm.stringWidth("Winner: " + winner)) / 2,100 + y0);
-
-                            y0+=30;
-
-                            if(!leaderboard.isEmpty()) g.setFont(new Font("Arial", Font.PLAIN,Math.min(270/leaderboard.size(),40)));
-                            fm = g.getFontMetrics(g.getFont());
-
-                            for(String s : leaderboard) {
-                                y0+=g.getFont().getSize()+5;
-                                g.drawString(s, (width-fm.stringWidth(s))/2, 100 + y0);
-                            }
-
-                            g.setFont(new Font("Arial", Font.BOLD,30));
-                            fm = g.getFontMetrics(g.getFont());
-
-                            //g.drawString("Press SPACE to continue",(width-fm.stringWidth("Press SPACE to continue")) / 2,600);
-
-
-                            g.dispose();
-
-                            drawButton.setVisible(false);
-                            skipButton.setVisible(false);
-                            unoButton.setVisible(false);
-                            nextUpLabel.setVisible(false);
-
-                            draw.setIcon(new ImageIcon(image2));
-                            break;
+                        }*/
+                        if(loadingGUI[0] != null){
+                            loadingGUI[0].increaseValue();
+                            loadingGUI[0].dispose();
+                            loadingGUI[0] = null;
+                            frame.setVisible(true);
                         }
-                        case "manage-account" :{
-                            List<Component> components = List.of(draw);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
-                            }
-                            break;
-                        }
-                        case "create-account" :
-                            List<Component> components = List.of(createAccountTitleLabel, createAccountUsername, createAccountDisplayName, createAccountPasswordField, createAccountConfirmPassword, createAccountCreateButton, createAccountBackButton, createAccountLabel);
-                            for(Component c : panel.getComponents()){
-                                c.setVisible(components.contains(c));
-                            }{
-                            break;
-                        }
-                        default: {
-                            System.out.println("Invalid gui " + gui);
-                        }
-                    }
-                    if(System.currentTimeMillis() - lastUpdateFPS >= 1000){
-                        frame.setTitle(baseTitle + " ping " + ping[0] + " ms " + frames + " FPS");
-                        lastUpdateFPS = System.currentTimeMillis();
-                        frames = 0;
-                        //frame.setIconImage(image2);
-                    }
-                    frames++;
-                    long renderTime = (System.currentTimeMillis())-renderStart;
-                    /*if(renderTime < minMS){
-                        try {
-                            Thread.sleep(minMS-renderTime);
-                        } catch (InterruptedException e) {
-                            throw new RuntimeException(e);
-                        }
-                    }*/
-                    if(loadingGUI[0] != null){
-                        loadingGUI[0].increaseValue();
-                        loadingGUI[0].dispose();
-                        loadingGUI[0] = null;
-                        frame.setVisible(true);
-                    }
+                } catch (Exception e){
+
                 }
             }
         });
@@ -1579,6 +1649,9 @@ public class GUI extends Client {
                     }
                     if(packet instanceof GameStartPacket p){
                         gui = "game-main";
+                    }
+                    if(packet instanceof ActionPacket p){
+                        actionMessages.add(new ActionMessage(p.getAction(),0,System.currentTimeMillis()));
                     }
                     if(packet instanceof ProfilerUpdate p){
                         //System.out.println(p);

@@ -8,6 +8,7 @@ public class LoadingGUI<d> {
     private JFrame frame;
     private int width = 500;
     private int height = 100;
+    private long start;
     private JProgressBar progressBar = new JProgressBar();
     public void setMax(int max){
         this.progressBar.setMaximum(max);
@@ -18,6 +19,8 @@ public class LoadingGUI<d> {
         this.progressBar.setStringPainted(true);
     }
     public void increaseValue(){
+        System.out.println(progressBar.getValue() + " -> took " + (System.currentTimeMillis() - start) + " ms");
+        start = System.currentTimeMillis();
         this.progressBar.setValue(progressBar.getValue()+1);
         this.progressBar.setString(progressBar.getValue() + "/" + progressBar.getMaximum());
         this.progressBar.setStringPainted(true);
@@ -26,6 +29,7 @@ public class LoadingGUI<d> {
         frame.dispose();
     }
     public LoadingGUI() {
+        start = System.currentTimeMillis();
         initialize();
     }
     private void initialize() {

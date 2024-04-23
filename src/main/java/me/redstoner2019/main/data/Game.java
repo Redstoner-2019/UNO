@@ -205,6 +205,9 @@ public class Game {
                 chats = new ArrayList<>();
 
                 long lastCardPlacedTimestamp = System.currentTimeMillis();
+                for(Player p : players){
+                    cardsPlaced.put(p.getUsername(),0);
+                }
 
                 while (gameRunning){
                     updatePlayers();
@@ -230,6 +233,7 @@ public class Game {
                                 player.setCanSkip(false);
                                 player.setCanDraw(true);
                             }
+                            broadcastAllPlayers(new ActionPacket(player.getDisplayName() + " has drawn " + p.getAmount() + " card(s)"));
                             for (int i = 0; i < p.getAmount(); i++) {
                                 Card card = DECK.poll();
                                 player.addCard(card);
@@ -243,6 +247,7 @@ public class Game {
                             if(!isTurn) continue;
                             if(!player.isCanSkip()) continue;
                             System.out.println(player.getDisplayName() + " Skipped their turn");
+                            broadcastAllPlayers(new ActionPacket(player.getDisplayName() + " has skipped their turn"));
                             player.setCanSkip(false);
                             player.setCanDraw(false);
                             nextPlayer();
@@ -250,6 +255,7 @@ public class Game {
                         if(packet instanceof UNOPacket p){
                             if(!isTurn) continue;
                             System.out.println(player.getDisplayName() + ": UNO!");
+                            broadcastAllPlayers(new ActionPacket(player.getDisplayName() + " is now UNO!"));
                             player.setUNO(true);
                             player.setCanUNO(false);
                         }
@@ -259,11 +265,14 @@ public class Game {
                                 System.out.println(player.getUsername() + " does not have card " + p.getCard());
                                 continue;
                             }
-                            if(lastCardPlaced.canBePlayed(p.getCard())){
-                                System.out.println(player.getDisplayName() + " placed card " + p.getCard());
+                            if(lastCardPlaced.canBePlayed(p.getCard()) || (lastCardPlaced.getNum().equals(CardType.PLUS_4) && p.getCard().getNum().equals(CardType.PLUS_4) && isStacking())){
+                                System.out.println(player.getDisplayName() + " played card " + p.getCard());
+                                String override = "";
+                                if(p.getCard().getOverrideColor() != null) override = " - " + p.getCard().getOverrideColor().name();
+                                broadcastAllPlayers(new ActionPacket(player.getDisplayName() + " played card " + p.getCard().getColor() + " - " + p.getCard().getNum() + override));
                                 DECK.add(lastCardPlaced);
                                 System.out.println(cardsPlaced.get(player.getUsername()) + player.getUsername());
-                                cardsPlaced.put(player.getUsername(),cardsPlaced.getOrDefault(player.getUsername(),0)+1);
+                                cardsPlaced.put(player.getUsername(),cardsPlaced.get(player.getUsername())+1);
                                 System.out.println(cardsPlaced.get(player.getUsername()) + player.getUsername());
                                 lastCardPlaced = p.getCard();
                                 player.removeCard(p.getCard());
@@ -271,6 +280,7 @@ public class Game {
                                     player.addCard(DECK.poll());
                                     player.addCard(DECK.poll());
                                     System.out.println(player.getUsername() + " forgot to say UNO");
+                                    broadcastAllPlayers(new ActionPacket(player.getUsername() + " forgot to say UNO"));
                                 }
                                 if(player.getCards().size() == 1) player.setUNO(false);
                                 if(lastCardPlaced.getOverrideColor() == null) lastCardPlaced.setOverrideColor(CardColor.RED);
@@ -279,10 +289,13 @@ public class Game {
                                 if(lastCardPlaced.getNum().equals(CardType.PLUS_4)){
                                     player.getUserdata().setPlus4Placed(player.getUserdata().getPlus4Placed()+1);
                                     cardsDue+=4;
+                                    broadcastAllPlayers(new ActionPacket("Cards due are now at " + cardsDue));
                                 }else if(lastCardPlaced.getNum().equals(CardType.DRAW)){
                                     cardsDue+=2;
+                                    broadcastAllPlayers(new ActionPacket("Cards due are now at " + cardsDue));
                                 } else if(cardsDue > 0 && isStacking()){
                                     System.out.println("Drawing " + cardsDue + " cards");
+                                    broadcastAllPlayers(new ActionPacket(player.getDisplayName() + " had to draw " + cardsDue + " card(s)"));
                                     for (int i = 0; i < cardsDue; i++) {
                                         player.addCard(DECK.poll());
                                     }
@@ -308,7 +321,7 @@ public class Game {
                     }
                     List<String> nextPlayers = new ArrayList<>();
                     for(Player p : players){
-                        String s = p.getDisplayName();
+                        String s = String.format("%15s - %2d Card(s)",p.getDisplayName(),p.getCards().size());
                         if(p.isUNO()) s+= " - UNO!";
                         nextPlayers.add(s);
                     }
@@ -364,7 +377,6 @@ public class Game {
                         System.out.println("Removing player(s) " + toRemove);
                     }
                     players.removeAll(toRemove);
-                    cardsPlaced = new HashMap<>();
                     try {
                         Thread.sleep(100);
                     } catch (InterruptedException e) {
@@ -374,6 +386,7 @@ public class Game {
                 /**
                  * Game ended
                  */
+                cardsPlaced = new HashMap<>();
                 System.out.println("Game end");
                 for(Player p : players){
                     p.getUserdata().setGamesPlayed(p.getUserdata().getGamesPlayed()+1);
@@ -398,6 +411,11 @@ public class Game {
             }
         }
         return listShuffled;
+    }
+    private void broadcastAllPlayers(Object packet){
+        for(Player p : players){
+            p.getHandler().sendObject(packet);
+        }
     }
     private void nextPlayer(){
         Player tempPlayer = players.get(0);

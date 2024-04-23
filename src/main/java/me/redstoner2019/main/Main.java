@@ -17,17 +17,14 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.HashMap;
-import java.util.List;
 
 import static me.redstoner2019.main.data.CardColor.*;
 
 public class Main {
     public static final boolean TEST_MODE = false;
-    private static final String VERSION = "v1.6.0-alpha.4";
+    private static final String VERSION = "v1.6.0-alpha.9";
     public static String username = "";
     public static String password = "";
     public static String packVersion = "1";

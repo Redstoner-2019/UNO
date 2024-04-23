@@ -67,7 +67,8 @@ public class ServerMain extends Server {
                         if(packet instanceof ChatPacket p){
                             Calendar calendar = Calendar.getInstance();
                             for(Player pl : games.get(player.getGameID()).getPlayers()){
-                                pl.getHandler().sendObject(new ChatPacket(String.format("%02d:%02d:%02d ",calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND)) + player.getDisplayName() + ": " + p.getMessage()));
+                                pl.getHandler().sendObject(new ChatPacket(String.format("%02d:%02d:%02d (%s) ",calendar.get(Calendar.HOUR_OF_DAY),calendar.get(Calendar.MINUTE), calendar.get(Calendar.SECOND), player.getGameID()) + player.getDisplayName() + ": " + p.getMessage()));
+                                pl.getHandler().sendObject(new ActionPacket("Chat Recieved"));
                             }
                         }
                         if(packet instanceof InitializeConsoleClientPacket){
@@ -105,6 +106,7 @@ public class ServerMain extends Server {
                             }
 
                         }
+                        if(!player.isLoggedIn()) return;
                         if(packet instanceof CreateLobbyPacket p){
                             if(!player.getGameID().isEmpty()) return;
                             Game game;
