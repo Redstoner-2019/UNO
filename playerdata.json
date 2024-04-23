@@ -1,42 +1,18 @@
 {
-  "halil" : {
-    "password" : "test",
-    "displayname" : "Halil",
-    "plus-4-placed" : 6,
-    "games-played" : 19,
-    "games-won" : 11,
-    "username" : "halil"
-  },
-  "Halil" : {
-    "password" : "test",
-    "displayname" : "HaLuLzEn",
-    "plus-4-placed" : 2,
-    "games-played" : 4,
+  "Theytrin" : {
+    "password" : "123456789",
+    "displayname" : "Theytrin",
+    "plus-4-placed" : 10,
+    "games-played" : 5,
     "games-won" : 3,
-    "username" : "Halil"
-  },
-  "test" : {
-    "password" : "test",
-    "displayname" : "Test",
-    "plus-4-placed" : 0,
-    "games-played" : 0,
-    "games-won" : 0,
-    "username" : "test"
+    "username" : "Theytrin"
   },
   "lukas" : {
     "password" : "test",
     "displayname" : "Lukas",
-    "plus-4-placed" : 10,
-    "games-played" : 24,
-    "games-won" : 15,
+    "plus-4-placed" : 5,
+    "games-played" : 5,
+    "games-won" : 2,
     "username" : "lukas"
-  },
-  "Marcel" : {
-    "password" : "1234",
-    "displayname" : "Marcel",
-    "plus-4-placed" : 1,
-    "games-played" : 1,
-    "games-won" : 0,
-    "username" : "Marcel"
   }
 }

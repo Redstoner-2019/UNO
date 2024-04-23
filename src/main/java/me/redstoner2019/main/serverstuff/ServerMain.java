@@ -106,7 +106,6 @@ public class ServerMain extends Server {
                             }
 
                         }
-                        if(!player.isLoggedIn()) return;
                         if(packet instanceof CreateLobbyPacket p){
                             if(!player.getGameID().isEmpty()) return;
                             Game game;
