@@ -1,6 +1,8 @@
 package me.redstoner2019.main.serverstuff;
 
 import com.sun.management.OperatingSystemMXBean;
+import me.redstoner2019.client.AuthenticatorServer;
+import me.redstoner2019.data.Token;
 import me.redstoner2019.main.LoggerDump;
 import me.redstoner2019.main.Main;
 import me.redstoner2019.main.data.Game;
@@ -19,6 +21,7 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
+import org.json.JSONObject;
 
 import javax.swing.*;
 import java.lang.management.ManagementFactory;
@@ -40,6 +43,17 @@ public class ServerMain extends Server {
             System.err.println("Download at https://github.com/Redstoner-2019/UNO/releases/tag/"+latestVersion);
         }
         LoggerDump.initialize();
+
+        AuthenticatorServer.authenticationServerIp = "45.93.249.98";
+        AuthenticatorServer.setConnectionFailedEvent(new me.redstoner2019.events.ConnectionFailedEvent() {
+            @Override
+            public void onConnectionFailedEvent(Exception e) {
+                Util.log("Couldnt connect to auth server");
+                System.exit(404);
+            }
+        });
+        AuthenticatorServer.setup();
+
         setClientConnectEvent(new ClientConnectEvent() {
             @Override
             public void connectEvent(ClientHandler handler) throws Exception {
@@ -80,31 +94,23 @@ public class ServerMain extends Server {
                             if(player.isLoggedIn()) return;
                             System.out.println("Server " + Main.getVersion());
                             System.out.println("Client " + p.getVersion());
-                            String username = p.getUsername();
-                            String password = p.getPassword();
-                            String displayName = "";
-                            if(p.getCustomDisplayName() != null) displayName = p.getCustomDisplayName();
 
-                            Userdata userdata = Userdata.read(username);
-                            if(userdata == null){
-                                System.out.println("Account doesnt exist");
-                                handler.sendObject(new DisconnectPacket("Account doesnt exist",404));
-                                return;
+                            JSONObject data = AuthenticatorServer.getTokenInfo(p.getToken());
+
+                            if(data.get("available").equals("true")){
+                                String username = data.getString("username");
+                                String displayname = data.getString("displayname");
+                                handler.sendObject(new LoginSuccessPacket());
+                                player.setDisplayName(displayname);
+                                player.setUsername(username);
+                                player.setLoggedIn(true);
+                                player.setHandler(handler);
+                                players.add(player);
+                                System.out.println("valid token");
                             } else {
-                                if(!userdata.getPassword().equals(password)){
-                                    System.out.println("Incorrect password");
-                                    handler.sendObject(new DisconnectPacket("Incorrect Password",401));
-                                } else {
-                                    System.out.println("Login success");
-                                    handler.sendObject(new LoginSuccessPacket());
-                                    player.setDisplayName(displayName);
-                                    player.setUsername(username);
-                                    player.setLoggedIn(true);
-                                    player.setHandler(handler);
-                                    players.add(player);
-                                }
+                                handler.sendObject(new DisconnectPacket("Invalid session token",403));
+                                System.out.println("Invalid token");
                             }
-
                         }
                         if(packet instanceof CreateLobbyPacket p){
                             if(!player.getGameID().isEmpty()) return;
@@ -176,7 +182,8 @@ public class ServerMain extends Server {
                                 i++;
                             }
                             handler.sendObject(new LobbiesPacket(lobbies));
-                            handler.sendObject(new StatsPacket(player.getUserdata().getGamesPlayed(),player.getUserdata().getGamesWon(),player.getUserdata().getPlus4Placed()));
+                            //TODO: ReAdd stats
+                            //handler.sendObject(new StatsPacket(player.getUserdata().getGamesPlayed(),player.getUserdata().getGamesWon(),player.getUserdata().getPlus4Placed()));
                         }
                         if(packet instanceof Ping){
                             handler.sendObject(packet);

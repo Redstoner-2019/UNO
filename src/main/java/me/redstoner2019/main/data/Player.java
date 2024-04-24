@@ -156,9 +156,6 @@ public class Player {
 
     public void setUsername(String username) {
         this.username = username;
-        this.userdata = Userdata.read(username);
-        if(userdata == null) this.displayName =  "unavailable";
-        this.displayName = userdata.getDisplayName();
     }
 
     public List<Card> getCards() {

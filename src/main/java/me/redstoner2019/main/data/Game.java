@@ -287,7 +287,8 @@ public class Game {
 
 
                                 if(lastCardPlaced.getNum().equals(CardType.PLUS_4)){
-                                    player.getUserdata().setPlus4Placed(player.getUserdata().getPlus4Placed()+1);
+                                    //TODO ReAdd stats
+                                    //player.getUserdata().setPlus4Placed(player.getUserdata().getPlus4Placed()+1);
                                     cardsDue+=4;
                                     broadcastAllPlayers(new ActionPacket("Cards due are now at " + cardsDue));
                                 }else if(lastCardPlaced.getNum().equals(CardType.DRAW)){
@@ -353,7 +354,8 @@ public class Game {
                             if(p.getCards().isEmpty()){
                                 gameRunning = false;
                                 winner = p.getDisplayName();
-                                p.getUserdata().setGamesWon(p.getUserdata().getGamesWon()+1);
+                                //TODO ReAdd stats
+                                //p.getUserdata().setGamesWon(p.getUserdata().getGamesWon()+1);
                                 players.sort(new Comparator<Player>() {
                                     @Override
                                     public int compare(Player o1, Player o2) {
@@ -389,9 +391,10 @@ public class Game {
                 cardsPlaced = new HashMap<>();
                 System.out.println("Game end");
                 for(Player p : players){
-                    p.getUserdata().setGamesPlayed(p.getUserdata().getGamesPlayed()+1);
+                    //TODO ReAdd stats
+                    //p.getUserdata().setGamesPlayed(p.getUserdata().getGamesPlayed()+1);
                     p.getHandler().sendObject(new GameEndPacket(winner, leaderboard));
-                    p.getHandler().sendObject(new StatsPacket(p.getUserdata().getGamesPlayed(),p.getUserdata().getGamesWon(),p.getUserdata().getPlus4Placed()));
+                    //p.getHandler().sendObject(new StatsPacket(p.getUserdata().getGamesPlayed(),p.getUserdata().getGamesWon(),p.getUserdata().getPlus4Placed()));
                     p.save();
                     p.getCards().clear();
                 }

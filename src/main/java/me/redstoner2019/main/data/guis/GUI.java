@@ -1,5 +1,6 @@
 package me.redstoner2019.main.data.guis;
 
+import me.redstoner2019.client.AuthenticatorClient;
 import me.redstoner2019.main.BoundsCheck;
 import me.redstoner2019.main.CustomButton;
 import me.redstoner2019.main.Main;
@@ -70,6 +71,7 @@ public class GUI extends Client {
     public static int viewCard = 0;
     public static List<String> chatMessages = new ArrayList<>();
     public static List<ActionMessage> actionMessages = new ArrayList<>();
+    public static String TOKEN = "";
     public GUI() throws Exception {
         initialize();
     }
@@ -89,6 +91,19 @@ public class GUI extends Client {
             JOptionPane.showMessageDialog(null,"Couldnt read custom Texture. Defaulting.");
             cards = ImageIO.read(GUI.class.getResource("/cards.png"));
         }
+
+        AuthenticatorClient.setConnectionFailedEvent(new me.redstoner2019.events.ConnectionFailedEvent() {
+            @Override
+            public void onConnectionFailedEvent(Exception e) {
+                JOptionPane.showMessageDialog(null,"Failed to connect to auth Server! \nExiting.");
+                Util.log("Connection to auth server failed");
+                System.exit(0);
+            }
+        });
+        AuthenticatorClient.authenticationServerIp = "45.93.249.98";
+        AuthenticatorClient.setup();
+
+        final JSONObject[] tokenData = {AuthenticatorClient.getTokenInfo(TOKEN)};
 
         frame = new JFrame();
         frame.setResizable(false);
@@ -136,8 +151,9 @@ public class GUI extends Client {
 
         clientData = new JSONObject(Util.readFile(new File("client.properties")));
 
-        if(Main.password.isEmpty()) Main.password = clientData.getString("password");
-        if(Main.username.isEmpty()) Main.username = clientData.getString("username");
+        if(clientData.has("token")) TOKEN = clientData.getString("token");
+
+        tokenData[0] = AuthenticatorClient.getTokenInfo(TOKEN);
 
         JSONArray serverList;
         if(clientData.has("servers")) serverList = clientData.getJSONArray("servers"); else serverList = new JSONArray();
@@ -173,6 +189,7 @@ public class GUI extends Client {
         JLabel mainMenuSubTitleLabel = new JLabel("Version " + Main.getVersion());
         JButton mainMenuPlayButton = new JButton("PLAY");
         JButton mainMenuSettingsButton = new JButton("SETTINGS");
+        JLabel loggedInAs = new JLabel("");
 
         final String[] latestVersion = {""};
         Thread thread = new Thread(new Runnable() {
@@ -196,21 +213,35 @@ public class GUI extends Client {
         mainMenuSubTitleLabel.setBounds((frame.getWidth()-800)/2,100,800,50);
         mainMenuPlayButton.setBounds(frame.getWidth()-500,300,300,80);
         mainMenuSettingsButton.setBounds(200,300,300,80);
+        loggedInAs.setBounds(frame.getWidth()-430,frame.getHeight()-70,400,30);
 
         mainMenuTitleLabel.setHorizontalAlignment(JLabel.CENTER);
         mainMenuTitleLabel.setVerticalAlignment(JLabel.CENTER);
         mainMenuSubTitleLabel.setHorizontalAlignment(JLabel.CENTER);
         mainMenuSubTitleLabel.setVerticalAlignment(JLabel.CENTER);
+        loggedInAs.setHorizontalAlignment(JLabel.RIGHT);
 
         mainMenuTitleLabel.setFont(new Font("Arial", Font.BOLD,50));
         mainMenuSubTitleLabel.setFont(new Font("Arial", Font.PLAIN,25));
         mainMenuPlayButton.setFont(new Font("Arial", Font.PLAIN,40));
         mainMenuSettingsButton.setFont(new Font("Arial", Font.PLAIN,40));
+        loggedInAs.setFont(new Font("Arial", Font.PLAIN,20));
 
         panel.add(mainMenuTitleLabel);
         panel.add(mainMenuSubTitleLabel);
         panel.add(mainMenuPlayButton);
         panel.add(mainMenuSettingsButton);
+        panel.add(loggedInAs);
+
+        if(tokenData[0].get("available").equals("true")){
+            loggedInAs.setText("Logged in as " + tokenData[0].get("username"));
+            loggedInAs.setForeground(Color.GREEN);
+            Util.log("logged in");
+        } else {
+            loggedInAs.setText("Not logged in");
+            loggedInAs.setForeground(Color.RED);
+            Util.log("not logged in");
+        }
 
         mainMenuSettingsButton.addActionListener(new ActionListener() {
             @Override
@@ -255,6 +286,7 @@ public class GUI extends Client {
         JLabel cardPreview = new JLabel();
         JButton cardSwitchLeft = new JButton("-");
         JButton cardSwitchRight = new JButton("+");
+        JButton accountGUI = new JButton("Account...");
 
         settingsTitleLabel.setBounds((frame.getWidth()-400)/2,30,400,80);
         settingsSubTitleLabel.setBounds((frame.getWidth()-300)/2,100,300,50);
@@ -263,6 +295,7 @@ public class GUI extends Client {
         toggleDarkMode.setBounds((frame.getWidth()-300)/2,200,300,40);
         resourcePackTextField.setBounds((frame.getWidth()-300)/2,300,300,40);
         applyTexturepackButton.setBounds((frame.getWidth()-300)/2,350,300,40);
+        accountGUI.setBounds((frame.getWidth()-300)/2,400,300,40);
         texturePackLoadResult.setBounds((frame.getWidth()-300)/2,400,300,40);
         cardPreview.setBounds((frame.getWidth()-200),170,128,200);
         cardSwitchLeft.setBounds(frame.getWidth()-200,392,64,20);
@@ -281,6 +314,7 @@ public class GUI extends Client {
         resourcePackTextField.setFont(new Font("Arial", Font.PLAIN,20));
         applyTexturepackButton.setFont(new Font("Arial", Font.PLAIN,20));
         texturePackLoadResult.setFont(new Font("Arial", Font.PLAIN,20));
+        accountGUI.setFont(new Font("Arial", Font.PLAIN,20));
 
         panel.add(settingsTitleLabel);
         panel.add(settingsSubTitleLabel);
@@ -293,6 +327,7 @@ public class GUI extends Client {
         panel.add(cardPreview);
         panel.add(cardSwitchLeft);
         panel.add(cardSwitchRight);
+        panel.add(accountGUI);
 
         cardPreview.setIcon(new ImageIcon(getCard(new Card(RED,CardType.ZERO))));
         cardSwitchLeft.addActionListener(new ActionListener() {
@@ -425,6 +460,13 @@ public class GUI extends Client {
             }
         });
 
+        accountGUI.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gui = "login-account";
+            }
+        });
+
 
 
         settingsMainMenuButton.addActionListener(new ActionListener() {
@@ -445,32 +487,22 @@ public class GUI extends Client {
         JButton serverGuiJoinServerButton = new JButton("JOIN SELECTED SERVER");
         JButton serverGuiAddServer = new JButton("ADD SERVER");
         JButton serverGuiDeleteServer = new JButton("DELETE SERVER");
-        JButton serverGuiCreateAccount = new JButton("CREATE ACCOUNT");
-        JButton serverGuiManageAccount = new JButton("MANAGE ACCOUNT");
         JButton serverGuiSearchLocalServersButton = new JButton("SEARCH LOCAL");
-
-        serverGuiManageAccount.setEnabled(false);
 
         JList<String> serversJList = new JList<>();
         JScrollPane serverScrollPane = new JScrollPane(serversJList);
         JTextArea serverConnectionInfo = new JTextArea();
-        JTextField usernameField = new JTextField(Main.username);
-        JPasswordField passwordField = new JPasswordField(Main.password);
 
         serverSelectorLabel.setBounds(frame.getWidth()-500,50,500,40);
 
-        serverGuiAddServer.setBounds(50,frame.getHeight()-200,200,40);
-        serverGuiSearchLocalServersButton.setBounds(580,frame.getHeight()-200,200,40);
-        serverGuiMenuButton.setBounds(580,frame.getHeight()-130,200,40);
+        serverGuiSearchLocalServersButton.setBounds(480-50,frame.getHeight()-200,350,40);
+        serverGuiMenuButton.setBounds(480-50,frame.getHeight()-130,350,40);
+        serverGuiAddServer.setBounds(50,frame.getHeight()-200,350,40);
+        serverGuiDeleteServer.setBounds(50,frame.getHeight()-130,350,40);
         serverGuiJoinServerButton.setBounds(frame.getWidth()-450,frame.getHeight()-200,400,110);
-        serverGuiDeleteServer.setBounds(50,frame.getHeight()-130,200,40);
-        serverGuiCreateAccount.setBounds(315,frame.getHeight()-130,200,40);
-        serverGuiManageAccount.setBounds(315,frame.getHeight()-200,200,40);
 
         serverScrollPane.setBounds(50,50,frame.getWidth()-550,height-280);
-        serverConnectionInfo.setBounds(frame.getWidth()-450,100,400,250);
-        usernameField.setBounds(frame.getWidth()-450,frame.getHeight()-340,400,40);
-        passwordField.setBounds(frame.getWidth()-450,frame.getHeight()-270,400,40);
+        serverConnectionInfo.setBounds(frame.getWidth()-450,100,400,400);
 
         serverSelectorLabel.setHorizontalAlignment(JLabel.CENTER);
         serverSelectorLabel.setVerticalAlignment(JLabel.CENTER);
@@ -479,8 +511,6 @@ public class GUI extends Client {
 
         serverSelectorLabel.setFont(new Font("Arial", Font.BOLD,50));
         serverConnectionInfo.setFont(new Font("Arial", Font.BOLD,18));
-        usernameField.setFont(new Font("Arial", Font.BOLD,30));
-        passwordField.setFont(new Font("Arial", Font.BOLD,30));
 
         serverGuiMenuButton.addActionListener(new ActionListener() {
             @Override
@@ -507,12 +537,14 @@ public class GUI extends Client {
                     @Override
                     public void run() {
                         connect(serversJList.getSelectedValue(),8008);
-                        LoginPacket o = new LoginPacket(usernameField.getText(),passwordField.getText(),null);
+                        LoginPacket o = new LoginPacket(TOKEN);
                         sendObject(o);
+                        /**
+                         * TODO: Redo Login
+                         */
                         sendObject(new Ping(System.currentTimeMillis()));
                         sendObject(new RequestLobbiesPacket());
-                        clientData.put("username",usernameField.getText());
-                        clientData.put("password",passwordField.getText());
+                        clientData.put("token",TOKEN);
                         clientData.put("servers",serverList);
                         try {
                             Util.writeStringToFile(Util.prettyJSON(clientData.toString()),new File("client.properties"));
@@ -562,19 +594,6 @@ public class GUI extends Client {
                 forceUpdate = true;
             }
         });
-        serverGuiCreateAccount.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                gui = "create-account";
-            }
-        });
-        serverGuiManageAccount.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                gui = "manage-account";
-                System.out.println("gui");
-            }
-        });
 
         panel.add(serverSelectorLabel);
         panel.add(serverGuiMenuButton);
@@ -583,11 +602,7 @@ public class GUI extends Client {
         panel.add(serverGuiJoinServerButton);
         panel.add(serverGuiSearchLocalServersButton);
         panel.add(serverConnectionInfo);
-        panel.add(usernameField);
-        panel.add(passwordField);
         panel.add(serverGuiDeleteServer);
-        panel.add(serverGuiCreateAccount);
-        panel.add(serverGuiManageAccount);
         loadingGUI[0].increaseValue();
 
         /**
@@ -1029,6 +1044,89 @@ public class GUI extends Client {
         loadingGUI[0].increaseValue();
 
         /**
+         * login-account
+         */
+        JLabel loginAccountTitleLabel = new JLabel("LOGIN ACCOUNT");
+        JTextField loginAccountUsername = new JTextField();
+        JPasswordField loginAccountPasswordField = new JPasswordField();
+        JLabel loginAccountLabel = new JLabel("<html>Username:<br><br>Password:</html>");
+        JButton loginAccountLoginButton = new JButton("Login");
+        JButton loginAccountBackButton = new JButton("Back");
+        JButton switchToCreate = new JButton("Switch Create");
+
+        int yOffset = 100;
+
+        loginAccountTitleLabel.setBounds(((width-1000)/2),50,1000,50);
+        loginAccountUsername.setBounds(((width-400)/2) + 210,100 + yOffset,190,30);
+        loginAccountPasswordField.setBounds(((width-400)/2) + 210,140 + yOffset,190,30);
+        loginAccountLoginButton.setBounds(((width-400)/2),180 + yOffset,400,30);
+        loginAccountBackButton.setBounds(((width-400)/2),220 + yOffset,400,30);
+        switchToCreate.setBounds(((width-400)/2),260 + yOffset,400,30);
+        loginAccountLabel.setBounds(((width-400)/2),95 + yOffset,190,80);
+
+        loginAccountTitleLabel.setHorizontalAlignment(JLabel.CENTER);
+        loginAccountTitleLabel.setVerticalAlignment(JLabel.CENTER);
+
+        loginAccountTitleLabel.setFont(new Font("Arial", Font.PLAIN,40));
+        loginAccountLabel.setFont(new Font("Arial", Font.PLAIN,16));
+        loginAccountUsername.setFont(new Font("Arial", Font.PLAIN,16));
+        loginAccountPasswordField.setFont(new Font("Arial", Font.PLAIN,16));
+
+        switchToCreate.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gui = "create-account";
+            }
+        });
+
+        loginAccountBackButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gui = "settings-gui";
+            }
+        });
+        loginAccountLoginButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if(loginAccountPasswordField.getText().equals(loginAccountPasswordField.getText())) {
+                    AuthenticatorClient.login(loginAccountUsername.getText(),loginAccountPasswordField.getText());
+                    tokenData[0] = AuthenticatorClient.getTokenInfo(TOKEN);
+                    System.out.println(tokenData[0]);
+                    if(tokenData[0].get("header").equals("login-complete")){
+                        loggedInAs.setText("Logged in as " + loginAccountUsername.getText());
+                        loggedInAs.setForeground(Color.GREEN);
+                        TOKEN = tokenData[0].getString("token");
+                        try {
+                            Util.writeStringToFile(Util.prettyJSON(clientData.toString()),new File("client.properties"));
+                        } catch (IOException ex) {
+                            throw new RuntimeException(ex);
+                        }
+                        clientData.put("token",TOKEN);
+                        Util.log("logged in");
+
+                        tokenData[0] = AuthenticatorClient.getTokenInfo(TOKEN);
+                    } else {
+                        loggedInAs.setText("Not logged in, login failed");
+                        loggedInAs.setForeground(Color.RED);
+                        Util.log("not logged in");
+                    }
+                    loginAccountTitleLabel.setText("LOGIN ACCOUNT");
+                } else {
+                    loginAccountTitleLabel.setText("LOGIN ACCOUNT");
+                }
+            }
+        });
+
+        panel.add(loginAccountTitleLabel);
+        panel.add(loginAccountUsername);
+        panel.add(loginAccountPasswordField);
+        panel.add(loginAccountLoginButton);
+        panel.add(loginAccountBackButton);
+        panel.add(loginAccountLabel);
+        panel.add(switchToCreate);
+        loadingGUI[0].increaseValue();
+
+        /**
          * create-account
          */
         JLabel createAccountTitleLabel = new JLabel("CREATE ACCOUNT");
@@ -1039,8 +1137,9 @@ public class GUI extends Client {
         JLabel createAccountLabel = new JLabel("<html>Username:<br><br>Displayname:<br><br>Password:<br><br>Confirm Password:</html>");
         JButton createAccountCreateButton = new JButton("Create");
         JButton createAccountBackButton = new JButton("Back");
+        JButton switchToLogin = new JButton("Switch Login");
 
-        int yOffset = 100;
+        yOffset = 100;
 
         createAccountTitleLabel.setBounds(((width-1000)/2),50,1000,50);
         createAccountUsername.setBounds(((width-400)/2) + 210,100 + yOffset,190,30);
@@ -1049,6 +1148,7 @@ public class GUI extends Client {
         createAccountConfirmPassword.setBounds(((width-400)/2) + 210,220 + yOffset,190,30);
         createAccountCreateButton.setBounds(((width-400)/2),260 + yOffset,400,30);
         createAccountBackButton.setBounds(((width-400)/2),300 + yOffset,400,30);
+        switchToLogin.setBounds(((width-400)/2),340 + yOffset,400,30);
         createAccountLabel.setBounds(((width-400)/2),100 + yOffset,190,150);
 
         createAccountTitleLabel.setHorizontalAlignment(JLabel.CENTER);
@@ -1061,21 +1161,27 @@ public class GUI extends Client {
         createAccountPasswordField.setFont(new Font("Arial", Font.PLAIN,16));
         createAccountConfirmPassword.setFont(new Font("Arial", Font.PLAIN,16));
 
+        switchToLogin.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                gui = "login-account";
+            }
+        });
+
         createAccountBackButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                gui = "server-selector";
+                gui = "settings-gui";
             }
         });
         createAccountCreateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if(createAccountPasswordField.getText().equals(createAccountConfirmPassword.getText())) {
-                    connect(serversJList.getSelectedValue(),8008);
-                    sendObject(new CreateAccountPacket(createAccountUsername.getText(), createAccountPasswordField.getText(), createAccountDisplayName.getText()));
-                    createAccountTitleLabel.setText("CREATE ACCOUNT (Success)");
+                    AuthenticatorClient.createAccount(createAccountUsername.getText(),createAccountDisplayName.getText(),createAccountConfirmPassword.getText());
+                    createAccountTitleLabel.setText("CREATE ACCOUNT");
                 } else {
-                    createAccountTitleLabel.setText("CREATE ACCOUNT (Passwords dont match)");
+                    createAccountTitleLabel.setText("CREATE ACCOUNT");
                 }
             }
         });
@@ -1088,6 +1194,7 @@ public class GUI extends Client {
         panel.add(createAccountCreateButton);
         panel.add(createAccountBackButton);
         panel.add(createAccountLabel);
+        panel.add(switchToLogin);
         loadingGUI[0].increaseValue();
 
         /**
@@ -1142,6 +1249,7 @@ public class GUI extends Client {
                         if(previousMode != darkMode){
                             if(darkMode){
                                 for(Component c : panel.getComponents()){
+                                    if(c.equals(loggedInAs)) continue;
                                     if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.WHITE);
                                     if(!(c instanceof JLabel)) c.setBackground(Color.DARK_GRAY);
                                 }
@@ -1156,6 +1264,7 @@ public class GUI extends Client {
                                 lobbyPlayers.setBackground(Color.DARK_GRAY);
                             } else {
                                 for(Component c : panel.getComponents()){
+                                    if(c.equals(loggedInAs)) continue;
                                     if(c != serverConnectionInfo && c != joinResult) c.setForeground(Color.BLACK);
                                     if(!(c instanceof JLabel)) c.setBackground(Color.WHITE);
                                 }
@@ -1199,14 +1308,14 @@ public class GUI extends Client {
 
                         switch (gui){
                             case "main-menu": {
-                                List<Component> components = List.of(mainMenuTitleLabel,mainMenuPlayButton,mainMenuSettingsButton,mainMenuSubTitleLabel);
+                                List<Component> components = List.of(mainMenuTitleLabel,mainMenuPlayButton,mainMenuSettingsButton,mainMenuSubTitleLabel,loggedInAs);
                                 for(Component c : panel.getComponents()){
                                     c.setVisible(components.contains(c));
                                 }
                                 break;
                             }
                             case "settings-gui": {
-                                List<Component> components = List.of(cardSwitchRight,cardSwitchLeft,cardPreview,texturePackLoadResult,applyTexturepackButton,resourcePackTextField,settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton,startPerformanceProfiler,toggleDarkMode);
+                                List<Component> components = List.of(accountGUI,cardSwitchRight,cardSwitchLeft,cardPreview,texturePackLoadResult,applyTexturepackButton,resourcePackTextField,settingsSubTitleLabel,settingsTitleLabel,settingsMainMenuButton,startPerformanceProfiler,toggleDarkMode,loggedInAs);
                                 for(Component c : panel.getComponents()){
                                     c.setVisible(components.contains(c));
                                 }
@@ -1223,7 +1332,7 @@ public class GUI extends Client {
                                 break;
                             }
                             case "server-selector": {
-                                List<Component> components = List.of(serverSelectorLabel,serverGuiMenuButton,serverScrollPane,serverGuiJoinServerButton,serverGuiAddServer,serverGuiSearchLocalServersButton,serverConnectionInfo,usernameField,passwordField,serverGuiDeleteServer,serverGuiCreateAccount,serverGuiManageAccount);
+                                List<Component> components = List.of(serverSelectorLabel,serverGuiMenuButton,serverScrollPane,serverGuiJoinServerButton,serverGuiAddServer,serverGuiSearchLocalServersButton,serverConnectionInfo,serverGuiDeleteServer,loggedInAs);
                                 for(Component c : panel.getComponents()){
                                     c.setVisible(components.contains(c));
                                 }
@@ -1249,7 +1358,7 @@ public class GUI extends Client {
                                 break;
                             }
                             case "server-main": {
-                                List<Component> components = List.of(statsField,serverConnectedTo,joinLobby,joinResult,createLobby,codeField,serverMainDisconnectButton,lobbiesScrollPane);
+                                List<Component> components = List.of(statsField,serverConnectedTo,joinLobby,joinResult,createLobby,codeField,serverMainDisconnectButton,lobbiesScrollPane,loggedInAs);
                                 serverConnectedTo.setText("Server connected to: " + serversJList.getSelectedValue());
                                 for(Component c : panel.getComponents()){
                                     c.setVisible(components.contains(c));
@@ -1264,7 +1373,7 @@ public class GUI extends Client {
                                 break;
                             }
                             case "game-lobby": {
-                                List<Component> components = List.of(lobbyDecks,lobbyStacking,lobbySevenSwap,lobbyJumpIn,lobbyCardsPerPlayer,lobbySettingsLabel,lobbyCode,lobbyPlayersScrollPane,lobbyStart,leaveLobby,lobbyIngameChat);
+                                List<Component> components = List.of(lobbyDecks,lobbyStacking,lobbySevenSwap,lobbyJumpIn,lobbyCardsPerPlayer,lobbySettingsLabel,lobbyCode,lobbyPlayersScrollPane,lobbyStart,leaveLobby,lobbyIngameChat,loggedInAs);
                                 for(Component c : panel.getComponents()){
                                     c.setVisible(components.contains(c));
                                 }
@@ -1504,17 +1613,24 @@ public class GUI extends Client {
                                 break;
                             }
                             case "manage-account" :{
-                                List<Component> components = List.of(draw);
+                                List<Component> components = List.of(draw,loggedInAs);
                                 for(Component c : panel.getComponents()){
                                     c.setVisible(components.contains(c));
                                 }
                                 break;
                             }
-                            case "create-account" :
-                                List<Component> components = List.of(createAccountTitleLabel, createAccountUsername, createAccountDisplayName, createAccountPasswordField, createAccountConfirmPassword, createAccountCreateButton, createAccountBackButton, createAccountLabel);
+                            case "create-account" : {
+                                List<Component> components = List.of(switchToLogin, createAccountTitleLabel, createAccountUsername, createAccountDisplayName, createAccountPasswordField, createAccountConfirmPassword, createAccountCreateButton, createAccountBackButton, createAccountLabel,loggedInAs);
+                                for (Component c : panel.getComponents()) {
+                                    c.setVisible(components.contains(c));
+                                }
+                                break;
+                            }
+                            case "login-account" :{
+                                List<Component> components = List.of(switchToCreate,loginAccountTitleLabel, loginAccountUsername, loginAccountPasswordField, loginAccountLoginButton, loginAccountBackButton, loginAccountLabel,loggedInAs);
                                 for(Component c : panel.getComponents()){
                                     c.setVisible(components.contains(c));
-                                }{
+                                }
                                 break;
                             }
                             default: {

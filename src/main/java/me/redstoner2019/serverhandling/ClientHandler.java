@@ -90,6 +90,8 @@ public class ClientHandler {
                                     connected = false;
                                     return;
                                 }
+                            } catch (SocketException e) {
+
                             } catch (IOException e) {
                                 e.printStackTrace();
                             }

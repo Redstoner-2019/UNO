@@ -1,18 +1,1 @@
-{
-  "Theytrin" : {
-    "password" : "123456789",
-    "displayname" : "Theytrin",
-    "plus-4-placed" : 10,
-    "games-played" : 5,
-    "games-won" : 3,
-    "username" : "Theytrin"
-  },
-  "lukas" : {
-    "password" : "test",
-    "displayname" : "Lukas",
-    "plus-4-placed" : 5,
-    "games-played" : 5,
-    "games-won" : 2,
-    "username" : "lukas"
-  }
-}
+{}
