@@ -1,39 +1,5 @@
-24 Apr 2024 21:54:07 GMT [INFO]  Init complete
-24 Apr 2024 21:54:07 GMT [INFO]  0 -> took 227 ms
-24 Apr 2024 21:54:07 GMT [INFO]  file:/C:/Users/lukas/IdeaProjects/UNO_NEW/target/classes/textures/texture.png
-24 Apr 2024 21:54:07 GMT [INFO]  [23:54:024 Apr 2024 21:54:56 GMT [INFO]  New Client 127.0.0.1 has connected
-24 Apr 2024 21:54:56 GMT [INFO]  Waiting for connection...
-24 Apr 2024 21:54:56 GMT [INFO]  Client has connected /127.0.0.1
-24 Apr 2024 21:54:56 GMT [INFO]  Started Packet Listener
-24 Apr 2024 21:54:56 GMT [INFO]  Server v1.6.0-alpha.9
-24 Apr 2024 21:54:56 GMT [INFO]  Client v1.6.0-alpha.9
-24 Apr 2024 21:54:57 GMT [INFO]  valid token
-24 Apr 2024 21:54:59 GMT [INFO]  AMOCE
-24 Apr 2024 21:55:03 GMT [INFO]  Starting gmae
-24 Apr 2024 21:55:03 GMT [INFO]  Game Start
-24 Apr 2024 21:55:03 GMT [INFO]  Send Game Start
-24 Apr 2024 21:55:03 GMT [INFO]  7 cards/player
-24 Apr 2024 21:55:05 GMT [INFO]  Lukas played card Card{color=BLUE, num=SKIP, overrideColor=null}
-24 Apr 2024 21:55:05 GMT [INFO]  0lukas
-24 Apr 2024 21:55:05 GMT [INFO]  1lukas
-24 Apr 2024 21:55:05 GMT [INFO]  Lukas played card Card{color=BLUE, num=SEVEN, overrideColor=null}
-24 Apr 2024 21:55:05 GMT [INFO]  1lukas
-24 Apr 2024 21:55:05 GMT [INFO]  2lukas
-24 Apr 2024 21:55:06 GMT [INFO]  Lukas played card Card{color=BLUE, num=DRAW, overrideColor=null}
-24 Apr 2024 21:55:06 GMT [INFO]  2lukas
-24 Apr 2024 21:55:06 GMT [INFO]  3lukas
-24 Apr 2024 21:55:07 GMT [INFO]  Lukas has drawn Card{color=RED, num=NINE, overrideColor=null}
-24 Apr 2024 21:55:07 GMT [INFO]  Lukas has drawn Card{color=BLUE, num=NINE, overrideColor=null}
-24 Apr 2024 21:55:08 GMT [INFO]  Lukas played card Card{color=BLUE, num=NINE, overrideColor=null}
-24 Apr 2024 21:55:08 GMT [INFO]  3lukas
-24 Apr 2024 21:55:08 GMT [INFO]  4lukas
-24 Apr 2024 21:55:09 GMT [INFO]  Lukas played card Card{color=RED, num=NINE, overrideColor=null}
-24 Apr 2024 21:55:09 GMT [INFO]  4lukas
-24 Apr 2024 21:55:09 GMT [INFO]  5lukas
-24 Apr 2024 21:55:10 GMT [INFO]  Lukas played card Card{color=RED, num=FOUR, overrideColor=null}
-24 Apr 2024 21:55:10 GMT [INFO]  5lukas
-24 Apr 2024 21:55:10 GMT [INFO]  6lukas
-24 Apr 2024 21:55:13 GMT [INFO]  Connection reset
-24 Apr 2024 21:55:13 GMT [INFO]  Client disconnected
-24 Apr 2024 21:55:13 GMT [INFO]  Sender closed
-24 Apr 2024 21:55:13 GMT [INFO]  Removing lobby AMOCE
+25 Apr 2024 09:10:50 GMT [INFO]  Init complete
+25 Apr 2024 09:10:51 GMT [INFO]  [11:10:51.455]: Starting sender
+25 Apr 2024 09:10:51 GMT [INFO]  [11:10:51.479]: ConnectRequestPacket{protocol=UDP}
+25 Apr 2024 09:10:51 GMT [INFO]  [11:10:51.487]: Starting Server on Port 172.20.150.59:8008
+25 Apr 2024 09:10:51 GMT [INFO]  [11:10:51.489]: Using protocol: UDP
