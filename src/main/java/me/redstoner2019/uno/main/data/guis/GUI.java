@@ -126,13 +126,13 @@ public class GUI extends ODClient {
             freshData.put("servers",servers);
             freshData.put("dark-mode",false);
             freshData.put("texturepack","");
-            freshData.put("auth-server","172.20.150.59");
+            freshData.put("auth-server","45.93.249.98");
             Util.writeStringToFile(Util.prettyJSON(freshData.toString()),new File("client.properties"));
         }
 
         clientData = new JSONObject(Util.readFile(new File("client.properties")));
 
-        String authServer = "172.20.150.59";
+        String authServer = "45.93.249.98";
 
         if(clientData.has("token")) TOKEN = clientData.getString("token");
         if(!clientData.has("auth-server")) clientData.put("auth-server",authServer);
@@ -629,7 +629,7 @@ public class GUI extends ODClient {
             @Override
             public void actionPerformed(ActionEvent e) {
                 serverList.remove(serversJList.getSelectedIndex());
-                if(serverList.isEmpty()) serverList.put("172.20.150.59");
+                if(serverList.isEmpty()) serverList.put("45.93.249.98");
                 serversJList.setSelectedIndex(0);
                 forceUpdate = true;
             }

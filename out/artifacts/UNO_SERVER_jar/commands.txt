@@ -1,0 +1,3 @@
+screen -S "authServer" java -jar AuthServer.jar
+screen -S "odLauncher" java -jar ODLauncher_SERVER.jar
+screen -S "unoServer" java -jar UNO_SERVER.jar

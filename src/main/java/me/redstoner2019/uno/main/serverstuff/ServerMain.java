@@ -25,6 +25,8 @@ import me.redstoner2019.uno.main.data.packets.remoteconsole.InitializeConsoleCli
 import me.redstoner2019.uno.main.data.packets.remoteconsole.RunCommandPacket;
 import org.json.JSONObject;
 
+//45.93.249.98
+
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.*;
@@ -58,7 +60,7 @@ public class ServerMain extends ODServer {
         JSONObject serverData = new JSONObject(Util.readFile(serverFile));
 
         if(!serverData.has("auth-server")){
-            serverData.put("auth-server","localhost");
+            serverData.put("auth-server","45.93.249.98");
         }
 
         Util.writeStringToFile(Util.prettyJSON(serverData.toString()),serverFile);
