@@ -135,6 +135,14 @@ public class GUI extends ODClient {
         String authServer = "45.93.249.98";
 
         if(clientData.has("token")) TOKEN = clientData.getString("token");
+        if(!clientData.has("version")){
+            clientData.put("version",Main.getVersion());
+        } else {
+            if(!clientData.getString("version").equals(Main.getVersion())){
+                clientData.put("token","");
+                clientData.put("auth-server",authServer);
+            }
+        }
         if(!clientData.has("auth-server")) clientData.put("auth-server",authServer);
         authServer = clientData.getString("auth-server");
 
