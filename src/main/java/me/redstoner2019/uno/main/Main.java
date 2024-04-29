@@ -5,6 +5,7 @@ import me.redstoner2019.uno.main.data.Card;
 import me.redstoner2019.uno.main.data.CardColor;
 import me.redstoner2019.uno.main.data.CardType;
 import me.redstoner2019.uno.main.data.guis.GUI;
+import me.redstoner2019.uno.main.gui.Application;
 import me.redstoner2019.uno.main.serverstuff.ServerMain;
 import org.json.JSONArray;
 
@@ -86,6 +87,7 @@ public class Main {
         //ImageIO.write(Util.resize(ImageIO.read(new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png")),1280,720),"PNG",new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png"));
 
         GUI gui = new GUI();
+        Application.startGUI();
     }
 
     public static void generateTextures() throws IOException {

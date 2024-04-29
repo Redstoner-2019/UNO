@@ -11,7 +11,6 @@ import me.redstoner2019.server.odserver.ClientHandler;
 import me.redstoner2019.server.odserver.ODServer;
 import me.redstoner2019.server.util.ConnectionProtocol;
 import me.redstoner2019.server.util.Util;
-import me.redstoner2019.uno.main.LoggerDump;
 import me.redstoner2019.uno.main.Main;
 import me.redstoner2019.uno.main.data.Game;
 import me.redstoner2019.uno.main.data.Player;
@@ -30,8 +29,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.*;
-
-import static me.redstoner2019.server.odserver.ODServer.*;
 
 public class ServerMain extends ODServer {
     private static OperatingSystemMXBean osBean;

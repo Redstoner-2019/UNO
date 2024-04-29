@@ -9,7 +9,7 @@ import me.redstoner2019.server.odclient.*;
 import me.redstoner2019.server.util.ConnectionProtocol;
 import me.redstoner2019.server.util.LocalNetworkScanner;
 import me.redstoner2019.server.util.Util;
-import me.redstoner2019.uno.main.BoundsCheck;
+import me.redstoner2019.uno.main.util.BoundsCheck;
 import me.redstoner2019.uno.main.Main;
 import me.redstoner2019.uno.main.data.*;
 import me.redstoner2019.uno.main.data.data.ActionMessage;
@@ -135,6 +135,14 @@ public class GUI extends ODClient {
         String authServer = "45.93.249.98";
 
         if(clientData.has("token")) TOKEN = clientData.getString("token");
+        if(!clientData.has("version")){
+            clientData.put("version",Main.getVersion());
+        } else {
+            if(!clientData.getString("version").equals(Main.getVersion())){
+                clientData.put("token","");
+                clientData.put("auth-server",authServer);
+            }
+        }
         if(!clientData.has("auth-server")) clientData.put("auth-server",authServer);
         authServer = clientData.getString("auth-server");
 
