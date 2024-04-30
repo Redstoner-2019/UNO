@@ -145,6 +145,7 @@ public class GUI extends ODClient {
         }
         if(!clientData.has("auth-server")) clientData.put("auth-server",authServer);
         authServer = clientData.getString("auth-server");
+        System.out.println(authServer);
 
         authenticatorClient.authenticationServerIp = authServer;
         authenticatorClient.setup();

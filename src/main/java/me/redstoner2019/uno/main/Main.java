@@ -87,7 +87,11 @@ public class Main {
         //ImageIO.write(Util.resize(ImageIO.read(new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png")),1280,720),"PNG",new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png"));
 
         GUI gui = new GUI();
+<<<<<<< HEAD
         Application.startGUI();
+=======
+        //GUIFrame.startGUI();
+>>>>>>> c7b0201 (done nothing)
     }
 
     public static void generateTextures() throws IOException {
