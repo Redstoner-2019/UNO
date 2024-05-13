@@ -3,9 +3,7 @@ package me.redstoner2019.uno.main.gui;
 import me.redstoner2019.guiapi.BoundsCreator;
 import me.redstoner2019.guiapi.GUI;
 import me.redstoner2019.server.util.Util;
-import me.redstoner2019.uno.main.gui.subguis.MainMenu;
-import me.redstoner2019.uno.main.gui.subguis.ServerMenu;
-import me.redstoner2019.uno.main.gui.subguis.SettingsMenu;
+import me.redstoner2019.uno.main.gui.subguis.*;
 
 import javax.swing.*;
 import java.awt.*;
@@ -49,12 +47,16 @@ public class Application {
         register(new MainMenu().init());
         register(new SettingsMenu().init());
         register(new ServerMenu().init());
+        register(new ManageAccountGUI().init());
+        register(new LoginGUI().init());
+        register(new CreateAccountGUI().init());
 
         switchGui("main-menu");
+        switchGui("create-account-gui");
 
         frame.setVisible(true);
 
-        BoundsCreator boundsCreator = new BoundsCreator(100,100);
+        BoundsCreator boundsCreator = new BoundsCreator(frame.getWidth(),frame.getHeight());
 
         while (frame.isVisible()){
             boundsCreator.update(frame.getWidth()-16, frame.getHeight()-39);

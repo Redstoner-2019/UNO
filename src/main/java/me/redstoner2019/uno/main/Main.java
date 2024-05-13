@@ -24,7 +24,7 @@ import static me.redstoner2019.uno.main.data.CardColor.*;
 
 public class Main {
     public static final boolean TEST_MODE = false;
-    private static final String VERSION = "v1.6.0-alpha.13";
+    private static final String VERSION = "v1.6.0-alpha.14";
     public static String username = "";
     public static String password = "";
     public static String packVersion = "1";
@@ -86,8 +86,8 @@ public class Main {
 
         //ImageIO.write(Util.resize(ImageIO.read(new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png")),1280,720),"PNG",new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png"));
 
-        GUI gui = new GUI();
-        //Application.startGUI();
+        //GUI gui = new GUI();
+        Application.startGUI();
     }
 
     public static void generateTextures() throws IOException {

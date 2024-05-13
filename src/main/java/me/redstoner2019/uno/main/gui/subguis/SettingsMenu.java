@@ -60,6 +60,27 @@ public class SettingsMenu extends GUI {
                 Application.switchGui("main-menu");
             }
         });
+
+        createAccount.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Application.switchGui("create-account-gui");
+            }
+        });
+
+        loginAccount.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Application.switchGui("login-account-gui");
+            }
+        });
+
+        manageAccount.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Application.switchGui("manage-account-gui");
+            }
+        });
         return this;
     }
 }
