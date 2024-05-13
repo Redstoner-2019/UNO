@@ -17,7 +17,7 @@ public class Packet implements Serializable {
     }
 
     @Serial
-    private static final long serialVersionUID = -6849794470754667710L;
+    private static final long serialVersionUID = 0;
     public String uuid = null;
     public long getChecksum(){
         return 0;

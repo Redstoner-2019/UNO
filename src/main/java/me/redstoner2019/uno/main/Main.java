@@ -24,7 +24,7 @@ import static me.redstoner2019.uno.main.data.CardColor.*;
 
 public class Main {
     public static final boolean TEST_MODE = false;
-    private static final String VERSION = "v1.6.0-alpha.11";
+    private static final String VERSION = "v1.6.0-alpha.13";
     public static String username = "";
     public static String password = "";
     public static String packVersion = "1";
@@ -57,20 +57,20 @@ public class Main {
         return tags.getJSONObject(0).getString("name");
     }
     public static void main(String[] args) throws Exception {
-        if(args.length == 3){
-            if(args[0].equals("client")) {
+        if (args.length == 3) {
+            if (args[0].equals("client")) {
                 username = args[1];
                 password = args[2];
             }
         }
-        if(args.length == 2){
-            if(args[0].equals("server")) {
+        if (args.length == 2) {
+            if (args[0].equals("server")) {
                 ServerMain.main(new String[]{args[1]});
                 return;
             }
         }
-        if(args.length == 1){
-            if(args[0].equals("server")) {
+        if (args.length == 1) {
+            if (args[0].equals("server")) {
                 ServerMain.main(new String[]{});
                 return;
             }
@@ -79,7 +79,7 @@ public class Main {
 
         File resourcePacks = new File("texturepacks");
 
-        if(!resourcePacks.exists()){
+        if (!resourcePacks.exists()) {
             resourcePacks.mkdirs();
         }
         //generateTextures();
@@ -87,11 +87,7 @@ public class Main {
         //ImageIO.write(Util.resize(ImageIO.read(new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png")),1280,720),"PNG",new File("C:\\Projects\\UNO\\src\\main\\resources\\background.png"));
 
         GUI gui = new GUI();
-<<<<<<< HEAD
-        Application.startGUI();
-=======
-        //GUIFrame.startGUI();
->>>>>>> c7b0201 (done nothing)
+        //Application.startGUI();
     }
 
     public static void generateTextures() throws IOException {

@@ -1162,7 +1162,7 @@ public class GUI extends ODClient {
                                 }
                                 clientData.put("token", TOKEN);
                                 Util.log("logged in");
-                                loggedInAs.setText("Logged in as " + loginAccountUsername.getText());
+                                loggedInAs.setText("Logged in as " + loginAccountUsername.getText() + " - " + TOKEN.substring(0,5));
                                 loggedInAs.setForeground(Color.GREEN);
                             } else {
                                 loggedInAs.setText("Not logged in, login failed");
