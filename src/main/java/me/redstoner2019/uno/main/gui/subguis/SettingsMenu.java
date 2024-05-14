@@ -45,6 +45,10 @@ public class SettingsMenu extends GUI {
 
         Design.register(this);
 
+        Design.setFontSize(title,50);
+        Design.setFontSize(subtitle,30);
+        Design.setFontSize(currentAuthServer,20);
+
         Design.centerText(title);
         Design.setFontStyle(title, Font.BOLD);
 

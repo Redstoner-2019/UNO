@@ -51,6 +51,9 @@ public class MainMenu extends GUI {
         Design.rightAlignment(loginStatus);
         Design.setFontStyle(loginStatus, Font.PLAIN);
 
+        Design.setFontSize(title,50);
+        Design.setFontSize(subtitle,30);
+
         settings.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {

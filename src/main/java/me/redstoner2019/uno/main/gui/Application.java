@@ -52,7 +52,7 @@ public class Application {
         register(new CreateAccountGUI().init());
 
         switchGui("main-menu");
-        switchGui("create-account-gui");
+        switchGui("manage-account-gui");
 
         frame.setVisible(true);
 
