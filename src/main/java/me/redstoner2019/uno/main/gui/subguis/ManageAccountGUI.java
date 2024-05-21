@@ -9,6 +9,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ManageAccountGUI extends GUI {
     public static JButton backButton = new JButton("BACK");
@@ -19,19 +21,18 @@ public class ManageAccountGUI extends GUI {
 
     @Override
     public GUI init() {
-        int buttons = 20;
+        List<String> gamesNames = new ArrayList<>(List.of(new String[]{"UNO", "ToeTakTik"}));
 
         JPanel pa = new JPanel();
-        pa.setLayout(new GridLayout(0,buttons));
+        GridLayout layout = new GridLayout(1,0);
+        pa.setLayout(layout);
 
-        for (int i = 0; i < buttons; i++) {
+        for(String s : gamesNames){
+            JButton button = new JButton(s);
 
-            JButton button = new JButton("Button " + (i + 1));
-
-            button.setMinimumSize(new Dimension(400, (int) button.getMinimumSize().height));
+            button.setPreferredSize(new Dimension(200, button.getPreferredSize().height));
 
             pa.add(button);
-
         }
 
         JScrollPane scrollPane = new JScrollPane(pa);

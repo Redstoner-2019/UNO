@@ -50,9 +50,12 @@ public class Application {
         register(new ManageAccountGUI().init());
         register(new LoginGUI().init());
         register(new CreateAccountGUI().init());
+        register(new AddServerGUI().init());
+        register(new LobbySelector().init());
+        register(new LobbyGUI().init());
 
         switchGui("main-menu");
-        switchGui("manage-account-gui");
+        //switchGui("manage-account-gui");
 
         frame.setVisible(true);
 

@@ -88,7 +88,7 @@ public class ODServer {
                 });
                 t.start();
             }catch (Exception ignored){
-                ignored.printStackTrace();
+                Util.log(ignored.getLocalizedMessage() + "");
             }
         }
     }

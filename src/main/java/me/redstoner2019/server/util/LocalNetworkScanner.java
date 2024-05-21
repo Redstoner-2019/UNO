@@ -29,7 +29,7 @@ public class LocalNetworkScanner {
                         String ip = ipArr[0] + "." + ipArr[1] + "." + ipArr[2] + "." + finalI;
                         //System.out.println("Scanning " + ip);
                         if (isReachable(ip) && isOpen(ip, port)) {
-                            serverList.add(ip);
+                            if(!serverList.contains(ip)) serverList.add(ip);
                         }
                         ipsScanned[0]++;
                     /*if (ipsScanned[0] >= threadsStarted[0]) {

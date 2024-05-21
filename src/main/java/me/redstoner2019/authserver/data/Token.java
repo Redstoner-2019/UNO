@@ -72,7 +72,7 @@ public class Token {
         Calendar calendar = Calendar.getInstance();
 
         int seed = Integer.valueOf(calendar.get(Calendar.DAY_OF_MONTH) + "" + calendar.get(Calendar.MONTH) + calendar.get(Calendar.YEAR));
-        Random random = new Random(seed);
+        Random random = new Random(69);
         byte[] salt = new byte[16];
         random.nextBytes(salt);
 
